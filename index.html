@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popup UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Lisää responsiivisuus */
+    @media (max-width: 768px) {
+        .container {
+            padding: 10px;
+        }
+        .popup-form, .popup-list {
+            padding: 10px;
+        }
+        .popup-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .popup-actions {
+            margin-top: 10px;
+        }
+    }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .user-info {
+            margin-top: 20px;
+            font-size: 1.2em;
+            text-align: right;
+        }
+        .popup-form, .edit-popup-form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .popup-form h3, .edit-popup-form h3 {
+            margin-top: 0;
+        }
+        .popup-list {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .popup-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .popup-item:last-child {
+            border-bottom: none;
+        }
+        .popup-actions button {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.3s ease;
+        }
+        .popup-actions button:hover {
+            background: #0056b3;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            animation: fadeInOverlay 0.3s ease-in-out;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .popup button {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .popup button:hover {
+            background: #0056b3;
+        }
+        .popup-preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .preview-popup {
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .toast {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="container"></div>
+    <!-- Login button -->
+    <div id="loginSection">
+        <a href="/auth/google">Login with Google</a>
+    </div>
+
+    <!-- User info (hidden by default) -->
+    <div id="userInfo" class="user-info" style="display: none;">
+        <p>Welcome, <span id="userName"></span>!</p>
+        <button id="logoutButton">Logout</button>
+    </div>
+
+    <!-- Popup creation form -->
+    <div id="popupForm" class="popup-form" style="display: none;">
+        <h3>Create a Popup</h3>
+        <form id="createPopupForm">
+            <label for="popupType">Popup Type:</label>
+            <select id="popupType" name="popupType">
+                <option value="square">Square</option>
+                <option value="circle">Circle</option>
+            </select><br>
+            <label for="content">Content:</label>
+            <textarea id="content" name="content" rows="4" cols="50"></textarea><br>
+            <button type="submit">Create Popup</button>
+        </form>
+    </div>
+
+    <!-- Popup list -->
+    <div id="popupList" class="popup-list" style="display: none;">
+        <h3>Your Popups</h3>
+        <ul id="popups"></ul>
+    </div>
+
+    <div id="popupPreview" class="popup-preview" style="display: none;">
+        <h3>Popup Preview</h3>
+        <div id="previewPopup" class="preview-popup">
+            <p id="previewContent">This is a preview of the popup content.</p>
+        </div>
+    </div>
+
+     <!-- Edit popup form (hidden by default) -->
+     <div id="editPopupForm" class="popup-form" style="display: none;">
+        <h3>Edit Popup</h3>
+        <form id="updatePopupForm">
+            <input type="hidden" id="editPopupId">
+            <label for="editPopupType">Popup Type:</label>
+            <select id="editPopupType" name="popupType">
+                <option value="square">Square</option>
+                <option value="circle">Circle</option>
+            </select><br>
+            <label for="editContent">Content:</label>
+            <textarea id="editContent" name="content" rows="4" cols="50"></textarea><br>
+            <button type="submit">Update Popup</button>
+            <button type="button" id="cancelEdit">Cancel</button>
+        </form>
+
+    <!-- Popup elements -->
+    <button id="openPopup">Open Popup</button>
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="popup">
+        <h2>Hello, World!</h2>
+        <p>This is a simple popup.</p>
+        <button id="closePopup">Close</button>
+    </div>
+
+    <button onclick="editPopup('${popup._id}', '${popup.popupType}', '${popup.content}')">
+        <i class="fas fa-edit"></i> Edit
+    </button>
+    <button onclick="deletePopup('${popup._id}')">
+        <i class="fas fa-trash"></i> Delete
+    </button>
+
+    <script>
+        // Open and close popup logic
+        document.getElementById('openPopup').addEventListener('click', () => {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('popup').style.display = 'block';
+        });
+        document.getElementById('closePopup').addEventListener('click', () => {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('popup').style.display = 'none';
+        });
+
+        // Fetch user info on page load
+        fetch('/api/user')
+            .then(response => response.json())
+            .then(data => {
+                if (data.user) {
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('userInfo').style.display = 'block';
+                    document.getElementById('popupForm').style.display = 'block';
+                    document.getElementById('popupList').style.display = 'block';
+                    document.getElementById('userName').textContent = data.user.displayName;
+                    fetchUserPopups();
+                }
+            });
+
+        // Logout button logic
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            fetch('/auth/logout', { method: 'POST' })
+                .then(() => {
+                    window.location.reload(); // Reload the page after logout
+                });
+        });
+
+        // Handle popup creation form submission
+        document.getElementById('createPopupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const popupType = document.getElementById('popupType').value;
+            const content = document.getElementById('content').value;
+
+            fetch('/api/popups', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ popupType, content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                } else {
+                    fetchUserPopups(); // Refresh the popup list
+                }
+            });
+        });
+
+        // Fetch and display user's popups
+        function fetchUserPopups() {
+            fetch('/api/popups')
+                .then(response => response.json())
+                .then(data => {
+                    const popupList = document.getElementById('popups');
+                    popupList.innerHTML = ''; // Clear the list
+                    data.forEach(popup => {
+                        const li = document.createElement('li');
+                        li.textContent = `Type: ${popup.popupType}, Content: ${popup.content}`;
+                        popupList.appendChild(li);
+                    });
+                });
+        }
+        function fetchUserPopups() {
+            fetch('/api/popups')
+                .then(response => response.json())
+                .then(data => {
+                    const popupList = document.getElementById('popups');
+                    popupList.innerHTML = ''; // Clear the list
+                    data.forEach(popup => {
+                        const li = document.createElement('li');
+                        li.className = 'popup-item';
+                        li.innerHTML = `
+                            Type: ${popup.popupType}, Content: ${popup.content}
+                            <div class="popup-actions">
+                                <button onclick="editPopup('${popup._id}', '${popup.popupType}', '${popup.content}')">Edit</button>
+                                <button onclick="deletePopup('${popup._id}')">Delete</button>
+                            </div>
+                        `;
+                        popupList.appendChild(li);
+                    });
+                });
+        }
+
+        // Edit a popup
+        function editPopup(id, popupType, content) {
+            document.getElementById('editPopupId').value = id;
+            document.getElementById('editPopupType').value = popupType;
+            document.getElementById('editContent').value = content;
+            document.getElementById('editPopupForm').style.display = 'block';
+        }
+
+        // Handle popup update form submission
+        document.getElementById('updatePopupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editPopupId').value;
+            const popupType = document.getElementById('editPopupType').value;
+            const content = document.getElementById('editContent').value;
+
+            fetch(`/api/popups/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ popupType, content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                } else {
+                    document.getElementById('editPopupForm').style.display = 'none';
+                    fetchUserPopups(); // Refresh the popup list
+                }
+            });
+        });
+
+        // Cancel edit
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            document.getElementById('editPopupForm').style.display = 'none';
+        });
+
+        // Delete a popup
+        function deletePopup(id) {
+            if (confirm('Are you sure you want to delete this popup?')) {
+                fetch(`/api/popups/${id}`, { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            alert(data.message);
+                            fetchUserPopups(); // Refresh the popup list
+                        }
+                    });
+            }
+        }
+        function updatePreview() {
+            const popupType = document.getElementById('popupType').value;
+            const content = document.getElementById('content').value;
+    
+            const previewPopup = document.getElementById('previewPopup');
+            previewPopup.style.borderRadius = popupType === 'circle' ? '50%' : '0';
+            document.getElementById('previewContent').textContent = content;
+        }
+    
+        // Kutsu updatePreview-funktiota, kun popup-lomakkeen kenttiä muutetaan
+        document.getElementById('popupType').addEventListener('change', updatePreview);
+        document.getElementById('content').addEventListener('input', updatePreview);
+    
+        // Näytä esikatselu, kun lomake avataan
+        document.getElementById('createPopupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            updatePreview();
+            document.getElementById('popupPreview').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
