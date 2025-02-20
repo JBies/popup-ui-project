@@ -3,16 +3,21 @@ const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const connectDB = require('./db');
-const Popup = require('./models/Popup'); // Tuo Popup-malli
+const User = require('./models/User'); // Import User model
+const Popup = require('./models/Popup'); // Import Popup model
+const path = require('path');
 require('./auth');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 connectDB();
 
 // Middleware for parsing JSON
 app.use(express.json());
+
+// Serve static files from the root directory
+app.use(express.static(path.join(__dirname, '/')));
 
 app.use(session({
     secret: 'your-secret-key',
@@ -24,15 +29,15 @@ app.use(passport.session());
 
 // Serve the main HTML file
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Route to fetch user info
 app.get('/api/user', (req, res) => {
     if (req.user) {
-        res.json({ user: req.user });
+        res.json({ user: req.user }); // Send user info
     } else {
-        res.json({ user: null });
+        res.json({ user: null }); // If user is not logged in
     }
 });
 
@@ -56,7 +61,7 @@ app.post('/api/popups', async (req, res) => {
 
     try {
         const newPopup = new Popup({
-            userId: req.user.googleId,
+            userId: req.user._id, // Ensure userId is stored as ObjectId
             popupType,
             content
         });
@@ -74,9 +79,10 @@ app.get('/api/popups', async (req, res) => {
     }
 
     try {
-        const popups = await Popup.find({ userId: req.user.googleId });
+        const popups = await Popup.find({});
         res.json(popups);
     } catch (err) {
+        console.error('Error fetching popups:', err);
         res.status(500).json({ message: 'Error fetching popups', error: err });
     }
 });
@@ -91,7 +97,7 @@ app.put('/api/popups/:id', async (req, res) => {
 
     try {
         const updatedPopup = await Popup.findOneAndUpdate(
-            { _id: req.params.id, userId: req.user.googleId },
+            { _id: req.params.id},
             { popupType, content },
             { new: true }
         );
@@ -112,8 +118,7 @@ app.delete('/api/popups/:id', async (req, res) => {
 
     try {
         const deletedPopup = await Popup.findOneAndDelete({
-            _id: req.params.id,
-            userId: req.user.googleId
+            _id: req.params.id
         });
         if (!deletedPopup) {
             return res.status(404).json({ message: 'Popup not found' });
@@ -135,53 +140,86 @@ app.get('/auth/google/callback',
         res.redirect('/');
     });
 
-// admin-toiminnot
-// Hae kaikki käyttäjät
+// Admin routes
+// Fetch all users
 app.get('/api/admin/users', async (req, res) => {
     if (req.user && req.user.role === 'admin') {
-        const users = await User.find({});
-        res.json(users);
+        try {
+            const users = await User.find({});
+            res.json(users);
+        } catch (err) {
+            res.status(500).json({ message: 'Error fetching users', error: err });
+        }
     } else {
         res.status(403).send('Access denied');
     }
 });
 
-// Päivitä käyttäjän rooli
+// Update user role
 app.post('/api/admin/users/update-role/:id', async (req, res) => {
     if (req.user && req.user.role === 'admin') {
+        const userId = req.params.id;
         const { role } = req.body;
-        await User.findByIdAndUpdate(req.params.id, { role });
-        res.sendStatus(200);
+        try {
+            const user = await User.findById(userId);
+            if (user) {
+                user.role = role;
+                await user.save();
+                res.status(200).send('Role updated successfully!');
+            } else {
+                res.status(404).send('User not found');
+            }
+        } catch (err) {
+            res.status(500).json({ message: 'Error updating role', error: err });
+        }
     } else {
         res.status(403).send('Access denied');
     }
 });
 
-// Poista käyttäjä
+// Delete user
 app.post('/api/admin/users/delete/:id', async (req, res) => {
     if (req.user && req.user.role === 'admin') {
-        await User.findByIdAndDelete(req.params.id);
-        res.sendStatus(200);
+        const userId = req.params.id;
+        try {
+            const user = await User.findByIdAndDelete(userId);
+            if (user) {
+                res.status(200).send('User deleted successfully!');
+            } else {
+                res.status(404).send('User not found');
+            }
+        } catch (err) {
+            res.status(500).json({ message: 'Error deleting user', error: err });
+        }
     } else {
         res.status(403).send('Access denied');
     }
 });
 
-// Hae kaikki popupit
+// Fetch all popups
 app.get('/api/admin/popups', async (req, res) => {
     if (req.user && req.user.role === 'admin') {
-        const popups = await Popup.find({});
-        res.json(popups);
+        try {
+            const popups = await Popup.find({});
+            res.json(popups);
+        } catch (err) {
+            console.error('Error fetching popups:', err);
+            res.status(500).json({ message: 'Error fetching popups', error: err });
+        }
     } else {
         res.status(403).send('Access denied');
     }
 });
 
-// Poista popup
+// Delete popup
 app.post('/api/admin/popups/delete/:id', async (req, res) => {
     if (req.user && req.user.role === 'admin') {
-        await Popup.findByIdAndDelete(req.params.id);
-        res.sendStatus(200);
+        try {
+            await Popup.findByIdAndDelete(req.params.id);
+            res.sendStatus(200);
+        } catch (err) {
+            res.status(500).json({ message: 'Error deleting popup', error: err });
+        }
     } else {
         res.status(403).send('Access denied');
     }

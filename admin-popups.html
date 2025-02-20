@@ -5,25 +5,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Manage Popups</title>
-    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <h1>Manage Popups</h1>
-    <a href="/admin-popups-create.html">Create New Popup</a>
     <table id="popupsTable">
         <thead>
             <tr>
-                <th>Type</th>
+                <th>Popup Type</th>
                 <th>Content</th>
-                <th>Position</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            <!-- Popupit lisätään tähän JavaScriptillä -->
+            <!-- Popups will be added here by JavaScript -->
         </tbody>
     </table>
 
-    <script src="/admin-popups.js"></script>
+    <!-- Edit popup form (hidden by default) -->
+    <div id="editPopupForm" style="display: none;">
+        <h3>Edit Popup</h3>
+        <form onsubmit="event.preventDefault(); updatePopup();">
+            <input type="hidden" id="editPopupId">
+            <label for="editPopupType">Popup Type:</label>
+            <select id="editPopupType" name="popupType">
+                <option value="square">Square</option>
+                <option value="circle">Circle</option>
+            </select><br>
+            <label for="editContent">Content:</label>
+            <textarea id="editContent" name="content" rows="4" cols="50"></textarea><br>
+            <button type="submit">Update Popup</button>
+            <button type="button" onclick="document.getElementById('editPopupForm').style.display='none';">Cancel</button>
+        </form>
+    </div>
+
+    <script src="admin-popups.js"></script>
 </body>
 </html>

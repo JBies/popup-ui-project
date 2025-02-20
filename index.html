@@ -141,6 +141,10 @@
         .toast {
             font-family: 'Poppins', sans-serif;
         }
+        .adminMenu {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -169,20 +173,22 @@
             <textarea id="content" name="content" rows="4" cols="50"></textarea><br>
             <button type="submit">Create Popup</button>
         </form>
+            <!-- Popup list -->
+        <div id="popupList" class="popup-list">
+        <h3>Your Popups</h3>
+        <ul id="popups"></ul>
+        </div>
     </div>
     <nav>
         <a href="/">Home</a>
-        <% if (user && user.role === 'admin') { %>
-            <a href="/admin/users">Manage Users</a>
-            <a href="/admin/popups">Manage Popups</a>
-        <% } %>
-    </nav>
+        <div id="adminMenu" style="display: none;">
+            <a href="/api/admin/users">Manage Users</a>
 
-    <!-- Popup list -->
-    <div id="popupList" class="popup-list" style="display: none;">
-        <h3>Your Popups</h3>
-        <ul id="popups"></ul>
-    </div>
+            <a href="/api/admin/popups">Manage Popups</a>
+            <button onclick="location.href='admin-users.html'">Manage Users</button>
+            <button onclick="location.href='admin-popups.html'">Manage Popups</button>
+        </div>
+    </nav>
 
     <div id="popupPreview" class="popup-preview" style="display: none;">
         <h3>Popup Preview</h3>
@@ -207,6 +213,7 @@
             <button type="button" id="cancelEdit">Cancel</button>
         </form>
 
+
     <!-- Popup elements -->
     <button id="openPopup">Open Popup</button>
     <div class="overlay" id="overlay"></div>
@@ -224,6 +231,19 @@
     </button>
 
     <script>
+         // Hae käyttäjän tiedot palvelimelta
+         async function fetchUser() {
+            const response = await fetch('/api/user');
+            const data = await response.json();
+
+            if (data.user && data.user.role === 'admin') {
+                // Näytä admin-valikko
+                document.getElementById('adminMenu').style.display = 'block';
+            }
+        }
+
+        // Suorita fetchUser-funktio, kun sivu latautuu
+        document.addEventListener('DOMContentLoaded', fetchUser);
         // Open and close popup logic
         document.getElementById('openPopup').addEventListener('click', () => {
             document.getElementById('overlay').style.display = 'block';
@@ -278,19 +298,6 @@
         });
 
         // Fetch and display user's popups
-        function fetchUserPopups() {
-            fetch('/api/popups')
-                .then(response => response.json())
-                .then(data => {
-                    const popupList = document.getElementById('popups');
-                    popupList.innerHTML = ''; // Clear the list
-                    data.forEach(popup => {
-                        const li = document.createElement('li');
-                        li.textContent = `Type: ${popup.popupType}, Content: ${popup.content}`;
-                        popupList.appendChild(li);
-                    });
-                });
-        }
         function fetchUserPopups() {
             fetch('/api/popups')
                 .then(response => response.json())
