@@ -170,6 +170,13 @@
             <button type="submit">Create Popup</button>
         </form>
     </div>
+    <nav>
+        <a href="/">Home</a>
+        <% if (user && user.role === 'admin') { %>
+            <a href="/admin/users">Manage Users</a>
+            <a href="/admin/popups">Manage Popups</a>
+        <% } %>
+    </nav>
 
     <!-- Popup list -->
     <div id="popupList" class="popup-list" style="display: none;">

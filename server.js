@@ -134,14 +134,59 @@ app.get('/auth/google/callback',
     (req, res) => {
         res.redirect('/');
     });
-// Esimerkki admin-reitistä
-app.get('/admin', (req, res) => {
+
+// admin-toiminnot
+// Hae kaikki käyttäjät
+app.get('/api/admin/users', async (req, res) => {
     if (req.user && req.user.role === 'admin') {
-        res.send('Admin dashboard');
+        const users = await User.find({});
+        res.json(users);
     } else {
         res.status(403).send('Access denied');
     }
 });
+
+// Päivitä käyttäjän rooli
+app.post('/api/admin/users/update-role/:id', async (req, res) => {
+    if (req.user && req.user.role === 'admin') {
+        const { role } = req.body;
+        await User.findByIdAndUpdate(req.params.id, { role });
+        res.sendStatus(200);
+    } else {
+        res.status(403).send('Access denied');
+    }
+});
+
+// Poista käyttäjä
+app.post('/api/admin/users/delete/:id', async (req, res) => {
+    if (req.user && req.user.role === 'admin') {
+        await User.findByIdAndDelete(req.params.id);
+        res.sendStatus(200);
+    } else {
+        res.status(403).send('Access denied');
+    }
+});
+
+// Hae kaikki popupit
+app.get('/api/admin/popups', async (req, res) => {
+    if (req.user && req.user.role === 'admin') {
+        const popups = await Popup.find({});
+        res.json(popups);
+    } else {
+        res.status(403).send('Access denied');
+    }
+});
+
+// Poista popup
+app.post('/api/admin/popups/delete/:id', async (req, res) => {
+    if (req.user && req.user.role === 'admin') {
+        await Popup.findByIdAndDelete(req.params.id);
+        res.sendStatus(200);
+    } else {
+        res.status(403).send('Access denied');
+    }
+});
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
