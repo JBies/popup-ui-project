@@ -159,7 +159,7 @@
         <p>Welcome, <span id="userName"></span>!</p>
         <button id="logoutButton">Logout</button>
     </div>
-
+    <a href="/">Home</a>
     <!-- Popup creation form -->
     <div id="popupForm" class="popup-form" style="display: none;">
         <h3>Create a Popup</h3>
@@ -180,11 +180,10 @@
         </div>
     </div>
     <nav>
-        <a href="/">Home</a>
+        <h3>Admin Menu</h3>
         <div id="adminMenu" style="display: none;">
-            <a href="/api/admin/users">Manage Users</a>
-
-            <a href="/api/admin/popups">Manage Popups</a>
+            <button onclick="location.href='api/admin/users'"> User database</button>
+            <button onclick="location.href='api/admin/popups'"> Popup database</button>
             <button onclick="location.href='admin-users.html'">Manage Users</button>
             <button onclick="location.href='admin-popups.html'">Manage Popups</button>
         </div>
