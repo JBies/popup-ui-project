@@ -93,14 +93,33 @@ app.put('/api/popups/:id', async (req, res) => {
         return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    const { popupType, content } = req.body;
+    const {
+        popupType,
+        width,
+        height,
+        position,
+        animation,
+        backgroundColor,
+        textColor,
+        content
+    } = req.body;
 
     try {
         const updatedPopup = await Popup.findOneAndUpdate(
-            { _id: req.params.id},
-            { popupType, content },
+            { _id: req.params.id },
+            {
+                popupType,
+                width,
+                height,
+                position,
+                animation,
+                backgroundColor,
+                textColor,
+                content
+            },
             { new: true }
         );
+        
         if (!updatedPopup) {
             return res.status(404).json({ message: 'Popup not found' });
         }

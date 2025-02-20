@@ -145,6 +145,77 @@
             display: none;
             margin-top: 20px;
         }
+        .size-controls, .position-controls, .animation-controls {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        
+        .size-controls input[type="number"] {
+            width: 100px;
+            padding: 5px;
+            margin: 5px 0;
+        }
+        
+        select, input, textarea {
+            margin: 5px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        /* Animaatiot */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-in-out;
+        }
+        .color-controls {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        
+        .color-controls input[type="color"] {
+            width: 50px;
+            height: 40px;
+            padding: 2px;
+            margin: 5px 0;
+        }
+        
+        .preview {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            min-height: 200px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -159,9 +230,9 @@
         <p>Welcome, <span id="userName"></span>!</p>
         <button id="logoutButton">Logout</button>
     </div>
-    <a href="/">Home</a>
     <!-- Popup creation form -->
     <div id="popupForm" class="popup-form" style="display: none;">
+        <a href="/">Home</a>
         <h3>Create a Popup</h3>
         <form id="createPopupForm">
             <label for="popupType">Popup Type:</label>
@@ -169,6 +240,41 @@
                 <option value="square">Square</option>
                 <option value="circle">Circle</option>
             </select><br>
+            <div class="size-controls">
+                <label for="width">Width (px):</label>
+                <input type="number" id="width" name="width" min="100" max="800" value="200"><br>
+                
+                <label for="height">Height (px):</label>
+                <input type="number" id="height" name="height" min="100" max="600" value="150"><br>
+            </div>
+            
+            <div class="position-controls">
+                <label for="position">Position:</label>
+                <select id="position" name="position">
+                    <option value="center">Center</option>
+                    <option value="top-left">Top Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="bottom-right">Bottom Right</option>
+                </select><br>
+            </div>
+
+            <div class="color-controls">
+                <label for="backgroundColor">Background Color:</label>
+                <input type="color" id="backgroundColor" name="backgroundColor" value="#ffffff">
+                
+                <label for="textColor">Text Color:</label>
+                <input type="color" id="textColor" name="textColor" value="#000000">
+            </div>
+            
+            <div class="animation-controls">
+                <label for="animation">Animation:</label>
+                <select id="animation" name="animation">
+                    <option value="none">None</option>
+                    <option value="fade">Fade</option>
+                    <option value="slide">Slide</option>
+                </select><br>
+            </div>
             <label for="content">Content:</label>
             <textarea id="content" name="content" rows="4" cols="50"></textarea><br>
             <button type="submit">Create Popup</button>
@@ -180,8 +286,8 @@
         </div>
     </div>
     <nav>
-        <h3>Admin Menu</h3>
         <div id="adminMenu" style="display: none;">
+            <h3>Admin Menu</h3>
             <button onclick="location.href='api/admin/users'"> User database</button>
             <button onclick="location.href='api/admin/popups'"> Popup database</button>
             <button onclick="location.href='admin-users.html'">Manage Users</button>
@@ -197,20 +303,69 @@
     </div>
 
      <!-- Edit popup form (hidden by default) -->
-     <div id="editPopupForm" class="popup-form" style="display: none;">
+
+    <div id="editPopupForm" class="popup-form" style="display: none;">
         <h3>Edit Popup</h3>
         <form id="updatePopupForm">
             <input type="hidden" id="editPopupId">
-            <label for="editPopupType">Popup Type:</label>
-            <select id="editPopupType" name="popupType">
-                <option value="square">Square</option>
-                <option value="circle">Circle</option>
-            </select><br>
-            <label for="editContent">Content:</label>
-            <textarea id="editContent" name="content" rows="4" cols="50"></textarea><br>
-            <button type="submit">Update Popup</button>
-            <button type="button" id="cancelEdit">Cancel</button>
+            
+            <div class="form-group">
+                <label for="editPopupType">Popup Type:</label>
+                <select id="editPopupType" name="popupType">
+                    <option value="square">Square</option>
+                    <option value="circle">Circle</option>
+                </select>
+            </div>
+
+            <div class="size-controls">
+                <label for="editWidth">Width (px):</label>
+                <input type="number" id="editWidth" name="width" min="100" max="800" value="200">
+                
+                <label for="editHeight">Height (px):</label>
+                <input type="number" id="editHeight" name="height" min="100" max="600" value="150">
+            </div>
+
+            <div class="position-controls">
+                <label for="editPosition">Position:</label>
+                <select id="editPosition" name="position">
+                    <option value="center">Center</option>
+                    <option value="top-left">Top Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="bottom-right">Bottom Right</option>
+                </select>
+            </div>
+
+            <div class="animation-controls">
+                <label for="editAnimation">Animation:</label>
+                <select id="editAnimation" name="animation">
+                    <option value="none">None</option>
+                    <option value="fade">Fade</option>
+                    <option value="slide">Slide</option>
+                </select>
+            </div>
+
+            <div class="color-controls">
+                <label for="editBackgroundColor">Background Color:</label>
+                <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff">
+                
+                <label for="editTextColor">Text Color:</label>
+                <input type="color" id="editTextColor" name="textColor" value="#000000">
+            </div>
+
+            <div class="content-controls">
+                <label for="editContent">Content:</label>
+                <textarea id="editContent" name="content" rows="4" cols="50"></textarea>
+            </div>
+
+            <div class="preview" id="editPreview"></div>
+
+            <div class="button-group">
+                <button type="submit">Update Popup</button>
+                <button type="button" id="cancelEdit">Cancel</button>
+            </div>
         </form>
+    </div>
 
 
     <!-- Popup elements -->
@@ -221,13 +376,6 @@
         <p>This is a simple popup.</p>
         <button id="closePopup">Close</button>
     </div>
-
-    <button onclick="editPopup('${popup._id}', '${popup.popupType}', '${popup.content}')">
-        <i class="fas fa-edit"></i> Edit
-    </button>
-    <button onclick="deletePopup('${popup._id}')">
-        <i class="fas fa-trash"></i> Delete
-    </button>
 
     <script>
          // Hae käyttäjän tiedot palvelimelta
@@ -367,7 +515,98 @@
                     });
             }
         }
-        function updatePreview() {
+
+        // Funktio reaaliaikaisen esikatselun päivittämiseen
+        function updatePreview(formPrefix = '') {
+            const prefix = formPrefix ? formPrefix : '';
+            const previewContainer = document.getElementById(`${prefix}Preview`);
+            const popupType = document.getElementById(`${prefix}PopupType`).value;
+            const width = document.getElementById(`${prefix}Width`).value;
+            const height = document.getElementById(`${prefix}Height`).value;
+            const position = document.getElementById(`${prefix}Position`).value;
+            const animation = document.getElementById(`${prefix}Animation`).value;
+            const backgroundColor = document.getElementById(`${prefix}BackgroundColor`).value;
+            const textColor = document.getElementById(`${prefix}TextColor`).value;
+            const content = document.getElementById(`${prefix}Content`).value;
+
+            // Luo popup-esikatselu
+            const previewPopup = document.createElement('div');
+            previewPopup.style.width = `${width}px`;
+            previewPopup.style.height = `${height}px`;
+            previewPopup.style.backgroundColor = backgroundColor;
+            previewPopup.style.color = textColor;
+            previewPopup.style.borderRadius = popupType === 'circle' ? '50%' : '4px';
+            previewPopup.style.position = 'relative';
+            previewPopup.style.display = 'flex';
+            previewPopup.style.alignItems = 'center';
+            previewPopup.style.justifyContent = 'center';
+            previewPopup.style.padding = '10px';
+            previewPopup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            previewPopup.innerHTML = content;
+
+            // Tyhjennä ja päivitä esikatselu
+            previewContainer.innerHTML = '';
+            previewContainer.appendChild(previewPopup);
+        }
+
+        // Lisää event listenerit reaaliaikaiselle päivitykselle
+        const updatePreviewInputs = ['PopupType', 'Width', 'Height', 'Position', 'Animation', 'BackgroundColor', 'TextColor', 'Content'];
+        updatePreviewInputs.forEach(input => {
+            document.getElementById(input)?.addEventListener('input', () => updatePreview(''));
+            document.getElementById(`edit${input}`)?.addEventListener('input', () => updatePreview('edit'));
+        });
+
+        // Päivitä edit-popup funktio
+        function editPopup(id, popup) {
+            document.getElementById('editPopupId').value = id;
+            document.getElementById('editPopupType').value = popup.popupType;
+            document.getElementById('editWidth').value = popup.width || 200;
+            document.getElementById('editHeight').value = popup.height || 150;
+            document.getElementById('editPosition').value = popup.position || 'center';
+            document.getElementById('editAnimation').value = popup.animation || 'none';
+            document.getElementById('editBackgroundColor').value = popup.backgroundColor || '#ffffff';
+            document.getElementById('editTextColor').value = popup.textColor || '#000000';
+            document.getElementById('editContent').value = popup.content;
+            
+            document.getElementById('editPopupForm').style.display = 'block';
+            updatePreview('edit');
+        }
+
+        // Päivitä updatePopup funktio
+        document.getElementById('updatePopupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editPopupId').value;
+            const popupData = {
+                popupType: document.getElementById('editPopupType').value,
+                width: document.getElementById('editWidth').value,
+                height: document.getElementById('editHeight').value,
+                position: document.getElementById('editPosition').value,
+                animation: document.getElementById('editAnimation').value,
+                backgroundColor: document.getElementById('editBackgroundColor').value,
+                textColor: document.getElementById('editTextColor').value,
+                content: document.getElementById('editContent').value
+            };
+
+            try {
+                const response = await fetch(`/api/popups/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(popupData)
+                });
+
+                if (response.ok) {
+                    alert('Popup updated successfully!');
+                    document.getElementById('editPopupForm').style.display = 'none';
+                    fetchUserPopups();
+                } else {
+                    throw new Error('Failed to update popup');
+                }
+            } catch (error) {
+                console.error('Error updating popup:', error);
+                alert('Failed to update popup');
+            }
+        });
+ /*       function updatePreview() {
             const popupType = document.getElementById('popupType').value;
             const content = document.getElementById('content').value;
     
@@ -385,7 +624,7 @@
             e.preventDefault();
             updatePreview();
             document.getElementById('popupPreview').style.display = 'block';
-        });
+        });*/
     </script>
 </body>
 </html>
