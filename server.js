@@ -90,7 +90,49 @@ app.get('/api/popups', async (req, res) => {
 // Route to update a popup
 app.put('/api/popups/:id', async (req, res) => {
     if (!req.user) {
-        return res.status(401).json({ message: 'Not authenticated' });
+        return res.status(401).json({ message: 'Not authenticated or not authorized' });
+    }
+
+    const {
+        popupType,
+        width,
+        height,
+        position,
+        animation,
+        backgroundColor,
+        textColor,
+        content
+    } = req.body;
+
+    try {
+        const updatedPopup = await Popup.findOneAndUpdate(
+            { _id: req.params.id },
+            {
+                popupType,
+                width,
+                height,
+                position,
+                animation,
+                backgroundColor,
+                textColor,
+                content
+            },
+            { new: true }
+        );
+        
+        if (!updatedPopup) {
+            return res.status(404).json({ message: 'Popup not found' });
+        }
+        res.json(updatedPopup);
+    } catch (err) {
+        res.status(500).json({ message: 'Error updating popup', error: err });
+    }
+});
+
+// Route for admin to update a popup
+app.put('/api/admin/popups/:id', async (req, res) => {
+    if (!req.user || req.user.role !== 'admin') {
+        return res.status(401).json({ message: 'Not authenticated or not authorized' });
     }
 
     const {

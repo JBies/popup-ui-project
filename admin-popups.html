@@ -31,6 +31,28 @@
                 <option value="square">Square</option>
                 <option value="circle">Circle</option>
             </select><br>
+            <label for="editWidth">Width (px):</label>
+            <input type="number" id="editWidth" name="width" min="100" max="800" value="200"><br>
+            <label for="editHeight">Height (px):</label>
+            <input type="number" id="editHeight" name="height" min="100" max="600" value="150"><br>
+            <label for="editPosition">Position:</label>
+            <select id="editPosition" name="position">
+                <option value="center">Center</option>
+                <option value="top-left">Top Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-right">Bottom Right</option>
+            </select><br>
+            <label for="editAnimation">Animation:</label>
+            <select id="editAnimation" name="animation">
+                <option value="none">None</option>
+                <option value="fade">Fade</option>
+                <option value="slide">Slide</option>
+            </select><br>
+            <label for="editBackgroundColor">Background Color:</label>
+            <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff"><br>
+            <label for="editTextColor">Text Color:</label>
+            <input type="color" id="editTextColor" name="textColor" value="#000000"><br>
             <label for="editContent">Content:</label>
             <textarea id="editContent" name="content" rows="4" cols="50"></textarea><br>
             <button type="submit">Update Popup</button>
@@ -39,5 +61,52 @@
     </div>
 
     <script src="admin-popups.js"></script>
+    <script>
+        function editPopup(id, popupType, content) {
+            const popup = { popupType, content };
+            
+            const editPopupId = document.getElementById('editPopupId');
+            const editPopupType = document.getElementById('editPopupType');
+            const editWidth = document.getElementById('editWidth');
+            const editHeight = document.getElementById('editHeight');
+            const editPosition = document.getElementById('editPosition');
+            const editAnimation = document.getElementById('editAnimation');
+            const editBackgroundColor = document.getElementById('editBackgroundColor');
+            const editTextColor = document.getElementById('editTextColor');
+            const editContent = document.getElementById('editContent');
+
+            if (editPopupId && editPopupType && editWidth && editHeight && editPosition && editAnimation && editBackgroundColor && editTextColor && editContent) {
+                editPopupId.value = id;
+                editPopupType.value = popup.popupType || 'square';
+                editWidth.value = popup.width || 200;
+                editHeight.value = popup.height || 150;
+                editPosition.value = popup.position || 'center';
+                editAnimation.value = popup.animation || 'none';
+                editBackgroundColor.value = popup.backgroundColor || '#ffffff';
+                editTextColor.value = popup.textColor || '#000000';
+                editContent.value = popup.content || '';
+                
+                document.getElementById('editPopupForm').style.display = 'block';
+                updatePreview('edit');
+            } else {
+                console.error('One or more elements are missing');
+            }
+        }
+
+        function updatePreview(prefix = 'edit') {
+            const previewContainer = document.getElementById(`${prefix}Preview`);
+            if (!previewContainer) return;
+
+            const popupType = document.getElementById(prefix === 'create' ? 'popupType' : 'editPopupType')?.value || 'square';
+            const content = document.getElementById(prefix === 'create' ? 'content' : 'editContent')?.value || '';
+
+            const previewPopup = document.createElement('div');
+            previewPopup.style.borderRadius = popupType === 'circle' ? '50%' : '4px';
+            previewPopup.innerHTML = content;
+
+            previewContainer.innerHTML = '';
+            previewContainer.appendChild(previewPopup);
+        }
+    </script>
 </body>
 </html>
