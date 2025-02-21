@@ -11,6 +11,13 @@ const popupSchema = new mongoose.Schema({
     animation: { type: String, default: 'none' },
     backgroundColor: { type: String, default: '#ffffff' },
     textColor: { type: String, default: '#000000' },
+    timing: {
+        delay: { type: Number, default: 0 }, // Viive sivun latauksen jälkeen (sekunteina)
+        showDuration: { type: Number, default: 0 }, // Näyttöaika (0 = pysyy kunnes suljetaan)
+        frequency: { type: String, default: 'always' }, // 'always', 'once', 'daily', 'weekly'
+        startDate: { type: Date }, // Alkamispäivä
+        endDate: { type: Date }    // Päättymispäivä
+    },
     createdAt: { type: Date, default: Date.now }
 });
 

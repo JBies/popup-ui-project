@@ -101,7 +101,8 @@ app.put('/api/popups/:id', async (req, res) => {
         animation,
         backgroundColor,
         textColor,
-        content
+        content,
+        timing
     } = req.body;
 
     try {
@@ -115,7 +116,8 @@ app.put('/api/popups/:id', async (req, res) => {
                 animation,
                 backgroundColor,
                 textColor,
-                content
+                content,
+                timing
             },
             { new: true }
         );

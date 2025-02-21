@@ -67,6 +67,39 @@
             </div>
             <label for="content">Content:</label>
             <textarea id="content" name="content" rows="4" cols="50"></textarea><br>
+            <div class="timing-controls">
+                <h4>Timing Settings</h4>
+                
+                <div class="form-group">
+                    <label for="delay">Show Delay (seconds):</label>
+                    <input type="number" id="delay" name="delay" min="0" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="showDuration">Show Duration (seconds, 0 = until closed):</label>
+                    <input type="number" id="showDuration" name="showDuration" min="0" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="frequency">Show Frequency:</label>
+                    <select id="frequency" name="frequency">
+                        <option value="always">Every time</option>
+                        <option value="once">Once per user</option>
+                        <option value="daily">Once per day</option>
+                        <option value="weekly">Once per week</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="datetime-local" id="startDate" name="startDate">
+                </div>
+
+                <div class="form-group">
+                    <label for="endDate">End Date (optional):</label>
+                    <input type="datetime-local" id="endDate" name="endDate">
+                </div>
+            </div>
             <div class="preview" id="createPreview"></div>
             <button type="submit">Create Popup</button>
         </form>
@@ -147,7 +180,39 @@
                 <label for="editContent">Content:</label>
                 <textarea id="editContent" name="content" rows="4" cols="50"></textarea>
             </div>
+            <div class="timing-controls">
+                <h4>Timing Settings</h4>
+                
+                <div class="form-group">
+                    <label for="delay">Show Delay (seconds):</label>
+                    <input type="number" id="delay" name="delay" min="0" value="0">
+                </div>
 
+                <div class="form-group">
+                    <label for="showDuration">Show Duration (seconds, 0 = until closed):</label>
+                    <input type="number" id="showDuration" name="showDuration" min="0" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="frequency">Show Frequency:</label>
+                    <select id="frequency" name="frequency">
+                        <option value="always">Every time</option>
+                        <option value="once">Once per user</option>
+                        <option value="daily">Once per day</option>
+                        <option value="weekly">Once per week</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="datetime-local" id="startDate" name="startDate">
+                </div>
+
+                <div class="form-group">
+                    <label for="endDate">End Date (optional):</label>
+                    <input type="datetime-local" id="endDate" name="endDate">
+                </div>
+            </div>
         <div class="preview" id="editPreview"></div>
 
             <div class="button-group">
@@ -196,7 +261,7 @@
         // Lisää input event listenerit create-lomakkeen kentille
         document.addEventListener('DOMContentLoaded', () => {
             // Create-lomakkeen kenttien event listenerit
-            const createFields = ['popupType', 'width', 'height', 'position', 'animation', 'backgroundColor', 'textColor', 'content'];
+            const createFields = ['popupType', 'width', 'height', 'position', 'animation', 'backgroundColor', 'textColor', 'content', 'delay', 'showDuration', 'frequency', 'startDate', 'endDate'];
             createFields.forEach(field => {
                 const element = document.getElementById(field);
                 if (element) {
@@ -251,7 +316,14 @@
                 animation: document.getElementById('animation').value,
                 backgroundColor: document.getElementById('backgroundColor').value,
                 textColor: document.getElementById('textColor').value,
-                content: document.getElementById('content').value
+                content: document.getElementById('content').value,
+                timing: {
+                    delay: document.getElementById('delay').value,
+                    showDuration: document.getElementById('showDuration').value,
+                    frequency: document.getElementById('frequency').value,
+                    startDate: document.getElementById('startDate').value,
+                    endDate: document.getElementById('endDate').value || null
+                }
             };
         
             try {
@@ -319,6 +391,11 @@
             document.getElementById('editBackgroundColor').value = popup.backgroundColor || '#ffffff';
             document.getElementById('editTextColor').value = popup.textColor || '#000000';
             document.getElementById('editContent').value = popup.content || '';
+            document.getElementById('editDelay').value = popup.timing?.delay || 0;
+            document.getElementById('editShowDuration').value = popup.timing?.showDuration || 0;
+            document.getElementById('editFrequency').value = popup.timing?.frequency || 'always';
+            document.getElementById('editStartDate').value = popup.timing?.startDate ? new Date(popup.timing.startDate).toISOString().slice(0, 16) : '';
+            document.getElementById('editEndDate').value = popup.timing?.endDate ? new Date(popup.timing.endDate).toISOString().slice(0, 16) : '';
             
             // Näytä lomake
             document.getElementById('editPopupForm').style.display = 'block';
@@ -373,7 +450,7 @@
         function updatePreview(prefix = 'create') {
             const previewContainer = document.getElementById(`${prefix}Preview`);
             if (!previewContainer) return;
-        
+                    
             // Haetaan elementit oikeilla ID:illä
             const popupType = document.getElementById(prefix === 'create' ? 'popupType' : 'editPopupType')?.value || 'square';
             const width = document.getElementById(prefix === 'create' ? 'width' : 'editWidth')?.value || 200;
@@ -384,6 +461,11 @@
             const textColor = document.getElementById(prefix === 'create' ? 'textColor' : 'editTextColor')?.value || '#000000';
             const content = document.getElementById(prefix === 'create' ? 'content' : 'editContent')?.value || '';
         
+            // Haetaan ajastuksen elementit turvallisesti
+            const delayElement = document.getElementById(prefix === 'create' ? 'delay' : 'editDelay');
+            const durationElement = document.getElementById(prefix === 'create' ? 'showDuration' : 'editShowDuration');
+            const frequencyElement = document.getElementById(prefix === 'create' ? 'frequency' : 'editFrequency');
+
             // Luo preview container
             const previewWrapper = document.createElement('div');
             previewWrapper.style.position = 'relative';
@@ -411,6 +493,11 @@
             previewPopup.style.textAlign = 'center'; // Tekstin rivit keskitetään
             previewPopup.style.overflow = 'auto'; // Lisää scrollaus, jos sisältö ei mahdu
             previewPopup.style.fontSize = '16px';
+
+            const contentWrapper = document.createElement('div');
+            contentWrapper.style.width = 'center'; // Sisältö keskellä
+           // contentWrapper.innerHTML = content; // teki tuplana tekstit esikatseluun
+            previewPopup.appendChild(contentWrapper);
         
             // Aseta sijainti
             switch (position) {
@@ -439,6 +526,22 @@
             // Lisää animaatio
             if (animation !== 'none') {
                 previewPopup.style.animation = animation === 'fade' ? 'fadeIn 0.5s' : 'slideIn 0.5s';
+            }
+            // ajastus
+            // Lisää ajastustiedot esikatseluun vain jos kaikki tarvittavat elementit löytyvät
+            if (delayElement && durationElement && frequencyElement) {
+                const timingInfo = document.createElement('div');
+                timingInfo.style.position = 'absolute';
+                timingInfo.style.bottom = '10px';
+                timingInfo.style.left = '10px';
+                timingInfo.style.fontSize = '12px';
+                timingInfo.style.color = '#666';
+                timingInfo.innerHTML = `
+                    Delay: ${delayElement.value}s | 
+                    Duration: ${durationElement.value === '0' ? 'Until closed' : durationElement.value + 's'} | 
+                    Frequency: ${frequencyElement.value}
+                `;
+                previewWrapper.appendChild(timingInfo);
             }
         
             // Tyhjennä ja päivitä esikatselu

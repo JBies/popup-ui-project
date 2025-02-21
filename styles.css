@@ -209,3 +209,30 @@ select, input, textarea {
 .form-group {
     margin-bottom: 15px;
 }
+.timing-controls {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.timing-controls h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.timing-controls .form-group {
+    margin-bottom: 15px;
+}
+
+.timing-controls input[type="number"],
+.timing-controls input[type="datetime-local"],
+.timing-controls select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
