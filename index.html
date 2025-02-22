@@ -101,16 +101,17 @@
                 </div>
             </div>
             <div class="preview" id="createPreview"></div>
-            <button type="submit">Create Popup</button>
+            <button type="submit" id="createPopup">Create Popup</button>
         </form>
     </div>
     <nav>
         <div id="adminMenu" style="display: none;">
             <h3>Admin Menu</h3>
-            <button onclick="location.href='api/admin/users'"> User database</button>
+            <button onclick="location.href='api/admin/users'" id="userDB"> User database</button>
             <button onclick="location.href='api/admin/popups'"> Popup database</button>
             <button onclick="location.href='admin-users.html'">Manage Users</button>
             <button onclick="location.href='admin-popups.html'">Manage Popups</button>
+            <button id="delayButton">5s delay</button>
         </div>
     </nav>
                 <!-- Popup list -->
@@ -609,5 +610,6 @@
         });
 
     </script>
+    <script src="script.js"></script>
 </body>
 </html>
