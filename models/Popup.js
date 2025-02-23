@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const popupSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    //name: {type: String, default: "testi"},
     popupType: { type: String, required: true },
     content: { type: String, required: true },
     width: { type: Number, default: 200 },
@@ -15,8 +16,8 @@ const popupSchema = new mongoose.Schema({
         delay: { type: Number, default: 0 }, // Viive sivun latauksen jälkeen (sekunteina)
         showDuration: { type: Number, default: 0 }, // Näyttöaika (0 = pysyy kunnes suljetaan)
         frequency: { type: String, default: 'always' }, // 'always', 'once', 'daily', 'weekly'
-        startDate: { type: Date }, // Alkamispäivä
-        endDate: { type: Date }    // Päättymispäivä
+        startDate: { type: String, default: "default" }, // Alkamispäivä
+        endDate: { type: String, default: "default" }    // Päättymispäivä
     },
     createdAt: { type: Date, default: Date.now }
 });
