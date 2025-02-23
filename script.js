@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (button) {
         button.addEventListener("click", function  () {
             console.log("Painettu.")
+            console.log("Haarantekotesti teksti.")
             //setTimeout(afterTimeout, 5000);
             printPopups();
         });
