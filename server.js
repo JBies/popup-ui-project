@@ -79,7 +79,7 @@ app.get('/api/popups', async (req, res) => {
     }
 
     try {
-        const popups = await Popup.find({});
+        const popups = await Popup.find({ userId: req.user._id });
         res.json(popups);
     } catch (err) {
         console.error('Error fetching popups:', err);
@@ -107,7 +107,7 @@ app.put('/api/popups/:id', async (req, res) => {
 
     try {
         const updatedPopup = await Popup.findOneAndUpdate(
-            { _id: req.params.id },
+            { _id: req.params.id, userId: req.user._id },
             {
                 popupType,
                 width,
@@ -181,7 +181,8 @@ app.delete('/api/popups/:id', async (req, res) => {
 
     try {
         const deletedPopup = await Popup.findOneAndDelete({
-            _id: req.params.id
+            _id: req.params.id,
+            userId: req.user._id
         });
         if (!deletedPopup) {
             return res.status(404).json({ message: 'Popup not found' });
