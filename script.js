@@ -115,6 +115,7 @@ function printPopups() {
         // Handle popup creation form submission
         document.getElementById('createPopupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const popupData = {
                 popupType: document.getElementById('popupType').value,
                 width: document.getElementById('width').value,
@@ -124,13 +125,13 @@ function printPopups() {
                 backgroundColor: document.getElementById('backgroundColor').value,
                 textColor: document.getElementById('textColor').value,
                 content: document.getElementById('content').value,
-                timing: {
-                    delay: document.getElementById('delay').value,
-                    showDuration: document.getElementById('showDuration').value,
-                    frequency: document.getElementById('frequency').value,
-                    startDate: document.getElementById('startDate').value,
-                    endDate: document.getElementById('endDate').value || null
-                }
+                
+                // Lisää ajastustiedot suoraan pyynnön juureen
+                delay: document.getElementById('delay').value,
+                showDuration: document.getElementById('showDuration').value,
+                frequency: document.getElementById('frequency').value,
+                startDate: document.getElementById('startDate').value || null,
+                endDate: document.getElementById('endDate').value || null
             };
         
             try {
@@ -156,7 +157,7 @@ function printPopups() {
             }
         });
 
-        // Fetch and display user's popups
+        // Hae ja näytä käyttäjän popupit ja embed koodi
         function fetchUserPopups() {
             fetch('/api/popups')
                 .then(response => response.json())
@@ -168,9 +169,19 @@ function printPopups() {
                         li.className = 'popup-item';
                         li.innerHTML = `
                             <div class="popup-info">
-                                <p><strong>Type:</strong> ${popup.popupType}</p>
-                                <p><strong>Content:</strong> ${popup.content}</p>
-                                <p><strong>Size:</strong> ${popup.width || 200}x${popup.height || 150}px</p>
+                            <p><strong>Type:</strong> ${popup.popupType}</p>
+                            <p><strong>Content:</strong> ${popup.content}</p>
+                            <p><strong>Size:</strong> ${popup.width || 200}x${popup.height || 150}px</p>
+                            <div class="embed-code">
+                                <p><strong>Embed Code:</strong></p>
+                                <textarea readonly class="embed-code-text" onclick="this.select()">
+                        <script src="${window.location.origin}/popup-embed.js"></script>
+                        <script>
+                            window.addEventListener('load', function() {
+                                ShowPopup('${popup._id}');
+                            });
+                        </script>
+                                </textarea>
                             </div>
                             <div class="popup-actions">
                                 <button onclick="editPopup('${popup._id}', ${JSON.stringify(popup)
@@ -212,26 +223,45 @@ function printPopups() {
         }
 
         // Handle popup update form submission
-        document.getElementById('updatePopupForm').addEventListener('submit', (e) => {
+        document.getElementById('updatePopupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('editPopupId').value;
-            const popupType = document.getElementById('editPopupType').value;
-            const content = document.getElementById('editContent').value;
-
-            fetch(`/api/popups/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ popupType, content })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    alert(data.message);
-                } else {
+            const popupData = {
+                popupType: document.getElementById('editPopupType').value,
+                width: document.getElementById('editWidth').value,
+                height: document.getElementById('editHeight').value,
+                position: document.getElementById('editPosition').value,
+                animation: document.getElementById('editAnimation').value,
+                backgroundColor: document.getElementById('editBackgroundColor').value,
+                textColor: document.getElementById('editTextColor').value,
+                content: document.getElementById('editContent').value,
+                
+                // Lisää ajastustiedot suoraan pyynnön juureen
+                delay: document.getElementById('editDelay').value,
+                showDuration: document.getElementById('editShowDuration').value,
+                frequency: document.getElementById('editFrequency').value,
+                startDate: document.getElementById('editStartDate').value || null,
+                endDate: document.getElementById('editEndDate').value || null
+            };
+        
+            try {
+                const response = await fetch(`/api/popups/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(popupData)
+                });
+        
+                if (response.ok) {
+                    alert('Popup updated successfully!');
                     document.getElementById('editPopupForm').style.display = 'none';
-                    fetchUserPopups(); // Refresh the popup list
+                    fetchUserPopups();
+                } else {
+                    throw new Error('Failed to update popup');
                 }
-            });
+            } catch (error) {
+                console.error('Error updating popup:', error);
+                alert('Failed to update popup');
+            }
         });
 
         // Cancel edit
