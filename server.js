@@ -27,6 +27,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+//Embedin js tiedosto
+app.use('/popup-embed.js', express.static(path.join(__dirname, 'popup-embed.js')));
+
 // Serve the main HTML file
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
@@ -51,23 +54,51 @@ app.post('/auth/logout', (req, res) => {
     });
 });
 
-// Route to create a new popup
+// Uuden popupin luonti
 app.post('/api/popups', async (req, res) => {
     if (!req.user) {
         return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    const { popupType, content } = req.body;
+    const { 
+        popupType, 
+        content, 
+        width, 
+        height, 
+        position, 
+        animation, 
+        backgroundColor, 
+        textColor,
+        delay,       
+        showDuration,  // tulevat suoraan pyynnön juuresta
+        frequency,
+        startDate,
+        endDate
+    } = req.body;
 
     try {
         const newPopup = new Popup({
-            userId: req.user._id, // Ensure userId is stored as ObjectId
+            userId: req.user._id,
             popupType,
-            content
+            content,
+            width,
+            height,
+            position,
+            animation,
+            backgroundColor,
+            textColor,
+            timing: {  // Tallenna timing-objektiin
+                delay,
+                showDuration,
+                frequency,
+                startDate,
+                endDate
+            }
         });
         await newPopup.save();
         res.status(201).json(newPopup);
     } catch (err) {
+        console.error("Error saving popup:", err);
         res.status(500).json({ message: 'Error saving popup', error: err });
     }
 });
@@ -87,37 +118,47 @@ app.get('/api/popups', async (req, res) => {
     }
 });
 
-// Route to update a popup
+// Päivitä popup
 app.put('/api/popups/:id', async (req, res) => {
     if (!req.user) {
-        return res.status(401).json({ message: 'Not authenticated or not authorized' });
+        return res.status(401).json({ message: 'Not authenticated' });
     }
 
     const {
         popupType,
+        content,
         width,
         height,
         position,
         animation,
         backgroundColor,
         textColor,
-        content,
-        timing
+        delay,
+        showDuration,
+        frequency,
+        startDate,
+        endDate
     } = req.body;
 
     try {
         const updatedPopup = await Popup.findOneAndUpdate(
-            { _id: req.params.id, userId: req.user._id },
+            { _id: req.params.id },
             {
                 popupType,
+                content,
                 width,
                 height,
                 position,
                 animation,
                 backgroundColor,
                 textColor,
-                content,
-                timing
+                timing: {
+                    delay,
+                    showDuration,
+                    frequency,
+                    startDate,
+                    endDate
+                }
             },
             { new: true }
         );
@@ -127,6 +168,7 @@ app.put('/api/popups/:id', async (req, res) => {
         }
         res.json(updatedPopup);
     } catch (err) {
+        console.error("Error updating popup:", err);
         res.status(500).json({ message: 'Error updating popup', error: err });
     }
 });
@@ -288,6 +330,19 @@ app.post('/api/admin/popups/delete/:id', async (req, res) => {
         res.status(403).send('Access denied');
     }
 });
+// Embed popup reitti
+app.get('/api/popups/embed/:id', async (req, res) => {
+    try {
+        const popup = await Popup.findById(req.params.id);
+        if (!popup) {
+            return res.status(404).json({ message: 'Popup not found' });
+        }
+        res.json(popup);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching popup', error: err });
+    }
+});
+
 
 // Start the server
 app.listen(PORT, () => {
