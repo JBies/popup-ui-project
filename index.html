@@ -81,16 +81,6 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="frequency">Show Frequency:</label>
-                    <select id="frequency" name="frequency">
-                        <option value="always">Every time</option>
-                        <option value="once">Once per user</option>
-                        <option value="daily">Once per day</option>
-                        <option value="weekly">Once per week</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <label for="startDate">Start Date:</label>
                     <input type="datetime-local" id="startDate" name="startDate">
                 </div>
@@ -185,33 +175,23 @@
                 <h4>Timing Settings</h4>
                 
                 <div class="form-group">
-                    <label for="delay">Show Delay (seconds):</label>
-                    <input type="number" id="delay" name="delay" min="0" value="0">
+                    <label for="editDelay">Show Delay (seconds):</label>
+                    <input type="number" id="editDelay" name="delay" min="0" value="0">
                 </div>
-
+            
                 <div class="form-group">
-                    <label for="showDuration">Show Duration (seconds, 0 = until closed):</label>
-                    <input type="number" id="showDuration" name="showDuration" min="0" value="0">
+                    <label for="editShowDuration">Show Duration (seconds, 0 = until closed):</label>
+                    <input type="number" id="editShowDuration" name="showDuration" min="0" value="0">
                 </div>
-
+            
                 <div class="form-group">
-                    <label for="frequency">Show Frequency:</label>
-                    <select id="frequency" name="frequency">
-                        <option value="always">Every time</option>
-                        <option value="once">Once per user</option>
-                        <option value="daily">Once per day</option>
-                        <option value="weekly">Once per week</option>
-                    </select>
+                    <label for="editStartDate">Start Date:</label>
+                    <input type="datetime-local" id="editStartDate" name="startDate">
                 </div>
-
+            
                 <div class="form-group">
-                    <label for="startDate">Start Date:</label>
-                    <input type="datetime-local" id="startDate" name="startDate">
-                </div>
-
-                <div class="form-group">
-                    <label for="endDate">End Date (optional):</label>
-                    <input type="datetime-local" id="endDate" name="endDate">
+                    <label for="editEndDate">End Date (optional):</label>
+                    <input type="datetime-local" id="editEndDate" name="endDate">
                 </div>
             </div>
         <div class="preview" id="editPreview"></div>
