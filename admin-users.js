@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const users = await response.json();
 
     const usersTable = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
-
+    
     users.forEach(user => {
         const row = usersTable.insertRow();
         row.insertCell().textContent = user.displayName;
