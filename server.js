@@ -69,32 +69,41 @@ app.post('/api/popups', async (req, res) => {
         animation, 
         backgroundColor, 
         textColor,
-        delay,       
-        showDuration,  // tulevat suoraan pyynnön juuresta
-        frequency,
+        delay,        
+        showDuration,  
         startDate,
         endDate
     } = req.body;
 
     try {
+        // Käsittele päivämäärät oikein - vain jos ne ovat valideja
+        const timingData = {
+            delay: parseInt(delay) || 0,
+            showDuration: parseInt(showDuration) || 0
+        };
+        
+        // Lisää päivämäärät vain jos ne ovat valideja
+        if (startDate && startDate !== 'default' && startDate !== 'null') {
+            timingData.startDate = new Date(startDate);
+        }
+        
+        if (endDate && endDate !== 'default' && endDate !== 'null') {
+            timingData.endDate = new Date(endDate);
+        }
+        
         const newPopup = new Popup({
             userId: req.user._id,
             popupType,
             content,
-            width,
-            height,
+            width: parseInt(width) || 200,
+            height: parseInt(height) || 150,
             position,
             animation,
             backgroundColor,
             textColor,
-            timing: {  // Tallenna timing-objektiin
-                delay,
-                showDuration,
-                frequency,
-                startDate,
-                endDate
-            }
+            timing: timingData
         });
+        
         await newPopup.save();
         res.status(201).json(newPopup);
     } catch (err) {
@@ -135,30 +144,38 @@ app.put('/api/popups/:id', async (req, res) => {
         textColor,
         delay,
         showDuration,
-        frequency,
         startDate,
         endDate
     } = req.body;
 
     try {
+        // Käsittele päivämäärät oikein
+        const timingData = {
+            delay: parseInt(delay) || 0,
+            showDuration: parseInt(showDuration) || 0
+        };
+        
+        // Lisää päivämäärät vain jos ne ovat valideja
+        if (startDate && startDate !== 'default' && startDate !== 'null') {
+            timingData.startDate = new Date(startDate);
+        }
+        
+        if (endDate && endDate !== 'default' && endDate !== 'null') {
+            timingData.endDate = new Date(endDate);
+        }
+        
         const updatedPopup = await Popup.findOneAndUpdate(
             { _id: req.params.id },
             {
                 popupType,
                 content,
-                width,
-                height,
+                width: parseInt(width) || 200,
+                height: parseInt(height) || 150,
                 position,
                 animation,
                 backgroundColor,
                 textColor,
-                timing: {
-                    delay,
-                    showDuration,
-                    frequency,
-                    startDate,
-                    endDate
-                }
+                timing: timingData
             },
             { new: true }
         );
@@ -337,12 +354,61 @@ app.get('/api/popups/embed/:id', async (req, res) => {
         if (!popup) {
             return res.status(404).json({ message: 'Popup not found' });
         }
-        res.json(popup);
+
+        // Tehdään popupista kopio, jotta voimme muokata sitä ilman että tallennetaan muutokset
+        const cleanPopup = popup.toObject();
+
+        // Puhdistetaan päivämäärät
+        if (cleanPopup.timing) {
+            // Varmistetaan että delay ja duration ovat numeroita
+            cleanPopup.timing.delay = parseInt(cleanPopup.timing.delay) || 0;
+            cleanPopup.timing.showDuration = parseInt(cleanPopup.timing.showDuration) || 0;
+            
+            // Poistetaan "default" arvot
+            if (cleanPopup.timing.startDate === 'default') {
+                delete cleanPopup.timing.startDate;
+            }
+            
+            if (cleanPopup.timing.endDate === 'default') {
+                delete cleanPopup.timing.endDate;
+            }
+        }
+
+        res.json(cleanPopup);
     } catch (err) {
+        console.error('Error fetching popup:', err);
         res.status(500).json({ message: 'Error fetching popup', error: err });
     }
 });
 
+
+/*
+// TILAPÄINEN: Siivoa tietokanta "default"-arvoista
+// Kun menee sivulle http://localhost:3000/api/cleanup-database niin tyhjentää kaikki "default" arvot
+// Suorita tämä vain kerran ja poista sitten
+app.get('/api/cleanup-database', async (req, res) => {
+    try {
+        const results = await Popup.updateMany(
+            { 'timing.startDate': 'default' },
+            { $unset: { 'timing.startDate': 1 } }
+        );
+        
+        const results2 = await Popup.updateMany(
+            { 'timing.endDate': 'default' },
+            { $unset: { 'timing.endDate': 1 } }
+        );
+        
+        res.json({
+            message: 'Database cleaned up successfully',
+            startDateResults: results,
+            endDateResults: results2
+        });
+    } catch (err) {
+        console.error('Error cleaning up database:', err);
+        res.status(500).json({ message: 'Error cleaning up database', error: err });
+    }
+});
+*/
 
 // Start the server
 app.listen(PORT, () => {

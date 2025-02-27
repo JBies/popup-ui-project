@@ -11,9 +11,9 @@
             }
             const popup = await response.json();
             
-            console.log("Received popup data:", popup); // Debug-viesti
+            console.log("Received popup data:", popup);
 
-            // Tarkista ajastusasetukset
+            // Tarkista vain ajastusasetukset (päivämäärät)
             if (!shouldShowPopup(popup)) return;
 
             // Luo popup elementti
@@ -23,35 +23,43 @@
         }
     };
 
-    // Apufunktio ajastuksen tarkistamiseen
+    // Apufunktio ajastuksen tarkistamiseen - vain päivämäärät, ei frequency
     function shouldShowPopup(popup) {
-        // Tarkista frequency localStorage:sta
-        const lastShown = localStorage.getItem(`popup_${popup._id}_lastShown`);
-        if (lastShown) {
-            const now = new Date();
-            const lastShownDate = new Date(lastShown);
-
-            const frequency = popup.timing?.frequency || 'always';
-            switch (frequency) {
-                case 'once':
-                    return false;
-                case 'daily':
-                    if (now.getDate() === lastShownDate.getDate() && 
-                        now.getMonth() === lastShownDate.getMonth() &&
-                        now.getFullYear() === lastShownDate.getFullYear()) return false;
-                    break;
-                case 'weekly':
-                    const weekDiff = (now - lastShownDate) / (1000 * 60 * 60 * 24 * 7);
-                    if (weekDiff < 1) return false;
-                    break;
+        // Tarkista vain start ja end date
+        const now = new Date();
+        
+        // Tarkista onko start date validi ja tulevaisuudessa
+        if (popup.timing?.startDate && popup.timing.startDate !== 'default') {
+            try {
+                const startDate = new Date(popup.timing.startDate);
+                // Varmista että pystytään luomaan validi päivämäärä
+                if (!isNaN(startDate.getTime())) {
+                    if (startDate > now) {
+                        console.log("Start date is in future, not showing popup yet");
+                        return false;
+                    }
+                }
+            } catch (e) {
+                console.warn("Invalid start date, ignoring:", popup.timing.startDate);
             }
         }
-
-        // Tarkista start ja end date
-        const now = new Date();
-        if (popup.timing?.startDate && new Date(popup.timing.startDate) > now) return false;
-        if (popup.timing?.endDate && new Date(popup.timing.endDate) < now) return false;
-
+        
+        // Tarkista onko end date validi ja menneisyydessä
+        if (popup.timing?.endDate && popup.timing.endDate !== 'default') {
+            try {
+                const endDate = new Date(popup.timing.endDate);
+                // Varmista että pystytään luomaan validi päivämäärä
+                if (!isNaN(endDate.getTime())) {
+                    if (endDate < now) {
+                        console.log("End date has passed, not showing popup anymore");
+                        return false;
+                    }
+                }
+            } catch (e) {
+                console.warn("Invalid end date, ignoring:", popup.timing.endDate);
+            }
+        }
+    
         return true;
     }
 
@@ -59,15 +67,33 @@
     function createAndShowPopup(popup) {
         // Hae ja loki timing-tiedot
         const timing = popup.timing || {};
-        const delay = parseInt(timing.delay || 0);
-        const duration = parseInt(timing.showDuration || 0);
-
+        
+        // Varmista että delay ja duration ovat numeroita
+        let delay = 0;
+        let duration = 0;
+        
+        try {
+            delay = parseInt(timing.delay);
+            if (isNaN(delay)) delay = 0;
+        } catch (e) {
+            console.warn("Invalid delay value, defaulting to 0");
+        }
+        
+        try {
+            duration = parseInt(timing.showDuration);
+            if (isNaN(duration)) duration = 0;
+        } catch (e) {
+            console.warn("Invalid duration value, defaulting to 0");
+        }
+    
+        // Puhdistetaan loggaus näyttämään vain validit arvot
         console.log("Popup timing details:", {
             delay,
             duration,
-            frequency: timing.frequency || 'always',
-            startDate: timing.startDate,
-            endDate: timing.endDate
+            frequency: "always", // Nyt aina näytetään
+            // Näytä päivämäärät vain jos ne eivät ole "default"
+            startDate: timing.startDate && timing.startDate !== "default" ? timing.startDate : null,
+            endDate: timing.endDate && timing.endDate !== "default" ? timing.endDate : null
         });
 
         // Luo popup
@@ -126,7 +152,7 @@
         // Lisää elementti sivulle
         document.body.appendChild(popupElement);
 
-        // Lisää close-funktio
+        // Lisää close-funktio - ei tallenna localStorage:een mitään
         window.closePopup = function(id) {
             console.log("Closing popup:", id);
             const popup = document.getElementById(`popup-${id}`);
@@ -135,7 +161,7 @@
                 setTimeout(() => {
                     popup.remove();
                 }, 500);
-                localStorage.setItem(`popup_${id}_lastShown`, new Date().toISOString());
+                // Poistettu localStorage tallennus
             }
         };
 

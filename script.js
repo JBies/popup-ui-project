@@ -68,7 +68,7 @@ function printPopups() {
         // Lisää input event listenerit create-lomakkeen kentille
         document.addEventListener('DOMContentLoaded', () => {
             // Create-lomakkeen kenttien event listenerit
-            const createFields = ['popupType', 'width', 'height', 'position', 'animation', 'backgroundColor', 'textColor', 'content', 'delay', 'showDuration', 'frequency', 'startDate', 'endDate'];
+            const createFields = ['popupType', 'width', 'height', 'position', 'animation', 'backgroundColor', 'textColor', 'content', 'delay', 'showDuration', 'startDate', 'endDate'];
             createFields.forEach(field => {
                 const element = document.getElementById(field);
                 if (element) {
@@ -116,23 +116,27 @@ function printPopups() {
         document.getElementById('createPopupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // Kerää tiedot turvallisesti
             const popupData = {
-                popupType: document.getElementById('popupType').value,
-                width: document.getElementById('width').value,
-                height: document.getElementById('height').value,
-                position: document.getElementById('position').value,
-                animation: document.getElementById('animation').value,
-                backgroundColor: document.getElementById('backgroundColor').value,
-                textColor: document.getElementById('textColor').value,
-                content: document.getElementById('content').value,
+                popupType: document.getElementById('popupType')?.value || 'square',
+                width: parseInt(document.getElementById('width')?.value) || 200,
+                height: parseInt(document.getElementById('height')?.value) || 150,
+                position: document.getElementById('position')?.value || 'center',
+                animation: document.getElementById('animation')?.value || 'none',
+                backgroundColor: document.getElementById('backgroundColor')?.value || '#ffffff',
+                textColor: document.getElementById('textColor')?.value || '#000000',
+                content: document.getElementById('content')?.value || '',
                 
-                // Lisää ajastustiedot suoraan pyynnön juureen
-                delay: document.getElementById('delay').value,
-                showDuration: document.getElementById('showDuration').value,
-                frequency: document.getElementById('frequency').value,
-                startDate: document.getElementById('startDate').value || null,
-                endDate: document.getElementById('endDate').value || null
+                // Ajastustiedot turvallisesti
+                delay: parseInt(document.getElementById('delay')?.value) || 0,
+                showDuration: parseInt(document.getElementById('showDuration')?.value) || 0,
+                
+                // Päivämäärät vain jos ne on asetettu
+                startDate: document.getElementById('startDate')?.value || null,
+                endDate: document.getElementById('endDate')?.value || null
             };
+        
+            console.log("Sending popup data:", popupData); // Debug
         
             try {
                 const response = await fetch('/api/popups', {
@@ -144,9 +148,7 @@ function printPopups() {
                 if (response.ok) {
                     alert('Popup created successfully!');
                     fetchUserPopups();
-                    // Tyhjennä lomake
                     document.getElementById('createPopupForm').reset();
-                    // Päivitä esikatselu tyhjennyksen jälkeen
                     updatePreview();
                 } else {
                     throw new Error('Failed to create popup');
@@ -209,11 +211,25 @@ function printPopups() {
             document.getElementById('editBackgroundColor').value = popup.backgroundColor || '#ffffff';
             document.getElementById('editTextColor').value = popup.textColor || '#000000';
             document.getElementById('editContent').value = popup.content || '';
+            
+            // Timing-asetukset
             document.getElementById('editDelay').value = popup.timing?.delay || 0;
             document.getElementById('editShowDuration').value = popup.timing?.showDuration || 0;
-            document.getElementById('editFrequency').value = popup.timing?.frequency || 'always';
-            document.getElementById('editStartDate').value = popup.timing?.startDate ? new Date(popup.timing.startDate).toISOString().slice(0, 16) : '';
-            document.getElementById('editEndDate').value = popup.timing?.endDate ? new Date(popup.timing.endDate).toISOString().slice(0, 16) : '';
+            
+            // Muotoile päivämäärät oikein datetime-local kenttää varten (YYYY-MM-DDThh:mm)
+            if (popup.timing?.startDate) {
+                const startDate = new Date(popup.timing.startDate);
+                document.getElementById('editStartDate').value = startDate.toISOString().slice(0, 16);
+            } else {
+                document.getElementById('editStartDate').value = '';
+            }
+            
+            if (popup.timing?.endDate) {
+                const endDate = new Date(popup.timing.endDate);
+                document.getElementById('editEndDate').value = endDate.toISOString().slice(0, 16);
+            } else {
+                document.getElementById('editEndDate').value = '';
+            }
             
             // Näytä lomake
             document.getElementById('editPopupForm').style.display = 'block';
@@ -226,23 +242,25 @@ function printPopups() {
         document.getElementById('updatePopupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('editPopupId').value;
+
             const popupData = {
-                popupType: document.getElementById('editPopupType').value,
-                width: document.getElementById('editWidth').value,
-                height: document.getElementById('editHeight').value,
-                position: document.getElementById('editPosition').value,
-                animation: document.getElementById('editAnimation').value,
-                backgroundColor: document.getElementById('editBackgroundColor').value,
-                textColor: document.getElementById('editTextColor').value,
-                content: document.getElementById('editContent').value,
+                popupType: document.getElementById('editPopupType')?.value || 'square',
+                width: document.getElementById('editWidth')?.value || 200,
+                height: document.getElementById('editHeight')?.value || 150,
+                position: document.getElementById('editPosition')?.value || 'center',
+                animation: document.getElementById('editAnimation')?.value || 'none',
+                backgroundColor: document.getElementById('editBackgroundColor')?.value || '#ffffff',
+                textColor: document.getElementById('editTextColor')?.value || '#000000',
+                content: document.getElementById('editContent')?.value || '',
                 
-                // Lisää ajastustiedot suoraan pyynnön juureen
-                delay: document.getElementById('editDelay').value,
-                showDuration: document.getElementById('editShowDuration').value,
-                frequency: document.getElementById('editFrequency').value,
-                startDate: document.getElementById('editStartDate').value || null,
-                endDate: document.getElementById('editEndDate').value || null
+                // Ajastustiedot turvallisesti
+                delay: document.getElementById('editDelay')?.value || 0,
+                showDuration: document.getElementById('editShowDuration')?.value || 0,
+                startDate: document.getElementById('editStartDate')?.value || null,
+                endDate: document.getElementById('editEndDate')?.value || null
             };
+
+            console.log("Sending popup data:", popupData); // Debug
         
             try {
                 const response = await fetch(`/api/popups/${id}`, {
@@ -301,7 +319,6 @@ function printPopups() {
             // Haetaan ajastuksen elementit turvallisesti
             const delayElement = document.getElementById(prefix === 'create' ? 'delay' : 'editDelay');
             const durationElement = document.getElementById(prefix === 'create' ? 'showDuration' : 'editShowDuration');
-            const frequencyElement = document.getElementById(prefix === 'create' ? 'frequency' : 'editFrequency');
 
             // Luo preview container
             const previewWrapper = document.createElement('div');
@@ -366,7 +383,7 @@ function printPopups() {
             }
             // ajastus
             // Lisää ajastustiedot esikatseluun vain jos kaikki tarvittavat elementit löytyvät
-            if (delayElement && durationElement && frequencyElement) {
+            if (delayElement && durationElement) {
                 const timingInfo = document.createElement('div');
                 timingInfo.style.position = 'absolute';
                 timingInfo.style.bottom = '10px';
@@ -375,8 +392,7 @@ function printPopups() {
                 timingInfo.style.color = '#666';
                 timingInfo.innerHTML = `
                     Delay: ${delayElement.value}s | 
-                    Duration: ${durationElement.value === '0' ? 'Until closed' : durationElement.value + 's'} | 
-                    Frequency: ${frequencyElement.value}
+                    Duration: ${durationElement.value === '0' ? 'Until closed' : durationElement.value + 's'}
                 `;
                 previewWrapper.appendChild(timingInfo);
             }
