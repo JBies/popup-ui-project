@@ -6,6 +6,9 @@ const connectDB = require('./db');
 const User = require('./models/User'); // Import User model
 const Popup = require('./models/Popup'); // Import Popup model
 const path = require('path');
+const upload = require('./upload');
+const { bucket } = require('./firebase');
+const fs = require('fs');
 require('./auth');
 
 const app = express();
@@ -60,6 +63,9 @@ app.post('/api/popups', async (req, res) => {
         return res.status(401).json({ message: 'Not authenticated' });
     }
 
+    // Tarkistetaan vastaanotettu data
+    console.log("Received popup data:", req.body);
+
     const { 
         popupType, 
         content, 
@@ -69,6 +75,7 @@ app.post('/api/popups', async (req, res) => {
         animation, 
         backgroundColor, 
         textColor,
+        imageUrl,
         delay,        
         showDuration,  
         startDate,
@@ -91,6 +98,21 @@ app.post('/api/popups', async (req, res) => {
             timingData.endDate = new Date(endDate);
         }
         
+        // Luodaan ja tallennetaan uusi popup
+        console.log("Creating new popup with:", {
+            userId: req.user._id,
+            popupType,
+            content,
+            width: parseInt(width) || 200,
+            height: parseInt(height) || 150,
+            position,
+            animation,
+            backgroundColor,
+            textColor,
+            imageUrl, // Tarkistetaan tämä arvo
+            timing: timingData
+        });
+        
         const newPopup = new Popup({
             userId: req.user._id,
             popupType,
@@ -101,6 +123,7 @@ app.post('/api/popups', async (req, res) => {
             animation,
             backgroundColor,
             textColor,
+            imageUrl, // Tarkistetaan tämä arvo
             timing: timingData
         });
         
@@ -108,7 +131,7 @@ app.post('/api/popups', async (req, res) => {
         res.status(201).json(newPopup);
     } catch (err) {
         console.error("Error saving popup:", err);
-        res.status(500).json({ message: 'Error saving popup', error: err });
+        res.status(500).json({ message: 'Error saving popup', error: err.toString() });
     }
 });
 
@@ -355,6 +378,9 @@ app.get('/api/popups/embed/:id', async (req, res) => {
             return res.status(404).json({ message: 'Popup not found' });
         }
 
+        // Debug: tarkista palautetaanko kuvan URL oikein
+        console.log("Returning popup with image URL:", popup.imageUrl);
+
         // Tehdään popupista kopio, jotta voimme muokata sitä ilman että tallennetaan muutokset
         const cleanPopup = popup.toObject();
 
@@ -380,6 +406,55 @@ app.get('/api/popups/embed/:id', async (req, res) => {
         res.status(500).json({ message: 'Error fetching popup', error: err });
     }
 });
+
+// Reitti kuvien lataamiseksi Firebaseen
+app.post('/api/upload', upload.single('image'), async (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
+    }
+  
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'Kuvaa ei ladattu' });
+      }
+  
+      console.log("Processing uploaded file:", req.file); // Debug-lokitus
+  
+      const filePath = req.file.path;
+      const fileExtension = path.extname(req.file.originalname);
+      
+      // Luodaan uniikki tiedostonimi käyttäjän ID:n ja aikaleiman avulla
+      const fileName = `${req.user._id}-${Date.now()}${fileExtension}`;
+      const firebasePath = `popupImages/${fileName}`;
+  
+      // Lokita ennen Firebase-latausta
+      console.log("Uploading to Firebase:", { filePath, firebasePath });
+  
+      // Lataa tiedosto Firebaseen
+      await bucket.upload(filePath, {
+        destination: firebasePath,
+        metadata: {
+          contentType: req.file.mimetype,
+        }
+      });
+  
+      // Tee tiedosto julkisesti saatavaksi ja hae URL
+      await bucket.file(firebasePath).makePublic();
+      const imageUrl = `https://storage.googleapis.com/${bucket.name}/${firebasePath}`;
+  
+      console.log("File uploaded successfully, URL:", imageUrl); // Debug-lokitus
+  
+      // Poista väliaikainen tiedosto
+      fs.unlinkSync(filePath);
+  
+      // Palauta URL clientille
+      res.json({ imageUrl });
+    } catch (error) {
+      console.error('Virhe kuvan latauksessa:', error);
+      res.status(500).json({ message: 'Virhe kuvan latauksessa', error: error.message });
+    }
+  });
+
 
 
 /*

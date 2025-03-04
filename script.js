@@ -2,6 +2,125 @@
 document.addEventListener("DOMContentLoaded", function () {
     console.log("JS valmis.");
 
+    // Kuvan latauksen käsittely create-lomakkeessa
+    const imageInput = document.getElementById('image');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const imageUrlInput = document.getElementById('imageUrl');
+    const removeImageBtn = document.getElementById('removeImage');
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                
+                console.log("Selected file:", file.name, file.type, file.size);
+                
+                // Näytä latausanimaatio tai -ilmoitus
+                imagePreviewContainer.style.display = 'block';
+                imagePreview.src = URL.createObjectURL(file);
+                
+                // Luo FormData-objekti tiedoston lähettämistä varten
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                console.log("Uploading image...");
+                
+                // Lähetä kuva serverille
+                fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    console.log("Upload response status:", response.status);
+                    if (!response.ok) {
+                        throw new Error('Image upload failed with status: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Image upload successful, received URL:", data.imageUrl);
+                    
+                    // Tallenna saatu URL piilotettuun input-kenttään
+                    imageUrlInput.value = data.imageUrl;
+                    console.log("Set imageUrl input value to:", data.imageUrl);
+                    console.log("Current imageUrl input value:", imageUrlInput.value);
+                    
+                    // Päivitä esikatselu
+                    updatePreview('create');
+                })
+                .catch(error => {
+                    console.error('Virhe kuvan latauksessa:', error);
+                    alert('Virhe kuvan latauksessa: ' + error.message);
+                    
+                    // Tyhjennä tiedosto ja esikatselu virheen sattuessa
+                    imageInput.value = '';
+                    imagePreviewContainer.style.display = 'none';
+                });
+            }
+        });
+    }
+    
+    // Kuvan poistopainikkeen toiminta
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener('click', function() {
+            imageInput.value = '';
+            imageUrlInput.value = '';
+            imagePreviewContainer.style.display = 'none';
+            
+            // Päivitä esikatselu
+            updatePreview('create');
+        });
+    }
+    
+    // Samat toiminnot edit-lomakkeelle
+    const editImageInput = document.getElementById('editImage');
+    const editImagePreviewContainer = document.getElementById('editImagePreviewContainer');
+    const editImagePreview = document.getElementById('editImagePreview');
+    const editImageUrlInput = document.getElementById('editImageUrl');
+    const editRemoveImageBtn = document.getElementById('editRemoveImage');
+    
+    if (editImageInput) {
+        editImageInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                
+                editImagePreviewContainer.style.display = 'block';
+                editImagePreview.src = URL.createObjectURL(file);
+                
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    editImageUrlInput.value = data.imageUrl;
+                    updatePreview('edit');
+                })
+                .catch(error => {
+                    console.error('Virhe kuvan latauksessa:', error);
+                    alert('Virhe kuvan latauksessa');
+                    
+                    editImageInput.value = '';
+                    editImagePreviewContainer.style.display = 'none';
+                });
+            }
+        });
+    }
+    
+    if (editRemoveImageBtn) {
+        editRemoveImageBtn.addEventListener('click', function() {
+            editImageInput.value = '';
+            editImageUrlInput.value = '';
+            editImagePreviewContainer.style.display = 'none';
+            
+            updatePreview('edit');
+        });
+    }
+
 
     // Luodaan painikkeelle eventListener
     const button = document.getElementById("delayButton");
@@ -15,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-//Printtaa konsolille annetun tekstin
+// Printtaa konsolille annetun tekstin
 function afterTimeout() {
     console.log("5s on kulunut!")
 
@@ -55,7 +174,7 @@ function printPopups() {
 document.addEventListener('DOMContentLoaded', fetchUser);
 
 
-// Open and close popup logic
+// avaa ja sulje popup
 document.getElementById('openPopup').addEventListener('click', () => {
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('popup').style.display = 'block';
@@ -90,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePreview('edit');
 });
 
-// Fetch user info on page load
+// hae käyttäjän tiedot ja näytä popupit
 fetch('/api/user')
     .then(response => response.json())
     .then(data => {
@@ -104,7 +223,7 @@ fetch('/api/user')
         }
     });
 
-// Logout button logic
+// logout napiin event listeneri
 document.getElementById('logoutButton').addEventListener('click', () => {
     fetch('/auth/logout', { method: 'POST' })
         .then(() => {
@@ -112,50 +231,84 @@ document.getElementById('logoutButton').addEventListener('click', () => {
         });
 });
 
-// Handle popup creation form submission
+// createPopupForm-käsittelijä
 document.getElementById('createPopupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const popupType = document.getElementById('popupType').value;
+    const content = document.getElementById('content').value.trim();
+    
+    // Tarkistetaan imageUrl
+    const imageUrlInput = document.getElementById('imageUrl');
+    const imageUrl = imageUrlInput ? imageUrlInput.value.trim() : '';
+    
+    console.log("Form submission:", {
+        popupType,
+        content,
+        imageUrl
+    });
+    
+    // Validoi lomakkeella
+    if (popupType === 'image' && !imageUrl) {
+        alert('Kuva on pakollinen, kun popupin tyyppi on "Image"');
+        return;
+    }
+    
+    if (!content && !imageUrl) {
+        alert('Popupissa on oltava joko sisältöä tai kuva');
+        return;
+    }
+    
     // Kerää tiedot turvallisesti
     const popupData = {
-        popupType: document.getElementById('popupType')?.value || 'square',
-        width: parseInt(document.getElementById('width')?.value) || 200,
-        height: parseInt(document.getElementById('height')?.value) || 150,
-        position: document.getElementById('position')?.value || 'center',
-        animation: document.getElementById('animation')?.value || 'none',
-        backgroundColor: document.getElementById('backgroundColor')?.value || '#ffffff',
-        textColor: document.getElementById('textColor')?.value || '#000000',
-        content: document.getElementById('content')?.value || '',
+        popupType: popupType,
+        width: parseInt(document.getElementById('width').value) || 200,
+        height: parseInt(document.getElementById('height').value) || 150,
+        position: document.getElementById('position').value,
+        animation: document.getElementById('animation').value,
+        backgroundColor: document.getElementById('backgroundColor').value,
+        textColor: document.getElementById('textColor').value,
+        content: content,
+        imageUrl: imageUrl, // Varmistetaan että tämä tulee mukaan
         
         // Ajastustiedot turvallisesti
-        delay: parseInt(document.getElementById('delay')?.value) || 0,
-        showDuration: parseInt(document.getElementById('showDuration')?.value) || 0,
+        delay: parseInt(document.getElementById('delay').value) || 0,
+        showDuration: parseInt(document.getElementById('showDuration').value) || 0,
         
         // Päivämäärät vain jos ne on asetettu
-        startDate: document.getElementById('startDate')?.value || null,
-        endDate: document.getElementById('endDate')?.value || null
+        startDate: document.getElementById('startDate').value || null,
+        endDate: document.getElementById('endDate').value || null
     };
 
     console.log("Sending popup data:", popupData); // Debug
-
+    
     try {
         const response = await fetch('/api/popups', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify(popupData)
         });
 
-        if (response.ok) {
-            alert('Popup created successfully!');
-            fetchUserPopups();
-            document.getElementById('createPopupForm').reset();
-            updatePreview();
-        } else {
-            throw new Error('Failed to create popup');
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Server returned error:", errorData);
+            throw new Error(errorData.message || 'Failed to create popup');
         }
+        
+        const responseData = await response.json();
+        console.log("Popup created successfully:", responseData);
+        
+        alert('Popup created successfully!');
+        fetchUserPopups();
+        document.getElementById('createPopupForm').reset();
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+        document.getElementById('imageUrl').value = '';
+        updatePreview('create');
     } catch (error) {
         console.error('Error creating popup:', error);
-        alert('Failed to create popup');
+        alert('Error creating popup: ' + error.message);
     }
 });
 
@@ -200,7 +353,9 @@ function fetchUserPopups() {
 function editPopup(id, popupData) {
     // Parsitaan popup-data, jos se on string
     const popup = typeof popupData === 'string' ? JSON.parse(popupData) : popupData;
-
+    
+    console.log("Editing popup:", popup); // Debug - lisätään tämä lokitus
+    
     // Aseta kaikki arvot lomakkeelle
     document.getElementById('editPopupId').value = id;
     document.getElementById('editPopupType').value = popup.popupType || 'square';
@@ -211,29 +366,46 @@ function editPopup(id, popupData) {
     document.getElementById('editBackgroundColor').value = popup.backgroundColor || '#ffffff';
     document.getElementById('editTextColor').value = popup.textColor || '#000000';
     document.getElementById('editContent').value = popup.content || '';
-
+    
     // Timing-asetukset
     document.getElementById('editDelay').value = popup.timing?.delay || 0;
     document.getElementById('editShowDuration').value = popup.timing?.showDuration || 0;
-
+    
     // Muotoile päivämäärät oikein datetime-local kenttää varten (YYYY-MM-DDThh:mm)
-    if (popup.timing?.startDate) {
+    if (popup.timing?.startDate && popup.timing.startDate !== 'default') {
         const startDate = new Date(popup.timing.startDate);
         document.getElementById('editStartDate').value = startDate.toISOString().slice(0, 16);
     } else {
         document.getElementById('editStartDate').value = '';
     }
-
-    if (popup.timing?.endDate) {
+    
+    if (popup.timing?.endDate && popup.timing.endDate !== 'default') {
         const endDate = new Date(popup.timing.endDate);
         document.getElementById('editEndDate').value = endDate.toISOString().slice(0, 16);
     } else {
         document.getElementById('editEndDate').value = '';
     }
     
+    // Käsittele kuva
+    const editImageUrlInput = document.getElementById('editImageUrl');
+    const editImagePreviewContainer = document.getElementById('editImagePreviewContainer');
+    const editImagePreview = document.getElementById('editImagePreview');
+    
+    if (editImageUrlInput && editImagePreviewContainer && editImagePreview) {
+        if (popup.imageUrl) {
+            console.log("Setting image preview:", popup.imageUrl); // Debug
+            editImageUrlInput.value = popup.imageUrl;
+            editImagePreview.src = popup.imageUrl;
+            editImagePreviewContainer.style.display = 'block';
+        } else {
+            editImageUrlInput.value = '';
+            editImagePreviewContainer.style.display = 'none';
+        }
+    }
+    
     // Näytä lomake
     document.getElementById('editPopupForm').style.display = 'block';
-
+    
     // Päivitä esikatselu
     updatePreview('edit');
 }
@@ -242,6 +414,17 @@ function editPopup(id, popupData) {
 document.getElementById('updatePopupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('editPopupId').value;
+
+    // Validoi lomake ennen lähetystä
+    if (popupType === 'image' && !imageUrl) {
+        alert('Kuva on pakollinen, kun popupin tyyppi on "Image"');
+        return;
+    }
+    
+    if (!content && !imageUrl) {
+        alert('Joko sisältö tai kuva on pakollinen');
+        return;
+    }
 
     const popupData = {
         popupType: document.getElementById('editPopupType')?.value || 'square',
@@ -252,7 +435,8 @@ document.getElementById('updatePopupForm').addEventListener('submit', async (e) 
         backgroundColor: document.getElementById('editBackgroundColor')?.value || '#ffffff',
         textColor: document.getElementById('editTextColor')?.value || '#000000',
         content: document.getElementById('editContent')?.value || '',
-        
+        // Lisää kuva-URL
+        imageUrl: document.getElementById('editImageUrl')?.value || '',
         // Ajastustiedot turvallisesti
         delay: document.getElementById('editDelay')?.value || 0,
         showDuration: document.getElementById('editShowDuration')?.value || 0,
@@ -305,7 +489,7 @@ function deletePopup(id) {
 function updatePreview(prefix = 'create') {
     const previewContainer = document.getElementById(`${prefix}Preview`);
     if (!previewContainer) return;
-
+            
     // Haetaan elementit oikeilla ID:illä
     const popupType = document.getElementById(prefix === 'create' ? 'popupType' : 'editPopupType')?.value || 'square';
     const width = document.getElementById(prefix === 'create' ? 'width' : 'editWidth')?.value || 200;
@@ -315,11 +499,13 @@ function updatePreview(prefix = 'create') {
     const backgroundColor = document.getElementById(prefix === 'create' ? 'backgroundColor' : 'editBackgroundColor')?.value || '#ffffff';
     const textColor = document.getElementById(prefix === 'create' ? 'textColor' : 'editTextColor')?.value || '#000000';
     const content = document.getElementById(prefix === 'create' ? 'content' : 'editContent')?.value || '';
+    // Hae kuva-URL
+    const imageUrl = document.getElementById(prefix === 'create' ? 'imageUrl' : 'editImageUrl')?.value || '';
 
     // Haetaan ajastuksen elementit turvallisesti
     const delayElement = document.getElementById(prefix === 'create' ? 'delay' : 'editDelay');
     const durationElement = document.getElementById(prefix === 'create' ? 'showDuration' : 'editShowDuration');
-    
+
     // Luo preview container
     const previewWrapper = document.createElement('div');
     previewWrapper.style.position = 'relative';
@@ -331,27 +517,47 @@ function updatePreview(prefix = 'create') {
 
     // Luo popup-esikatselu
     const previewPopup = document.createElement('div');
+    
+    // Käsittele "image"-popup-tyyppi erikseen
+    if (popupType === 'image' && imageUrl) {
+        // Jos tyyppi on "image" ja kuva-URL on määritetty, käytetään kuvaa suoraan popupina
+        previewPopup.style.background = `url(${imageUrl}) no-repeat center center`;
+        previewPopup.style.backgroundSize = 'contain';
+        previewPopup.style.padding = '0';
+    } else {
+        // Muussa tapauksessa käytetään normaalia popupia
+        previewPopup.style.backgroundColor = backgroundColor;
+        previewPopup.style.color = textColor;
+        previewPopup.style.padding = '10px';
+        
+        const contentWrapper = document.createElement('div');
+        contentWrapper.style.width = 'center'; // Sisältö keskellä
+        contentWrapper.innerHTML = content;
+        previewPopup.appendChild(contentWrapper);
+        
+        // Jos kuva-URL on määritetty (mutta tyyppi ei ole "image"), lisää kuva popupiin
+        if (imageUrl && popupType !== 'image') {
+            const image = document.createElement('img');
+            image.src = imageUrl;
+            image.style.maxWidth = '100%';
+            image.style.maxHeight = '70%';
+            image.style.objectFit = 'contain';
+            image.style.marginTop = '10px';
+            previewPopup.appendChild(image);
+        }
+    }
+    
     previewPopup.style.width = `${width}px`;
     previewPopup.style.height = `${height}px`;
-    previewPopup.style.backgroundColor = backgroundColor;
-    previewPopup.style.color = textColor;
     previewPopup.style.borderRadius = popupType === 'circle' ? '50%' : '4px';
-    previewPopup.style.padding = '10px';
     previewPopup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
     previewPopup.style.position = 'absolute';
-    previewPopup.innerHTML = content;
     previewPopup.style.overflow = 'auto';
     previewPopup.style.display = 'flex';
     previewPopup.style.alignItems = 'center';
     previewPopup.style.justifyContent = 'center';
-    previewPopup.style.textAlign = 'center'; // Tekstin rivit keskitetään
-    previewPopup.style.overflow = 'auto'; // Lisää scrollaus, jos sisältö ei mahdu
+    previewPopup.style.textAlign = 'center';
     previewPopup.style.fontSize = '16px';
-
-    // Poistettu, teki tuplana tekstit esikatseluun
-    //const contentWrapper = document.createElement('div');
-    //contentWrapper.style.width = 'center'; // Sisältö keskellä
-    //previewPopup.appendChild(contentWrapper);
 
     // Aseta sijainti
     switch (position) {
@@ -381,6 +587,7 @@ function updatePreview(prefix = 'create') {
     if (animation !== 'none') {
         previewPopup.style.animation = animation === 'fade' ? 'fadeIn 0.5s' : 'slideIn 0.5s';
     }
+
     // ajastus
     // Lisää ajastustiedot esikatseluun vain jos kaikki tarvittavat elementit löytyvät
     if (delayElement && durationElement) {
@@ -402,4 +609,3 @@ function updatePreview(prefix = 'create') {
     previewWrapper.appendChild(previewPopup);
     previewContainer.appendChild(previewWrapper);
 }
-

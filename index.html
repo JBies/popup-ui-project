@@ -29,6 +29,7 @@
             <select id="popupType" name="popupType">
                 <option value="square">Square</option>
                 <option value="circle">Circle</option>
+                <option value="image">Image (Only image)</option>
             </select><br>
             <div class="size-controls">
                 <label for="width">Width (px):</label>
@@ -68,6 +69,17 @@
             <label for="content">Content:</label>
             <textarea id="content" name="content" rows="4" cols="50"></textarea><br>
             <div class="timing-controls">
+                <div class="image-controls">
+                    <label for="image">Kuva:</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                    <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                        <img id="imagePreview" src="" alt="Kuvan esikatselu" style="max-width: 100%; max-height: 200px;">
+                        <button type="button" id="removeImage" class="remove-image-btn">Poista kuva</button>
+                    </div>
+                    <input type="hidden" id="imageUrl" name="imageUrl">
+                </div>
+
+
                 <h4>Timing Settings</h4>
                 
                 <div class="form-group">
@@ -128,6 +140,7 @@
                 <select id="editPopupType" name="popupType">
                     <option value="square">Square</option>
                     <option value="circle">Circle</option>
+                    <option value="image">Image (Only image)</option>
                 </select>
             </div>
 
@@ -170,6 +183,15 @@
             <div class="content-controls">
                 <label for="editContent">Content:</label>
                 <textarea id="editContent" name="content" rows="4" cols="50"></textarea>
+            </div>
+            <div class="image-controls">
+                <label for="editImage">Kuva:</label>
+                <input type="file" id="editImage" name="image" accept="image/*">
+                <div class="image-preview-container" id="editImagePreviewContainer" style="display: none;">
+                    <img id="editImagePreview" src="" alt="Kuvan esikatselu" style="max-width: 100%; max-height: 200px;">
+                    <button type="button" id="editRemoveImage" class="remove-image-btn">Poista kuva</button>
+                </div>
+                <input type="hidden" id="editImageUrl" name="imageUrl">
             </div>
             <div class="timing-controls">
                 <h4>Timing Settings</h4>
