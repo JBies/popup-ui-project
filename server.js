@@ -74,6 +74,7 @@ app.post('/api/popups', async (req, res) => {
         backgroundColor, 
         textColor,
         imageUrl,
+        linkUrl,
         delay,        
         showDuration,  
         startDate,
@@ -108,6 +109,7 @@ app.post('/api/popups', async (req, res) => {
             backgroundColor,
             textColor,
             imageUrl,
+            linkUrl,
             timing: timingData
         });
         
@@ -172,6 +174,7 @@ app.put('/api/popups/:id', async (req, res) => {
         backgroundColor,
         textColor,
         imageUrl,
+        linkUrl,
         delay,
         showDuration,
         startDate,
@@ -219,6 +222,7 @@ app.put('/api/popups/:id', async (req, res) => {
                 backgroundColor,
                 textColor,
                 imageUrl,
+                linkUrl,
                 timing: timingData
             },
             { new: true }
@@ -286,7 +290,13 @@ app.put('/api/admin/popups/:id', async (req, res) => {
         animation,
         backgroundColor,
         textColor,
-        content
+        content,
+        imageUrl,
+        linkUrl,
+        delay,
+        showDuration,
+        startDate,
+        endDate
     } = req.body;
 
     try {
@@ -300,7 +310,17 @@ app.put('/api/admin/popups/:id', async (req, res) => {
                 animation,
                 backgroundColor,
                 textColor,
-                content
+                content,
+                imageUrl,
+                linkUrl,
+                timing: {
+                    delay,
+                    showDuration,
+                    startDate,
+                    endDate,
+                    frequency: 'always',
+                
+                }
             },
             { new: true }
         );
@@ -500,8 +520,9 @@ app.get('/api/popups/embed/:id', async (req, res) => {
             return res.status(404).json({ message: 'Popup not found' });
         }
 
-        // Debug: tarkista palautetaanko kuvan URL oikein
+        // Debug: tarkista palautetaanko kuvan URL ja linkki-URL oikein
         console.log("Returning popup with image URL:", popup.imageUrl);
+        console.log("Returning popup with link URL:", popup.linkUrl);
 
         // Tehdään popupista kopio, jotta voimme muokata sitä ilman että tallennetaan muutokset
         const cleanPopup = popup.toObject();
@@ -654,7 +675,81 @@ app.get('/api/images', async (req, res) => {
       console.error('Virhe kuvan poistossa:', error);
       res.status(500).json({ message: 'Virhe kuvan poistossa', error: error.message });
     }
-  });
+});
+
+// Rekisteröi popup-näyttö
+app.post('/api/popups/view/:id', async (req, res) => {
+    try {
+        const popupId = req.params.id;
+        
+        // Päivitä tilastot
+        await Popup.findByIdAndUpdate(popupId, {
+            $inc: { 'statistics.views': 1 },
+            $set: { 'statistics.lastViewed': new Date() }
+        });
+        
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error('Error registering view:', err);
+        res.status(500).json({ message: 'Error registering view', error: err.toString() });
+    }
+});
+
+// Rekisteröi popup-klikkaus
+app.post('/api/popups/click/:id', async (req, res) => {
+    try {
+        const popupId = req.params.id;
+        console.log("Registering click for popup:", popupId);
+        
+        // Päivitä tilastot
+        const result = await Popup.findByIdAndUpdate(popupId, {
+            $inc: { 'statistics.clicks': 1 },
+            $set: { 'statistics.lastClicked': new Date() }
+        }, { new: true });
+        
+        console.log("Click registered, updated popup:", result);
+        res.status(200).json({ success: true, message: 'Click registered' });
+    } catch (err) {
+        console.error('Error registering click:', err);
+        res.status(500).json({ message: 'Error registering click', error: err.toString() });
+    }
+});
+
+// Hae popupin tilastot
+app.get('/api/popups/stats/:id', async (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+    }
+
+    try {
+        const popup = await Popup.findOne({
+            _id: req.params.id,
+            userId: req.user._id
+        });
+        
+        if (!popup) {
+            return res.status(404).json({ message: 'Popup not found' });
+        }
+        
+        // Laske klikkiprosentti (CTR)
+        let clickThroughRate = 0;
+        if (popup.statistics.views > 0) {
+            clickThroughRate = (popup.statistics.clicks / popup.statistics.views) * 100;
+        }
+        
+        res.json({
+            views: popup.statistics.views || 0,
+            clicks: popup.statistics.clicks || 0,
+            clickThroughRate: clickThroughRate.toFixed(2),
+            lastViewed: popup.statistics.lastViewed || null,
+            lastClicked: popup.statistics.lastClicked || null
+        });
+    } catch (err) {
+        console.error('Error fetching popup statistics:', err);
+        res.status(500).json({ message: 'Error fetching popup statistics', error: err.toString() });
+    }
+});
+
 
 
 

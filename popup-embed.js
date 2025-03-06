@@ -17,8 +17,15 @@
             const popup = await response.json();
             
             console.log("Received popup data:", popup); // Debug
-            console.log("Popup image URL:", popup.imageUrl);
-            console.log("Popup type:", popup.popupType);
+            
+            // Rekisteröi näyttökerta
+            try {
+                await fetch(`${baseUrl}/api/popups/view/${popupId}`, { method: 'POST' });
+                console.log("View registered for popup:", popupId);
+            } catch (statsError) {
+                console.error("Failed to register view:", statsError);
+                // Jatketaan silti, tilastojen epäonnistuminen ei estä popupia näkymästä
+            }
 
             // Tarkista vain ajastusasetukset (päivämäärät)
             if (!shouldShowPopup(popup)) return;
@@ -70,6 +77,17 @@
         return true;
     }
 
+    // Apufunktio klikkausten rekisteröintiin
+    async function registerClick(popupId) {
+        try {
+            const baseUrl = window.location.origin;
+            await fetch(`${baseUrl}/api/popups/click/${popupId}`, { method: 'POST' });
+            console.log("Click registered for popup:", popupId);
+        } catch (error) {
+            console.error("Failed to register click:", error);
+        }
+    }
+
     // Apufunktio popupin luomiseen ja näyttämiseen
     function createAndShowPopup(popup) {
         // Hae ja loki timing-tiedot
@@ -92,19 +110,8 @@
         } catch (e) {
             console.warn("Invalid duration value, defaulting to 0");
         }
-
-        // Puhdistetaan loggaus näyttämään vain validit arvot
-        console.log("Popup timing details:", {
-            delay,
-            duration,
-            frequency: "always", // Nyt aina näytetään
-            // Näytä päivämäärät vain jos ne eivät ole "default"
-            startDate: timing.startDate && timing.startDate !== "default" ? timing.startDate : null,
-            endDate: timing.endDate && timing.endDate !== "default" ? timing.endDate : null
-        });
-        
-
-         // Luo popup
+    
+        // Luo popup
         const popupElement = document.createElement('div');
         popupElement.id = `popup-${popup._id}`;
         popupElement.style.position = 'fixed';
@@ -115,15 +122,27 @@
         popupElement.style.opacity = '0';
         popupElement.style.transition = 'opacity 0.5s ease-in-out';
         
-        // Debug-lokitus
-        console.log("Creating popup with:");
-        console.log("- Type:", popup.popupType);
-        console.log("- Image URL:", popup.imageUrl);
-        console.log("- Content:", popup.content);
+        // Tulostusloki linkkiä varten
+        console.log("Popup link URL:", popup.linkUrl);
+        
+        // Lisää kursori-tyyli ja klikattavuuden ilmaisin jos linkki on määritetty
+        if (popup.linkUrl && popup.linkUrl.trim() !== '') {
+            console.log("This popup has a link - making it clickable");
+            popupElement.style.cursor = 'pointer';
+            // Lisätään linkki-indikaattori (pieni ikoni)
+            const linkIndicator = document.createElement('div');
+            linkIndicator.innerHTML = '🔗';
+            linkIndicator.style.position = 'absolute';
+            linkIndicator.style.bottom = '5px';
+            linkIndicator.style.right = '5px';
+            linkIndicator.style.fontSize = '16px';
+            linkIndicator.style.opacity = '0.7';
+            linkIndicator.style.zIndex = '1000000';
+            popupElement.appendChild(linkIndicator);
+        }
         
         // Käsittele "image"-popup-tyyppi erikseen
         if (popup.popupType === 'image' && popup.imageUrl) {
-            console.log("Creating image-only popup with URL:", popup.imageUrl);
             popupElement.style.background = `url("${popup.imageUrl}") no-repeat center center`;
             popupElement.style.backgroundSize = 'contain';
             popupElement.style.padding = '0';
@@ -139,12 +158,12 @@
             closeButton.style.fontWeight = 'bold';
             closeButton.style.color = '#ffffff'; // Valkoinen sulkunappi näkyy paremmin kuvan päällä
             closeButton.style.textShadow = '0 0 3px rgba(0,0,0,0.5)'; // Varjo näkyvyyden parantamiseksi
-            closeButton.onclick = function() {
+            closeButton.onclick = function(e) {
+                e.stopPropagation(); // Estä klikkauksen leviäminen popupiin
                 closePopup(popup._id);
             };
             popupElement.appendChild(closeButton);
         } else {
-            console.log("Creating normal popup with image:", popup.imageUrl);
             // Muussa tapauksessa käytetään normaalia popupia
             popupElement.style.backgroundColor = popup.backgroundColor || '#ffffff';
             popupElement.style.color = popup.textColor || '#000000';
@@ -166,7 +185,7 @@
             contentContainer.style.alignItems = 'center';
             contentContainer.style.justifyContent = 'center';
             contentContainer.style.position = 'relative';
-
+    
             // Lisää sisältö, jos on
             if (popup.content) {
                 const contentElement = document.createElement('div');
@@ -175,10 +194,9 @@
                 contentElement.style.marginBottom = popup.imageUrl ? '10px' : '0';
                 contentContainer.appendChild(contentElement);
             }
-
+    
             // Lisää kuva, jos on
             if (popup.imageUrl) {
-                console.log("Adding image to normal popup, URL:", popup.imageUrl);
                 const imageElement = document.createElement('img');
                 imageElement.src = popup.imageUrl;
                 imageElement.style.maxWidth = '100%';
@@ -186,7 +204,7 @@
                 imageElement.style.objectFit = 'contain';
                 contentContainer.appendChild(imageElement);
             }
-
+    
             // Lisää sulkunappi
             const closeButton = document.createElement('div');
             closeButton.innerHTML = "×";
@@ -197,15 +215,16 @@
             closeButton.style.fontSize = '24px';
             closeButton.style.fontWeight = 'bold';
             closeButton.style.color = popup.textColor;
-            closeButton.onclick = function() {
+            closeButton.onclick = function(e) {
+                e.stopPropagation(); // Estä klikkauksen leviäminen popupiin
                 closePopup(popup._id);
             };
             contentContainer.appendChild(closeButton);
-
+    
             // Lisää sisältökontaineri popupiin
             popupElement.appendChild(contentContainer);
         }
-
+    
         // Aseta sijainti
         switch (popup.position) {
             case 'top-left':
@@ -229,11 +248,39 @@
                 popupElement.style.left = '50%';
                 popupElement.style.transform = 'translate(-50%, -50%)';
         }
-
+    
+        // Lisää klikkaus-käsittelijä, jos linkki on määritetty
+        if (popup.linkUrl && popup.linkUrl.trim() !== '') {
+            console.log("Adding click handler to popup with link:", popup.linkUrl);
+            popupElement.addEventListener('click', function() {
+                console.log("Popup clicked! Navigating to:", popup.linkUrl);
+                
+                // Rekisteröi klikkaus
+                try {
+                    const baseUrl = window.location.origin;
+                    fetch(`${baseUrl}/api/popups/click/${popup._id}`, { method: 'POST' })
+                        .then(response => {
+                            console.log("Click registered successfully:", response.status);
+                        })
+                        .catch(error => {
+                            console.error("Error registering click:", error);
+                        });
+                } catch (error) {
+                    console.error("Failed to register click:", error);
+                }
+                
+                // Avaa linkki uudessa välilehdessä
+                window.open(popup.linkUrl, '_blank');
+                
+                // Sulje popup
+                closePopup(popup._id);
+            });
+        }
+    
         // Lisää elementti sivulle
         document.body.appendChild(popupElement);
-
-        // Lisää close-funktio - ei tallenna localStorage:een mitään
+    
+        // Määritä globaali closePopup-funktio
         window.closePopup = function(id) {
             console.log("Closing popup:", id);
             const popup = document.getElementById(`popup-${id}`);
@@ -242,12 +289,11 @@
                 setTimeout(() => {
                     popup.remove();
                 }, 500);
-                // Poistettu localStorage tallennus
             }
         };
-
+    
         console.log(`Popup will show after ${delay} seconds and close after ${duration > 0 ? duration : 'never'} seconds`);
-
+    
         // Näytä popup viiveellä
         setTimeout(() => {
             popupElement.style.display = 'flex';
@@ -256,9 +302,9 @@
             setTimeout(() => {
                 popupElement.style.opacity = '1';
             }, 10); // Pieni viive jotta display:flex ehtii vaikuttaa
-
+    
             console.log(`Popup shown, will ${duration > 0 ? `close after ${duration} seconds` : 'stay open until closed'}`);
-
+    
             // Sulje automaattisesti jos duration on asetettu
             if (duration > 0) {
                 setTimeout(() => {
@@ -267,5 +313,18 @@
                 }, duration * 1000);
             }
         }, delay * 1000);
+    }
+    
+    // Apufunktio klikkausten rekisteröintiin
+    async function registerClick(popupId) {
+        try {
+            const baseUrl = window.location.origin;
+            const response = await fetch(`${baseUrl}/api/popups/click/${popupId}`, { method: 'POST' });
+            console.log("Click registered for popup:", popupId, "Status:", response.status);
+            return true;
+        } catch (error) {
+            console.error("Failed to register click:", error);
+            return false;
+        }
     }
 })();

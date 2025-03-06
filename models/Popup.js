@@ -18,12 +18,24 @@ const popupSchema = new mongoose.Schema({
         type: String, 
         default: ''
     },
+    // Lisätään linkki-kenttä
+    linkUrl: {
+        type: String,
+        default: ''
+    },
     timing: {
         delay: { type: Number, default: 0 },
         showDuration: { type: Number, default: 0 },
         frequency: { type: String, default: 'always' },
         startDate: { type: String, default: "default" },
         endDate: { type: String, default: "default" }
+    },
+    // Lisätään tilastokenttä
+    statistics: {
+        views: { type: Number, default: 0 },
+        clicks: { type: Number, default: 0 },
+        lastViewed: { type: Date },
+        lastClicked: { type: Date }
     },
     createdAt: { type: Date, default: Date.now }
 });
@@ -33,7 +45,8 @@ popupSchema.pre('save', function(next) {
     console.log("Pre-save hook running with data:", {
         popupType: this.popupType,
         content: this.content,
-        imageUrl: this.imageUrl
+        imageUrl: this.imageUrl,
+        linkUrl: this.linkUrl
     });
     
     // Tarkista että vähintään joko content tai imageUrl on annettu

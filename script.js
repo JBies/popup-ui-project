@@ -244,6 +244,7 @@ document.getElementById('createPopupForm').addEventListener('submit', async (e) 
     
     const popupType = document.getElementById('popupType').value;
     const content = document.getElementById('content').value.trim();
+    const linkUrl = document.getElementById('linkUrl')?.value.trim() || '';
     
     // Tarkistetaan imageUrl
     const imageUrlInput = document.getElementById('imageUrl');
@@ -252,7 +253,8 @@ document.getElementById('createPopupForm').addEventListener('submit', async (e) 
     console.log("Form submission:", {
         popupType,
         content,
-        imageUrl
+        imageUrl,
+        linkUrl
     });
     
     // Validoi lomakkeella
@@ -276,12 +278,11 @@ document.getElementById('createPopupForm').addEventListener('submit', async (e) 
         backgroundColor: document.getElementById('backgroundColor').value,
         textColor: document.getElementById('textColor').value,
         content: content,
-        imageUrl: imageUrl, // Varmistetaan että tämä tulee mukaan
-        
+        imageUrl: imageUrl,
+        linkUrl: linkUrl,
         // Ajastustiedot turvallisesti
         delay: parseInt(document.getElementById('delay').value) || 0,
         showDuration: parseInt(document.getElementById('showDuration').value) || 0,
-        
         // Päivämäärät vain jos ne on asetettu
         startDate: document.getElementById('startDate').value || null,
         endDate: document.getElementById('endDate').value || null
@@ -319,6 +320,39 @@ document.getElementById('createPopupForm').addEventListener('submit', async (e) 
     }
 });
 
+function loadPopupStats(popupId) {
+    console.log("Loading stats for popup:", popupId); // Debug viesti
+    fetch(`/api/popups/stats/${popupId}`)
+        .then(response => response.json())
+        .then(stats => {
+            console.log("Stats received:", stats); // Debug viesti
+            // Näytä tilastot
+            document.getElementById(`views-${popupId}`).textContent = stats.views;
+            document.getElementById(`clicks-${popupId}`).textContent = stats.clicks;
+            document.getElementById(`ctr-${popupId}`).textContent = stats.clickThroughRate;
+            
+            // Muotoile päivämäärät
+            const lastViewed = stats.lastViewed 
+                ? new Date(stats.lastViewed).toLocaleString() 
+                : 'Never';
+            const lastClicked = stats.lastClicked 
+                ? new Date(stats.lastClicked).toLocaleString() 
+                : 'Never';
+            
+            document.getElementById(`last-viewed-${popupId}`).textContent = lastViewed;
+            document.getElementById(`last-clicked-${popupId}`).textContent = lastClicked;
+            
+            // Näytä tilastot ja piilota latausviesti
+            document.getElementById(`stats-loading-${popupId}`).style.display = 'none';
+            document.getElementById(`stats-content-${popupId}`).style.display = 'block';
+        })
+        .catch(error => {
+            console.error(`Error loading stats for popup ${popupId}:`, error);
+            document.getElementById(`stats-loading-${popupId}`).textContent = 
+                'Error loading statistics. Please try again later.';
+        });
+}
+
 // Hae ja näytä käyttäjän popupit ja embed koodi
 function fetchUserPopups() {
     fetch('/api/popups')
@@ -329,20 +363,46 @@ function fetchUserPopups() {
             data.forEach(popup => {
                 const li = document.createElement('li');
                 li.className = 'popup-item';
-                li.innerHTML = `
+                
+                // Popupin perustiedot
+                let popupHtml = `
                     <div class="popup-info">
-                    <p><strong>Type:</strong> ${popup.popupType}</p>
-                    <p><strong>Content:</strong> ${popup.content}</p>
-                    <p><strong>Size:</strong> ${popup.width || 200}x${popup.height || 150}px</p>
+                        <p><strong>Type:</strong> ${popup.popupType}</p>
+                        <p><strong>Content:</strong> ${popup.content}</p>
+                        <p><strong>Size:</strong> ${popup.width || 200}x${popup.height || 150}px</p>
+                `;
+                
+                // Lisää linkki-tieto, jos sellainen on määritetty
+                if (popup.linkUrl) {
+                    popupHtml += `<p><strong>Link URL:</strong> <a href="${popup.linkUrl}" target="_blank">${popup.linkUrl}</a></p>`;
+                }
+                
+                // Tilastot-osio
+                popupHtml += `
+                    <div class="popup-stats">
+                        <h4>Statistics</h4>
+                        <div class="stats-loading" id="stats-loading-${popup._id}">Loading statistics...</div>
+                        <div class="stats-content" id="stats-content-${popup._id}" style="display:none;">
+                            <p>Views: <span id="views-${popup._id}">-</span></p>
+                            <p>Clicks: <span id="clicks-${popup._id}">-</span></p>
+                            <p>Click rate: <span id="ctr-${popup._id}">-</span>%</p>
+                            <p>Last viewed: <span id="last-viewed-${popup._id}">-</span></p>
+                            <p>Last clicked: <span id="last-clicked-${popup._id}">-</span></p>
+                        </div>
+                    </div>
+                `;
+                
+                // Embed-koodi-osio
+                popupHtml += `
                     <div class="embed-code">
                         <p><strong>Embed Code:</strong></p>
                         <textarea readonly class="embed-code-text" onclick="this.select()">
-                <script src="${window.location.origin}/popup-embed.js"></script>
-                <script>
-                    window.addEventListener('load', function() {
-                        ShowPopup('${popup._id}');
-                    });
-                </script>
+<script src="${window.location.origin}/popup-embed.js"></script>
+<script>
+    window.addEventListener('load', function() {
+        ShowPopup('${popup._id}');
+    });
+</script>
                         </textarea>
                     </div>
                     <div class="popup-actions">
@@ -350,8 +410,13 @@ function fetchUserPopups() {
                             .replace(/"/g, '&quot;')})">Edit</button>
                         <button onclick="deletePopup('${popup._id}')">Delete</button>
                     </div>
-                `;
+                </div>`;
+                
+                li.innerHTML = popupHtml;
                 popupList.appendChild(li);
+                
+                // Tässä kutsumme loadPopupStats-funktiota jokaiselle popupille
+                loadPopupStats(popup._id);
             });
         });
 }
@@ -444,6 +509,9 @@ document.getElementById('updatePopupForm').addEventListener('submit', async (e) 
         content: document.getElementById('editContent')?.value || '',
         // Lisää kuva-URL
         imageUrl: document.getElementById('editImageUrl')?.value || '',
+        // Lisää linkki-URL
+        linkUrl: document.getElementById('editLinkUrl')?.value || '',
+        
         // Ajastustiedot turvallisesti
         delay: document.getElementById('editDelay')?.value || 0,
         showDuration: document.getElementById('editShowDuration')?.value || 0,
@@ -910,6 +978,8 @@ function truncateText(text, maxLength) {
     if (text.length <= maxLength) return text;
     return text.substr(0, maxLength) + '...';
 }
+
+
 
 // Päivitä olemassa oleva käyttäjätietojen hakufunktio
 fetch('/api/user')

@@ -484,3 +484,40 @@ select, input, textarea {
     background-color: #0056b3;
   }
 
+  .popup-stats {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    border-left: 3px solid #007bff;
+}
+
+.popup-stats h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #007bff;
+}
+
+.stats-loading {
+    font-style: italic;
+    color: #777;
+}
+
+.stats-content p {
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.stats-content span {
+    font-weight: bold;
+}
+
+/* Tyyli linkki-kentälle */
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #6c757d;
+    font-size: 12px;
+}
+
