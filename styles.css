@@ -254,4 +254,233 @@ select, input, textarea {
     font-size: 12px;
     resize: vertical;
 }
+.image-controls {
+    margin: 15px 0;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+
+.image-preview-container {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.remove-image-btn {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-image-btn:hover {
+    background-color: #cc0000;
+}
+
+.image-library {
+    margin-top: 20px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+  }
+  
+  .image-item {
+    border: 1px solid #eee;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 1;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  .image-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .image-actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: space-around;
+    padding: 5px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  
+  .image-item:hover .image-actions {
+    opacity: 1;
+  }
+  
+  .image-actions button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .image-actions button:hover {
+    color: #72ceff;
+  }
+  
+  /* Modal dialog tyylit */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+  }
+  
+  .image-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .picker-image-item {
+    border: 2px solid transparent;
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 1;
+  }
+  
+  .picker-image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .picker-image-item.selected {
+    border-color: #007bff;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+  }
+  
+  /* Kuvavalitsin-nappi lomakkeella */
+  .select-image-btn {
+    margin-top: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .select-image-btn:hover {
+    background-color: #45a049;
+  }
+
+  .image-details-content {
+    display: flex;
+    margin-bottom: 20px;
+  }
+  
+  .image-details-preview {
+    flex: 0 0 200px;
+    margin-right: 20px;
+  }
+  
+  .image-details-preview img {
+    max-width: 100%;
+    border-radius: 5px;
+    border: 1px solid #eee;
+  }
+  
+  .image-details-info {
+    flex: 1;
+  }
+  
+  .image-details-usage {
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+  }
+  
+  .image-details-usage ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+  
+  .image-details-usage li {
+    margin-bottom: 5px;
+  }
+  
+  .no-popups-message {
+    font-style: italic;
+    color: #777;
+  }
+
+  .image-library-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+  }
+  
+  .primary-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .primary-button:hover {
+    background-color: #0056b3;
+  }
 

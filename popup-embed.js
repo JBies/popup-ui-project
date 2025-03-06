@@ -3,15 +3,22 @@
     // Popup Manager
     window.ShowPopup = async function(popupId) {
         try {
+            console.log("ShowPopup called with ID:", popupId); // Debug
+            
             // Hae popup data API:sta
             const baseUrl = window.location.origin;
-            const response = await fetch(`${baseUrl}/api/popups/embed/${popupId}`);
+            const url = `${baseUrl}/api/popups/embed/${popupId}`;
+            console.log("Fetching popup data from:", url);
+            
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const popup = await response.json();
             
-            console.log("Received popup data:", popup);
+            console.log("Received popup data:", popup); // Debug
+            console.log("Popup image URL:", popup.imageUrl);
+            console.log("Popup type:", popup.popupType);
 
             // Tarkista vain ajastusasetukset (päivämäärät)
             if (!shouldShowPopup(popup)) return;
@@ -85,7 +92,7 @@
         } catch (e) {
             console.warn("Invalid duration value, defaulting to 0");
         }
-    
+
         // Puhdistetaan loggaus näyttämään vain validit arvot
         console.log("Popup timing details:", {
             delay,
@@ -95,25 +102,109 @@
             startDate: timing.startDate && timing.startDate !== "default" ? timing.startDate : null,
             endDate: timing.endDate && timing.endDate !== "default" ? timing.endDate : null
         });
+        
 
-        // Luo popup
+         // Luo popup
         const popupElement = document.createElement('div');
         popupElement.id = `popup-${popup._id}`;
         popupElement.style.position = 'fixed';
-        popupElement.style.backgroundColor = popup.backgroundColor || '#ffffff';
-        popupElement.style.color = popup.textColor || '#000000';
         popupElement.style.width = `${popup.width || 300}px`;
         popupElement.style.height = `${popup.height || 200}px`;
-        popupElement.style.borderRadius = popup.popupType === 'circle' ? '50%' : '4px';
-        popupElement.style.padding = '20px';
-        popupElement.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
         popupElement.style.zIndex = '999999';
         popupElement.style.display = 'none'; // Piilotettu aluksi
-        popupElement.style.alignItems = 'center';
-        popupElement.style.justifyContent = 'center';
-        popupElement.style.textAlign = 'center';
         popupElement.style.opacity = '0';
         popupElement.style.transition = 'opacity 0.5s ease-in-out';
+        
+        // Debug-lokitus
+        console.log("Creating popup with:");
+        console.log("- Type:", popup.popupType);
+        console.log("- Image URL:", popup.imageUrl);
+        console.log("- Content:", popup.content);
+        
+        // Käsittele "image"-popup-tyyppi erikseen
+        if (popup.popupType === 'image' && popup.imageUrl) {
+            console.log("Creating image-only popup with URL:", popup.imageUrl);
+            popupElement.style.background = `url("${popup.imageUrl}") no-repeat center center`;
+            popupElement.style.backgroundSize = 'contain';
+            popupElement.style.padding = '0';
+            
+            // Lisää vain sulkunappi
+            const closeButton = document.createElement('div');
+            closeButton.innerHTML = "×";
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '10px';
+            closeButton.style.right = '10px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.style.fontSize = '24px';
+            closeButton.style.fontWeight = 'bold';
+            closeButton.style.color = '#ffffff'; // Valkoinen sulkunappi näkyy paremmin kuvan päällä
+            closeButton.style.textShadow = '0 0 3px rgba(0,0,0,0.5)'; // Varjo näkyvyyden parantamiseksi
+            closeButton.onclick = function() {
+                closePopup(popup._id);
+            };
+            popupElement.appendChild(closeButton);
+        } else {
+            console.log("Creating normal popup with image:", popup.imageUrl);
+            // Muussa tapauksessa käytetään normaalia popupia
+            popupElement.style.backgroundColor = popup.backgroundColor || '#ffffff';
+            popupElement.style.color = popup.textColor || '#000000';
+            popupElement.style.borderRadius = popup.popupType === 'circle' ? '50%' : '4px';
+            popupElement.style.padding = '20px';
+            popupElement.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+            popupElement.style.display = 'none'; // Tärkeä: aluksi piilotettu
+            popupElement.style.alignItems = 'center';
+            popupElement.style.justifyContent = 'center';
+            popupElement.style.textAlign = 'center';
+            popupElement.style.overflow = 'auto';
+            
+            // Luodaan sisältökontaineri
+            const contentContainer = document.createElement('div');
+            contentContainer.style.width = '100%';
+            contentContainer.style.height = '100%';
+            contentContainer.style.display = 'flex';
+            contentContainer.style.flexDirection = 'column';
+            contentContainer.style.alignItems = 'center';
+            contentContainer.style.justifyContent = 'center';
+            contentContainer.style.position = 'relative';
+
+            // Lisää sisältö, jos on
+            if (popup.content) {
+                const contentElement = document.createElement('div');
+                contentElement.innerHTML = popup.content;
+                contentElement.style.maxWidth = '100%';
+                contentElement.style.marginBottom = popup.imageUrl ? '10px' : '0';
+                contentContainer.appendChild(contentElement);
+            }
+
+            // Lisää kuva, jos on
+            if (popup.imageUrl) {
+                console.log("Adding image to normal popup, URL:", popup.imageUrl);
+                const imageElement = document.createElement('img');
+                imageElement.src = popup.imageUrl;
+                imageElement.style.maxWidth = '100%';
+                imageElement.style.maxHeight = '70%';
+                imageElement.style.objectFit = 'contain';
+                contentContainer.appendChild(imageElement);
+            }
+
+            // Lisää sulkunappi
+            const closeButton = document.createElement('div');
+            closeButton.innerHTML = "×";
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '10px';
+            closeButton.style.right = '10px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.style.fontSize = '24px';
+            closeButton.style.fontWeight = 'bold';
+            closeButton.style.color = popup.textColor;
+            closeButton.onclick = function() {
+                closePopup(popup._id);
+            };
+            contentContainer.appendChild(closeButton);
+
+            // Lisää sisältökontaineri popupiin
+            popupElement.appendChild(contentContainer);
+        }
 
         // Aseta sijainti
         switch (popup.position) {
@@ -138,16 +229,6 @@
                 popupElement.style.left = '50%';
                 popupElement.style.transform = 'translate(-50%, -50%)';
         }
-
-        // Lisää sisältö
-        popupElement.innerHTML = `
-            <div style="width: 100%; position: relative;">
-                ${popup.content}
-                <div style="position: absolute; top: 5px; right: 5px;">
-                    <button onclick="closePopup('${popup._id}')" style="background: transparent; border: none; cursor: pointer; font-size: 20px; color: ${popup.textColor};">×</button>
-                </div>
-            </div>
-        `;
 
         // Lisää elementti sivulle
         document.body.appendChild(popupElement);
