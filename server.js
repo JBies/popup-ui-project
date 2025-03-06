@@ -9,6 +9,7 @@ const path = require('path');
 const upload = require('./upload');
 const { bucket } = require('./firebase');
 const fs = require('fs');
+const Image = require('./models/Image');
 require('./auth');
 
 const app = express();
@@ -63,9 +64,6 @@ app.post('/api/popups', async (req, res) => {
         return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    // Tarkistetaan vastaanotettu data
-    console.log("Received popup data:", req.body);
-
     const { 
         popupType, 
         content, 
@@ -98,21 +96,7 @@ app.post('/api/popups', async (req, res) => {
             timingData.endDate = new Date(endDate);
         }
         
-        // Luodaan ja tallennetaan uusi popup
-        console.log("Creating new popup with:", {
-            userId: req.user._id,
-            popupType,
-            content,
-            width: parseInt(width) || 200,
-            height: parseInt(height) || 150,
-            position,
-            animation,
-            backgroundColor,
-            textColor,
-            imageUrl, // Tarkistetaan tämä arvo
-            timing: timingData
-        });
-        
+        // Luo uusi popup
         const newPopup = new Popup({
             userId: req.user._id,
             popupType,
@@ -123,11 +107,33 @@ app.post('/api/popups', async (req, res) => {
             animation,
             backgroundColor,
             textColor,
-            imageUrl, // Tarkistetaan tämä arvo
+            imageUrl,
             timing: timingData
         });
         
         await newPopup.save();
+        
+        // Jos popup käyttää kuvaa, päivitä kuvan käyttötiedot
+        if (imageUrl) {
+            // Etsi kuva URL:n perusteella
+            const image = await Image.findOne({ 
+                url: imageUrl,
+                userId: req.user._id
+            });
+            
+            if (image) {
+                // Lisää popup kuvan käyttötietoihin
+                if (!image.usedInPopups) {
+                    image.usedInPopups = [];
+                }
+                
+                if (!image.usedInPopups.includes(newPopup._id)) {
+                    image.usedInPopups.push(newPopup._id);
+                    await image.save();
+                }
+            }
+        }
+        
         res.status(201).json(newPopup);
     } catch (err) {
         console.error("Error saving popup:", err);
@@ -165,6 +171,7 @@ app.put('/api/popups/:id', async (req, res) => {
         animation,
         backgroundColor,
         textColor,
+        imageUrl,
         delay,
         showDuration,
         startDate,
@@ -172,6 +179,18 @@ app.put('/api/popups/:id', async (req, res) => {
     } = req.body;
 
     try {
+        // Hae popup ensin, jotta voimme tarkistaa aiemman image URL:n
+        const oldPopup = await Popup.findOne({ 
+            _id: req.params.id,
+            userId: req.user._id
+        });
+        
+        if (!oldPopup) {
+            return res.status(404).json({ message: 'Popup not found' });
+        }
+        
+        const oldImageUrl = oldPopup.imageUrl;
+        
         // Käsittele päivämäärät oikein
         const timingData = {
             delay: parseInt(delay) || 0,
@@ -187,8 +206,9 @@ app.put('/api/popups/:id', async (req, res) => {
             timingData.endDate = new Date(endDate);
         }
         
+        // Päivitä popup
         const updatedPopup = await Popup.findOneAndUpdate(
-            { _id: req.params.id },
+            { _id: req.params.id, userId: req.user._id },
             {
                 popupType,
                 content,
@@ -198,18 +218,57 @@ app.put('/api/popups/:id', async (req, res) => {
                 animation,
                 backgroundColor,
                 textColor,
+                imageUrl,
                 timing: timingData
             },
             { new: true }
         );
         
+        // Käsittele kuvan käyttötietojen päivitys
+        if (oldImageUrl !== imageUrl) {
+            // Jos vanha kuva on vaihdettu, poista viittaus vanhasta kuvasta
+            if (oldImageUrl) {
+                const oldImage = await Image.findOne({ 
+                    url: oldImageUrl,
+                    userId: req.user._id
+                });
+                
+                if (oldImage && oldImage.usedInPopups) {
+                    oldImage.usedInPopups = oldImage.usedInPopups.filter(
+                        id => id.toString() !== req.params.id
+                    );
+                    await oldImage.save();
+                }
+            }
+            
+            // Jos uusi kuva on määritetty, lisää viittaus uuteen kuvaan
+            if (imageUrl) {
+                const newImage = await Image.findOne({ 
+                    url: imageUrl,
+                    userId: req.user._id
+                });
+                
+                if (newImage) {
+                    if (!newImage.usedInPopups) {
+                        newImage.usedInPopups = [];
+                    }
+                    
+                    if (!newImage.usedInPopups.includes(updatedPopup._id)) {
+                        newImage.usedInPopups.push(updatedPopup._id);
+                        await newImage.save();
+                    }
+                }
+            }
+        }
+        
         if (!updatedPopup) {
             return res.status(404).json({ message: 'Popup not found' });
         }
+        
         res.json(updatedPopup);
     } catch (err) {
         console.error("Error updating popup:", err);
-        res.status(500).json({ message: 'Error updating popup', error: err });
+        res.status(500).json({ message: 'Error updating popup', error: err.toString() });
     }
 });
 
@@ -255,25 +314,88 @@ app.put('/api/admin/popups/:id', async (req, res) => {
     }
 });
 
-// Route to delete a popup
+// Poista popup
 app.delete('/api/popups/:id', async (req, res) => {
     if (!req.user) {
         return res.status(401).json({ message: 'Not authenticated' });
     }
 
     try {
+        // Hae popup ensin
+        const popup = await Popup.findOne({
+            _id: req.params.id,
+            userId: req.user._id
+        });
+        
+        if (!popup) {
+            return res.status(404).json({ message: 'Popup not found' });
+        }
+        // Jos popup käyttää kuvaa, päivitä kuvan käyttötiedot
+        if (popup.imageUrl) {
+            const image = await Image.findOne({ 
+                url: popup.imageUrl,
+                userId: req.user._id
+            });
+            
+            if (image && image.usedInPopups) {
+                // Poista popup kuvan käyttötiedoista
+                image.usedInPopups = image.usedInPopups.filter(
+                    id => id.toString() !== req.params.id
+                );
+                await image.save();
+            }
+        }
+        
+        // Poista popup
         const deletedPopup = await Popup.findOneAndDelete({
             _id: req.params.id,
             userId: req.user._id
         });
+        
         if (!deletedPopup) {
             return res.status(404).json({ message: 'Popup not found' });
         }
+        
         res.json({ message: 'Popup deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting popup', error: err });
     }
 });
+
+// Hae yksittäisen kuvan tiedot ja käyttö
+app.get('/api/images/:id', async (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
+    }
+  
+    try {
+      const image = await Image.findOne({ 
+        _id: req.params.id,
+        userId: req.user._id
+      });
+  
+      if (!image) {
+        return res.status(404).json({ message: 'Kuvaa ei löydy' });
+      }
+  
+      // Hae popupit, joissa kuvaa käytetään
+      let popups = [];
+      if (image.usedInPopups && image.usedInPopups.length > 0) {
+        popups = await Popup.find({
+          _id: { $in: image.usedInPopups },
+          userId: req.user._id
+        }).select('_id popupType content createdAt');
+      }
+  
+      res.json({
+        image,
+        popups
+      });
+    } catch (error) {
+      console.error('Virhe kuvan tietojen haussa:', error);
+      res.status(500).json({ message: 'Virhe kuvan tietojen haussa', error: error.message });
+    }
+  });
 
 // Route to start Google OAuth login
 app.get('/auth/google',
@@ -418,7 +540,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
         return res.status(400).json({ message: 'Kuvaa ei ladattu' });
       }
   
-      console.log("Processing uploaded file:", req.file); // Debug-lokitus
+      console.log("Processing uploaded file:", req.file);
   
       const filePath = req.file.path;
       const fileExtension = path.extname(req.file.originalname);
@@ -426,9 +548,6 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
       // Luodaan uniikki tiedostonimi käyttäjän ID:n ja aikaleiman avulla
       const fileName = `${req.user._id}-${Date.now()}${fileExtension}`;
       const firebasePath = `popupImages/${fileName}`;
-  
-      // Lokita ennen Firebase-latausta
-      console.log("Uploading to Firebase:", { filePath, firebasePath });
   
       // Lataa tiedosto Firebaseen
       await bucket.upload(filePath, {
@@ -442,16 +561,98 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
       await bucket.file(firebasePath).makePublic();
       const imageUrl = `https://storage.googleapis.com/${bucket.name}/${firebasePath}`;
   
-      console.log("File uploaded successfully, URL:", imageUrl); // Debug-lokitus
+      console.log("File uploaded successfully, URL:", imageUrl);
   
       // Poista väliaikainen tiedosto
       fs.unlinkSync(filePath);
   
-      // Palauta URL clientille
-      res.json({ imageUrl });
+      // Tallenna kuvan tiedot tietokantaan
+      const newImage = new Image({
+        userId: req.user._id,
+        name: req.file.originalname,
+        url: imageUrl,
+        size: req.file.size,
+        mimeType: req.file.mimetype
+      });
+  
+      await newImage.save();
+      
+      // Palauta URL ja muut tiedot clientille
+      res.json({ 
+        imageUrl,
+        imageId: newImage._id,
+        name: newImage.name,
+        size: newImage.size
+      });
     } catch (error) {
       console.error('Virhe kuvan latauksessa:', error);
       res.status(500).json({ message: 'Virhe kuvan latauksessa', error: error.message });
+    }
+});
+
+// Hae käyttäjän kaikki kuvat
+app.get('/api/images', async (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
+    }
+  
+    try {
+      const images = await Image.find({ userId: req.user._id })
+        .sort({ createdAt: -1 }) // Uusimmat ensin
+        .select('name url size createdAt'); // Valitse vain tarvittavat kentät
+      
+      res.json(images);
+    } catch (error) {
+      console.error('Virhe kuvien haussa:', error);
+      res.status(500).json({ message: 'Virhe kuvien haussa', error: error.message });
+    }
+  });
+  
+  // Poista kuva
+  app.delete('/api/images/:id', async (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
+    }
+  
+    try {
+      // Varmista että käyttäjä omistaa kuvan
+      const image = await Image.findOne({ 
+        _id: req.params.id,
+        userId: req.user._id
+      });
+  
+      if (!image) {
+        return res.status(404).json({ message: 'Kuvaa ei löydy' });
+      }
+  
+      // Tarkista, käytetäänkö kuvaa aktiivisesti popupeissa
+      if (image.usedInPopups && image.usedInPopups.length > 0) {
+        return res.status(400).json({ 
+          message: 'Kuvaa ei voi poistaa, koska sitä käytetään popupeissa',
+          popups: image.usedInPopups 
+        });
+      }
+  
+      // Poista kuva Firebasesta
+      const urlParts = image.url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const firebasePath = `popupImages/${fileName}`;
+      
+      try {
+        await bucket.file(firebasePath).delete();
+        console.log(`Firebase image deleted: ${firebasePath}`);
+      } catch (firebaseError) {
+        console.error('Firebase image deletion error:', firebaseError);
+        // Jatka silti tietokannasta poistamiseen
+      }
+  
+      // Poista kuva tietokannasta
+      await Image.deleteOne({ _id: req.params.id });
+      
+      res.json({ message: 'Kuva poistettu onnistuneesti' });
+    } catch (error) {
+      console.error('Virhe kuvan poistossa:', error);
+      res.status(500).json({ message: 'Virhe kuvan poistossa', error: error.message });
     }
   });
 

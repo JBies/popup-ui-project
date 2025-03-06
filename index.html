@@ -68,20 +68,20 @@
             </div>
             <label for="content">Content:</label>
             <textarea id="content" name="content" rows="4" cols="50"></textarea><br>
-            <div class="timing-controls">
-                <div class="image-controls">
-                    <label for="image">Kuva:</label>
+            <div class="image-controls">
+                <label for="image">Kuva:</label>
+                <div class="image-input-controls">
                     <input type="file" id="image" name="image" accept="image/*">
-                    <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
-                        <img id="imagePreview" src="" alt="Kuvan esikatselu" style="max-width: 100%; max-height: 200px;">
-                        <button type="button" id="removeImage" class="remove-image-btn">Poista kuva</button>
-                    </div>
-                    <input type="hidden" id="imageUrl" name="imageUrl">
+                    <button type="button" id="selectImageBtn" class="select-image-btn">Valitse kirjastosta</button>
                 </div>
-
-
-                <h4>Timing Settings</h4>
-                
+                <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                    <img id="imagePreview" src="" alt="Kuvan esikatselu" style="max-width: 100%; max-height: 200px;">
+                    <button type="button" id="removeImage" class="remove-image-btn">Poista kuva</button>
+                </div>
+                <input type="hidden" id="imageUrl" name="imageUrl">
+            </div>
+            <div class="timing-controls">
+                <h4>Timing Settings</h4>            
                 <div class="form-group">
                     <label for="delay">Show Delay (seconds):</label>
                     <input type="number" id="delay" name="delay" min="0" value="0">
@@ -128,6 +128,51 @@
             <p id="previewContent">This is a preview of the popup content.</p>
         </div>
     </div>
+
+    <!-- kuvakirjasto -->
+    <div id="imageLibrary" class="image-library" style="display: none;">
+        <h3>Kuvakirjasto</h3>
+        <div class="image-library-actions">
+          <button id="uploadMoreImagesBtn" class="primary-button">
+            <i class="fas fa-upload"></i> Lataa lisää kuvia
+          </button>
+        </div>
+        <div class="image-grid" id="imageGrid">
+          <!-- Kuvat ladataan tänne JavaScriptillä -->
+        </div>
+      </div>
+      
+      <!-- Lisää kuvavalitsin-dialogi -->
+      <div id="imagePickerDialog" class="modal" style="display: none;">
+        <div class="modal-content">
+          <span class="close-button" id="closeImagePicker">&times;</span>
+          <h3>Valitse kuva</h3>
+          <div class="image-picker-grid" id="imagePickerGrid">
+            <!-- Kuvat ladataan tänne JavaScriptillä -->
+          </div>
+        </div>
+      </div>
+      <!-- Kuvan tiedot -dialogi -->
+      <div id="imageDetailsDialog" class="modal" style="display: none;">
+        <div class="modal-content">
+          <span class="close-button" id="closeImageDetails">&times;</span>
+          <h3>Kuvan tiedot</h3>
+          <div class="image-details-content">
+            <div class="image-details-preview">
+              <img id="detailsImage" src="" alt="Kuvan esikatselu">
+            </div>
+            <div class="image-details-info">
+              <p><strong>Nimi:</strong> <span id="detailsName"></span></p>
+              <p><strong>Koko:</strong> <span id="detailsSize"></span></p>
+              <p><strong>Ladattu:</strong> <span id="detailsDate"></span></p>
+            </div>
+          </div>
+          <div class="image-details-usage">
+            <h4>Käytetään seuraavissa popupeissa:</h4>
+            <ul id="detailsPopupList"></ul>
+          </div>
+        </div>
+      </div>
 
      <!-- Edit popup form (hidden by default) -->
     <div id="editPopupForm" class="popup-form" style="display: none;">
@@ -186,7 +231,10 @@
             </div>
             <div class="image-controls">
                 <label for="editImage">Kuva:</label>
-                <input type="file" id="editImage" name="image" accept="image/*">
+                <div class="image-input-controls">
+                    <input type="file" id="editImage" name="image" accept="image/*">
+                    <button type="button" id="editSelectImageBtn" class="select-image-btn">Valitse kirjastosta</button>
+                </div>
                 <div class="image-preview-container" id="editImagePreviewContainer" style="display: none;">
                     <img id="editImagePreview" src="" alt="Kuvan esikatselu" style="max-width: 100%; max-height: 200px;">
                     <button type="button" id="editRemoveImage" class="remove-image-btn">Poista kuva</button>
