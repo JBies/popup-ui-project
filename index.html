@@ -80,6 +80,12 @@
                 </div>
                 <input type="hidden" id="imageUrl" name="imageUrl">
             </div>
+                    <!-- Mahdollinen linkki eteenpäin -->
+            <div class="form-group">
+                <label for="linkUrl">Link URL (Valinnainen):</label>
+                <input type="url" id="linkUrl" name="linkUrl" placeholder="https://example.com">
+                <small>Kun popupia klikataan niin se vie eteenpäin tähän osoitteeseen.</small>
+            </div>
             <div class="timing-controls">
                 <h4>Timing Settings</h4>            
                 <div class="form-group">
@@ -106,28 +112,17 @@
             <button type="submit" id="createPopup">Create Popup</button>
         </form>
     </div>
-    <nav>
-        <div id="adminMenu" style="display: none;">
-            <h3>Admin Menu</h3>
-            <button onclick="location.href='api/admin/users'" id="userDB"> User database</button>
-            <button onclick="location.href='api/admin/popups'"> Popup database</button>
-            <button onclick="location.href='admin-users.html'">Manage Users</button>
-            <button onclick="location.href='admin-popups.html'">Manage Popups</button>
-            <button id="delayButton">5s delay</button>
-        </div>
-    </nav>
-                <!-- Popup list -->
-                <div id="popupList" class="popup-list">
-                    <h3>Your Popups</h3>
-                    <ul id="popups"></ul>
-                    </div>
-
     <div id="popupPreview" class="popup-preview" style="display: none;">
         <h3>Popup Preview</h3>
         <div id="previewPopup" class="preview-popup">
             <p id="previewContent">This is a preview of the popup content.</p>
         </div>
     </div>
+                    <!-- Popup list -->
+                    <div id="popupList" class="popup-list">
+                        <h3>Your Popups</h3>
+                        <ul id="popups"></ul>
+                        </div>
 
     <!-- kuvakirjasto -->
     <div id="imageLibrary" class="image-library" style="display: none;">
@@ -173,6 +168,19 @@
           </div>
         </div>
       </div>
+    <nav>
+        <div id="adminMenu" style="display: none;">
+            <h3>Admin Menu</h3>
+            <button onclick="location.href='api/admin/users'" id="userDB"> User database</button>
+            <button onclick="location.href='api/admin/popups'"> Popup database</button>
+            <button onclick="location.href='admin-users.html'">Manage Users</button>
+            <button onclick="location.href='admin-popups.html'">Manage Popups</button>
+            <button id="delayButton">5s delay</button>
+        </div>
+    </nav>
+
+
+
 
      <!-- Edit popup form (hidden by default) -->
     <div id="editPopupForm" class="popup-form" style="display: none;">
@@ -241,6 +249,12 @@
                 </div>
                 <input type="hidden" id="editImageUrl" name="imageUrl">
             </div>
+            <!-- Linkki eteenpäin -->
+            <div class="form-group">
+                <label for="editLinkUrl">Link URL (Valinnainen):</label>
+                <input type="url" id="editLinkUrl" name="linkUrl" placeholder="https://example.com">
+                <small>Kun popupia klikataan niin se vie eteenpäin tähän osoitteeseen.</small>
+            </div>
             <div class="timing-controls">
                 <h4>Timing Settings</h4>
                 
@@ -275,12 +289,12 @@
 
 
     <!-- Popup elements -->
-    <button id="openPopup">Open Popup</button>
+    <button id="openPopup">Avaa popup</button>
     <div class="overlay" id="overlay"></div>
     <div class="popup" id="popup">
-       <h2>Hello, World!</h2>
-        <p>This is a simple popup.</p>
-        <button id="closePopup">Close</button>
+       <h2>Täällä tehdään popuppeja sivullesi!</h2>
+        <p>Pyritään kasvattamaan sivusi kävijöiden konversiota!</p>
+        <button id="closePopup">Sulje</button>
     </div> 
 
 
