@@ -521,3 +521,211 @@ select, input, textarea {
     font-size: 12px;
 }
 
+/* Popup Item Styles */
+.popup-item {
+  margin-bottom: 15px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  background-color: white;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.popup-item:hover {
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+/* Header Row */
+.popup-header {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  cursor: pointer;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eee;
+}
+
+.popup-name {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.popup-type-badge {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-right: 15px;
+  text-transform: uppercase;
+}
+
+.popup-type-badge.square {
+  background-color: #e6f7ff;
+  color: #0066cc;
+}
+
+.popup-type-badge.circle {
+  background-color: #f6e6ff;
+  color: #6600cc;
+}
+
+.popup-type-badge.image {
+  background-color: #e6fff0;
+  color: #00cc66;
+}
+
+.popup-toggle-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+/* Popup Details */
+.popup-details {
+  padding: 20px;
+  background-color: white;
+  border-top: 1px solid #eee;
+}
+
+.popup-info {
+  margin-bottom: 20px;
+}
+
+.popup-info h4 {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  color: #444;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.popup-info p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.popup-content-preview {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  margin: 10px 0;
+  max-height: 100px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+.popup-image-preview {
+  margin: 10px 0;
+}
+
+/* Actions */
+.popup-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.popup-actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.edit-popup-btn {
+  background-color: #3498db;
+  color: white;
+}
+
+.edit-popup-btn:hover {
+  background-color: #2980b9;
+}
+
+.delete-popup-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.delete-popup-btn:hover {
+  background-color: #c0392b;
+}
+
+.preview-popup-btn {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.preview-popup-btn:hover {
+  background-color: #27ae60;
+}
+
+/* Preview Overlay */
+.preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Animaatio popup-yksityiskohtien avaus/sulkeminen */
+.popup-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.popup-item:not(.collapsed) .popup-details {
+  max-height: 2000px; /* Riittävän suuri arvo, jotta kaikki mahtuu */
+  transition: max-height 0.5s ease-in;
+}
+
+/* Tilastot-osio */
+.popup-stats {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 5px;
+  margin: 15px 0;
+}
+
+.popup-stats h4 {
+  margin-top: 0 !important;
+  color: #2c3e50;
+}
+
+/* Embed-koodi */
+.embed-code {
+  margin: 15px 0;
+}
+
+.embed-code h4 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.embed-code-text {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}

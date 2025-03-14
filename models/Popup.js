@@ -1,8 +1,9 @@
-// Popup.js
+// models/Popup.js
 const mongoose = require('mongoose');
 
 const popupSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    name: { type: String, default: 'Unnamed Popup' }, 
     popupType: { type: String, required: true },
     content: { 
         type: String, 
@@ -18,7 +19,7 @@ const popupSchema = new mongoose.Schema({
         type: String, 
         default: ''
     },
-    // Lisätään linkki-kenttä
+    // Linkki-kenttä
     linkUrl: {
         type: String,
         default: ''
@@ -30,7 +31,7 @@ const popupSchema = new mongoose.Schema({
         startDate: { type: String, default: "default" },
         endDate: { type: String, default: "default" }
     },
-    // Lisätään tilastokenttä
+    // Tilastokenttä
     statistics: {
         views: { type: Number, default: 0 },
         clicks: { type: Number, default: 0 },
@@ -40,9 +41,10 @@ const popupSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-// Yksinkertaistamme pre-save hook -validaatiota ja lisäämme enemmän lokitusta
+//  pre-save hook -validaatiota ja lokitus
 popupSchema.pre('save', function(next) {
     console.log("Pre-save hook running with data:", {
+        name: this.name,
         popupType: this.popupType,
         content: this.content,
         imageUrl: this.imageUrl,

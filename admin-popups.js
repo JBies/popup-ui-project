@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         popups.forEach(popup => {
             const row = popupsTable.insertRow();
+            row.insertCell().textContent = popup.name;
             row.insertCell().textContent = popup.popupType;
             row.insertCell().textContent = popup.content;
 
@@ -51,6 +52,7 @@ function editPopup(id, popupData) {
 
     // Aseta kaikki arvot lomakkeelle
     document.getElementById('editPopupId').value = id;
+    document.getElementById('editPopupName').value = popup.name || 'Unnamed Popup';
     document.getElementById('editPopupType').value = popup.popupType || 'square';
     document.getElementById('editWidth').value = popup.width || 200;
     document.getElementById('editHeight').value = popup.height || 150;
@@ -93,6 +95,7 @@ async function updatePopup() {
         const id = document.getElementById('editPopupId').value;
 
         const popupData = {
+            name: document.getElementById('editPopupName')?.value || 'Unnamed Popup',
             popupType: document.getElementById('editPopupType')?.value || 'square',
             width: document.getElementById('editWidth')?.value || 200,
             height: document.getElementById('editHeight')?.value || 150,
