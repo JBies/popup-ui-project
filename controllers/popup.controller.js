@@ -19,6 +19,7 @@ class PopupController {
     }
 
     const { 
+      name,
       popupType, 
       content, 
       width, 
@@ -54,6 +55,7 @@ class PopupController {
       // Luo uusi popup
       const newPopup = new Popup({
         userId: req.user._id,
+        name: name || 'Unnamed Popup',
         popupType,
         content,
         width: parseInt(width) || 200,
@@ -111,6 +113,7 @@ class PopupController {
     }
 
     const {
+      name,
       popupType,
       content,
       width,
@@ -159,6 +162,7 @@ class PopupController {
       const updatedPopup = await Popup.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id },
         {
+          name: name || 'Unnamed Popup',
           popupType,
           content,
           width: parseInt(width) || 200,
@@ -384,6 +388,7 @@ class PopupController {
     }
 
     const {
+      name,
       popupType,
       width,
       height,
@@ -404,6 +409,7 @@ class PopupController {
       const updatedPopup = await Popup.findOneAndUpdate(
         { _id: req.params.id },
         {
+          name: name || 'Unnamed Popup',
           popupType,
           width,
           height,

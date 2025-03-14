@@ -52,6 +52,7 @@ class PopupForm {
       
       // Kerää tiedot turvallisesti
       const popupData = {
+        name: document.getElementById('popupName').value.trim() || 'Unnamed Popup',
         popupType: popupType,
         width: parseInt(document.getElementById('width').value) || 200,
         height: parseInt(document.getElementById('height').value) || 150,
@@ -128,6 +129,7 @@ class PopupForm {
       }
 
       const popupData = {
+        name: document.getElementById('editPopupName').value.trim() || 'Unnamed Popup',
         popupType: popupType,
         width: parseInt(document.getElementById('editWidth').value) || 200,
         height: parseInt(document.getElementById('editHeight').value) || 150,
@@ -267,6 +269,7 @@ class PopupForm {
     const popup = typeof popupData === 'string' ? JSON.parse(popupData) : popupData;
     
     // Aseta kaikki arvot lomakkeelle
+    document.getElementById('editPopupName').value = popup.name || 'Unnamed Popup';
     document.getElementById('editPopupId').value = id;
     document.getElementById('editPopupType').value = popup.popupType || 'square';
     document.getElementById('editWidth').value = popup.width || 200;
