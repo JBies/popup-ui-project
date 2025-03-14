@@ -10,17 +10,20 @@ class API {
      * @returns {Promise<Object>} Käyttäjän tiedot tai null jos ei kirjautunut
      */
     static async getCurrentUser() {
-      const response = await fetch('/api/user');
+      const response = await fetch('/api/user', {
+        credentials: 'include'
+      });
       const data = await response.json();
       return data.user;
     }
-  
-    /**
+        /**
      * Hakee kaikki käyttäjän popupit
      * @returns {Promise<Array>} Lista käyttäjän popupeista
      */
     static async getUserPopups() {
-      const response = await fetch('/api/popups');
+      const response = await fetch('/api/popups', {
+        credentials: 'include'
+      });
       return await response.json();
     }
   
@@ -138,7 +141,21 @@ class API {
      * @returns {Promise<Object>} Tilastotiedot
      */
     static async getPopupStats(popupId) {
-      const response = await fetch(`/api/popups/stats/${popupId}`);
+      const response = await fetch(`/api/popups/stats/${popupId}`, {
+        method: 'GET',
+        credentials: 'include',  // Lisää credentials, jotta evästeet lähetetään
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Et ole kirjautunut sisään tai sessiosi on vanhentunut');
+        }
+        throw new Error(`Virhe tilastojen haussa: ${response.status}`);
+      }
+      
       return await response.json();
     }
   
