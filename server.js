@@ -14,6 +14,9 @@ const popupRoutes = require('./routes/popup.routes');
 const imageRoutes = require('./routes/image.routes');
 const adminRoutes = require('./routes/admin.routes');
 
+// Middleware
+const authMiddleware = require('./middleware/auth.middleware');
+
 // Autentikaation asetukset
 require('./auth');
 
@@ -39,17 +42,28 @@ app.use(passport.session());
 // Embedin js tiedosto
 app.use('/popup-embed.js', express.static(path.join(__dirname, 'popup-embed.js')));
 
-// Sovelluksen päänäkymä
-app.get('/', (req, res) => {
+// Sovelluksen päänäkymä - tarkistetaan pending-status
+app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Pending-näkymä
+app.get('/pending', (req, res) => {
+    if (!req.user || req.user.role !== 'pending') {
+        return res.redirect('/');
+    }
+    res.sendFile(path.join(__dirname, 'pending.html'));
 });
 
 // Reittien rekisteröinti
 app.use('/auth', authRoutes);
 app.use('/api', userRoutes);
-app.use('/api/popups', popupRoutes);
-app.use('/api', imageRoutes);
-app.use('/api/admin', adminRoutes);
+// Käytetään isUser-middleware popupeille ja kuville
+app.use('/api/popups', authMiddleware.isUser, popupRoutes);
+app.use('/api/upload', authMiddleware.isUser, imageRoutes);
+app.use('/api/images', authMiddleware.isUser, imageRoutes);
+// Admin-reitit suojataan isAdmin-middlewarella
+app.use('/api/admin', authMiddleware.isAdmin, adminRoutes);
 
 // Ohjaa staattiset .html-sivut
 app.get('*.html', (req, res) => {

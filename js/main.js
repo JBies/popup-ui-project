@@ -89,26 +89,39 @@ class PopupManager {
     }
   }
 
-  /**
+/**
    * Tarkistaa onko käyttäjä kirjautunut
    */
-  async checkUserAuthentication() {
-    try {
-      const user = await API.getCurrentUser();
-      if (user) {
-        this.currentUser = user;
-        this.showUserInterface();
-        
-        // Jos käyttäjä on admin, näytä admin-valikko
-        if (user.role === 'admin') {
-          const adminMenu = document.getElementById('adminMenu');
-          if (adminMenu) adminMenu.style.display = 'block';
-        }
-      }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
+async checkUserAuthentication() {
+  try {
+    const response = await fetch('/api/user');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
+    const data = await response.json();
+    
+    if (data.user) {
+      this.currentUser = data.user;
+      
+      // Jos käyttäjä on "pending"-tilassa, ohjataan pending-sivulle
+      if (data.user.role === 'pending') {
+        window.location.href = '/pending';
+        return;
+      }
+      
+      this.showUserInterface();
+      
+      // Jos käyttäjä on admin, näytä admin-valikko
+      if (data.user.role === 'admin') {
+        const adminMenu = document.getElementById('adminMenu');
+        if (adminMenu) adminMenu.style.display = 'block';
+      }
+    }
+  } catch (error) {
+    console.error('Error checking authentication:', error);
   }
+}
 
   /**
    * Näyttää kirjautuneen käyttäjän käyttöliittymän

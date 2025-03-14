@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Pending Approval</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <style>
+        .pending-container {
+            max-width: 700px;
+            margin: 80px auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .pending-icon {
+            font-size: 80px;
+            color: #f39c12;
+            margin-bottom: 20px;
+        }
+        
+        .pending-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .pending-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .contact-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 30px 0;
+        }
+        
+        .contact-info p {
+            margin: 5px 0;
+        }
+        
+        .contact-email {
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+            border: 3px solid #f39c12;
+        }
+        
+        .user-details {
+            text-align: left;
+        }
+        
+        .user-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .user-email {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="pending-container">
+        <i class="fas fa-clock pending-icon"></i>
+        
+        <h1 class="pending-title">Käyttäjätilisi odottaa hyväksyntää</h1>
+        
+        <div class="user-info">
+            <img id="userAvatar" src="" alt="User avatar" class="user-avatar">
+            <div class="user-details">
+                <p id="userName" class="user-name"></p>
+                <p id="userEmail" class="user-email"></p>
+            </div>
+        </div>
+        
+        <p class="pending-message">
+            Kiitos rekisteröitymisestäsi! Käyttäjätilisi on nyt luotu ja odottaa järjestelmänvalvojan hyväksyntää.
+            Saat pääsyn sovelluksen kaikkiin ominaisuuksiin, kun tilisi on hyväksytty.
+        </p>
+        
+        <div class="contact-info">
+            <p>Kysyttävää? Ota yhteyttä järjestelmänvalvojaan:</p>
+            <p class="contact-email">joni.bies@gmail.com</p>
+        </div>
+        
+        <form action="/auth/logout" method="post">
+            <button type="submit" class="logout-btn">Kirjaudu ulos</button>
+        </form>
+    </div>
+
+    <script>
+        // Haetaan käyttäjätiedot
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/user');
+                const data = await response.json();
+                
+                if (data.user) {
+                    // Näytetään käyttäjätiedot
+                    document.getElementById('userName').textContent = data.user.displayName;
+                    document.getElementById('userEmail').textContent = data.user.email;
+                    
+                    if (data.user.profilePicture) {
+                        document.getElementById('userAvatar').src = data.user.profilePicture;
+                    } else {
+                        // Oletusavatar jos ei löydy profiilikuvaa
+                        document.getElementById('userAvatar').src = 'https://via.placeholder.com/60';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        });
+    </script>
+</body>
+</html>
