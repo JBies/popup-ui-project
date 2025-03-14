@@ -10,8 +10,15 @@ class PopupPreview {
      * @param {string} prefix - 'create' tai 'edit' riippuen lomakkeesta
      */
     static updatePreview(prefix = 'create') {
+      console.log("Updating preview for:", prefix); // Debugging
+      
       const previewContainer = document.getElementById(`${prefix}Preview`);
-      if (!previewContainer) return;
+      if (!previewContainer) {
+        console.warn(`Preview container not found: ${prefix}Preview`);
+        return;
+      }
+      
+      console.log("Preview container found:", previewContainer);
               
       // Haetaan elementit oikeilla ID:illä
       const popupType = document.getElementById(prefix === 'create' ? 'popupType' : 'editPopupType')?.value || 'square';
@@ -146,17 +153,25 @@ class PopupPreview {
      */
     static init() {
       document.addEventListener('DOMContentLoaded', () => {
-        // Create-lomakkeen kenttien event listenerit
-        const createFields = ['popupType', 'width', 'height', 'position', 'animation', 
-                             'backgroundColor', 'textColor', 'content', 'delay', 
-                             'showDuration', 'startDate', 'endDate'];
-        
-        createFields.forEach(field => {
-          const element = document.getElementById(field);
-          if (element) {
-            element.addEventListener('input', () => this.updatePreview('create'));
-          }
+        console.log("Initializing preview listeners"); // Debugging
+    
+    // Create-lomakkeen kenttien event listenerit
+    const createFields = ['popupType', 'width', 'height', 'position', 'animation', 
+                         'backgroundColor', 'textColor', 'content', 'delay', 
+                         'showDuration', 'startDate', 'endDate'];
+    
+    createFields.forEach(field => {
+      const element = document.getElementById(field);
+      if (element) {
+        console.log(`Adding listener to field: ${field}`);
+        element.addEventListener('input', () => {
+          console.log(`Field ${field} changed, updating preview`);
+          this.updatePreview('create');
         });
+      } else {
+        console.warn(`Field not found: ${field}`);
+      }
+    });
   
         // Edit-lomakkeen kenttien event listenerit
         const editFields = createFields.map(field => 'edit' + field.charAt(0).toUpperCase() + field.slice(1));
@@ -168,6 +183,7 @@ class PopupPreview {
         });
   
         // Alusta previewit
+        console.log("Initializing previews");
         this.updatePreview('create');
         this.updatePreview('edit');
       });

@@ -129,7 +129,7 @@ async checkUserAuthentication() {
   showUserInterface() {
     // Piilota kirjautumisosio ja näytä käyttäjätiedot
     document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('userInfo').style.display = 'block';
+    document.getElementById('userInfo').style.display = 'flex';
     document.getElementById('popupForm').style.display = 'block';
     document.getElementById('popupList').style.display = 'block';
     document.getElementById('userName').textContent = this.currentUser.displayName;

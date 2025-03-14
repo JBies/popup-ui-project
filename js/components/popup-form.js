@@ -269,7 +269,10 @@ class PopupForm {
     const popup = typeof popupData === 'string' ? JSON.parse(popupData) : popupData;
     
     // Aseta kaikki arvot lomakkeelle
-    document.getElementById('editPopupName').value = popup.name || 'Unnamed Popup';
+    const nameField = document.getElementById('editPopupName');
+  if (nameField) {
+    nameField.removeAttribute('required');
+  }
     document.getElementById('editPopupId').value = id;
     document.getElementById('editPopupType').value = popup.popupType || 'square';
     document.getElementById('editWidth').value = popup.width || 200;
