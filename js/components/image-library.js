@@ -79,9 +79,9 @@ class ImageLibrary {
           <span>${this.formatFileSize(image.size)}</span>
         </div>
         <div class="image-actions">
-          <button data-action="use" data-id="${image._id}" data-url="${image.url}">Käytä</button>
-          <button data-action="details" data-id="${image._id}">Info</button>
-          <button data-action="delete" data-id="${image._id}">Poista</button>
+          <button type="button" data-action="use" data-id="${image._id}" data-url="${image.url}">Käytä</button>
+          <button type="button" data-action="details" data-id="${image._id}">Info</button>
+          <button type="button" data-action="delete" data-id="${image._id}">Poista</button>
         </div>
       `;
       imageGrid.appendChild(imageItem);

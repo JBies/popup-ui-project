@@ -97,15 +97,18 @@ class PopupList {
       actions.className = 'p-3 bg-gray-700 dark:bg-gray-700 flex justify-between items-center mt-auto border-t border-gray-600';
       actions.innerHTML = `
         <div>
-          <button class="details-btn text-gray-300 hover:text-white" title="Näytä tiedot">
+          <button type="button" class="details-btn text-gray-300 hover:text-white" title="Näytä tiedot">
             <i class="fas fa-info-circle"></i>
           </button>
-          <button class="preview-btn text-gray-300 hover:text-white ml-2" title="Esikatsele">
+          <button type="button" class="preview-btn text-gray-300 hover:text-white ml-2" title="Esikatsele">
             <i class="fas fa-eye"></i>
           </button>
         </div>
         <div>
-          <button class="edit-btn bg-primary-600 hover:bg-primary-700 text-white py-1 px-3 rounded-md text-sm">
+          <button type="button" class="delete-btn text-red-500 hover:text-red-700" title="Poista">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          <button type="button" class="edit-btn bg-primary-600 hover:bg-primary-700 text-white py-1 px-3 rounded-md text-sm">
             Muokkaa
           </button>
         </div>
@@ -163,6 +166,16 @@ class PopupList {
           this.editPopup(popup._id, popup);
         });
       }
+
+      const deleteBtn = li.querySelector('.delete-btn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          this.deletePopup(popup._id); // Now you have access to popup._id
+        });
+      }
+      
     });
   }
   

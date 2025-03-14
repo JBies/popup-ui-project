@@ -6,7 +6,8 @@ const session = require('express-session');
 const passport = require('passport');
 const path = require('path');
 const connectDB = require('./db');
-
+// Swagger-dokumentaation tuonti
+const { swaggerDocs } = require('./swagger');
 // Reittien tuonti
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
@@ -65,6 +66,9 @@ app.use('/api/images', authMiddleware.isUser, imageRoutes);
 // Admin-reitit suojataan isAdmin-middlewarella
 app.use('/api/admin', authMiddleware.isAdmin, adminRoutes);
 
+// Swagger-dokumentaatio
+swaggerDocs(app, PORT);
+
 // Ohjaa staattiset .html-sivut
 app.get('*.html', (req, res) => {
     res.sendFile(path.join(__dirname, req.path));
@@ -85,3 +89,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+module.exports = app;
