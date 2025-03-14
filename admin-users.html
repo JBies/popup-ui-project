@@ -1,30 +1,351 @@
-<!-- admin-users.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Manage Users</title>
-    <!-- <link rel="stylesheet" href="/styles.css"> -->
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Admin Page Styles */
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .admin-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .admin-title h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .back-link:hover {
+            color: #3498db;
+        }
+        
+        /* Filter Controls */
+        .filter-controls {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+        
+        .filter-btn.active {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+            color: #0d47a1;
+        }
+        
+        /* Users Table */
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .users-table thead {
+            background-color: #f5f7fa;
+        }
+        
+        .users-table th {
+            text-align: left;
+            padding: 12px 15px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .users-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        
+        .users-table tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .users-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* User status styling */
+        .user-pending {
+            background-color: #fff8e1 !important;
+        }
+        
+        .user-admin {
+            background-color: #e8f5e9 !important;
+        }
+        
+        /* User Info Cell */
+        .user-info-cell {
+            min-width: 200px;
+        }
+        
+        .user-info-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .user-email {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Role Badge */
+        .role-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .role-admin {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .role-user {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+        
+        .role-pending {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+        
+        /* Pending Count Badge */
+        .pending-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ff8f00;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        /* Date Info */
+        .date-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .time-info {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Actions Cell */
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .role-select {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        .approve-btn {
+            padding: 6px 10px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+        
+        .approve-btn:hover {
+            background-color: #388e3c;
+        }
+        
+        .delete-btn {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        .admin-info {
+            color: #666;
+            font-size: 12px;
+            font-style: italic;
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: 350px;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .notification.error {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification-content i {
+            font-size: 20px;
+        }
+        
+        .notification.success i {
+            color: #4caf50;
+        }
+        
+        .notification.error i {
+            color: #f44336;
+        }
+        
+        /* Empty/Error Messages */
+        .empty-message, .error-message {
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .error-message {
+            color: #f44336;
+        }
+    </style>
 </head>
 <body>
-    <div style="margin-bottom: 20px;">
-        <a href="index.html" style="text-decoration: none; color: blue;">Back to Main Page</a>
+    <div class="admin-container">
+        <div class="admin-header">
+            <div class="admin-title">
+                <h1>User Management</h1>
+            </div>
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+        
+        <div class="filter-controls">
+            <button id="filterAll" class="filter-btn active">
+                <i class="fas fa-users"></i> All Users
+            </button>
+            <button id="filterPending" class="filter-btn">
+                <i class="fas fa-clock"></i> Pending Approval
+                <span id="pendingCount" class="pending-count">0</span>
+            </button>
+        </div>
+        
+        <table id="usersTable" class="users-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Registered</th>
+                    <th>Last Login</th>
+                    <th>Approved</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Users will be added here by JavaScript -->
+            </tbody>
+        </table>
     </div>
-    <h1>Manage Users</h1>
-    <table id="usersTable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Users will be added here by JavaScript -->
-        </tbody>
-    </table>
 
     <script src="admin-users.js"></script>
 </body>
