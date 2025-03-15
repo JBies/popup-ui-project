@@ -195,6 +195,43 @@
                 contentContainer.appendChild(contentElement);
             }
 
+            // Lisää animaatio
+            if (animation !== 'none') {
+                let animationClass;
+    
+                    if (animation === 'fade') {
+                    popupElement.style.opacity = '0';
+                    popupElement.style.transition = 'opacity 0.5s ease-in-out';
+                    setTimeout(() => {
+                        popupElement.style.opacity = '1';
+                    }, 10);
+                    } else if (animation === 'slide') {
+                    // Valitaan animaation suunta sijainnin perusteella
+                    let startTransform;
+                    
+                    switch (position) {
+                        case 'top-left':
+                        case 'top-right':
+                        startTransform = 'translateY(-50px)';
+                        break;
+                        case 'bottom-left':
+                        case 'bottom-right':
+                        startTransform = 'translateY(50px)';
+                        break;
+                        default: // center
+                        startTransform = 'translateY(-50px)';
+                    }
+        
+        popupElement.style.transform = startTransform;
+        popupElement.style.opacity = '0';
+        popupElement.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
+        setTimeout(() => {
+            popupElement.style.transform = 'translateY(0)';
+            popupElement.style.opacity = '1';
+        }, 10);
+        }
+    }
+
             // Lisää animaatio jos määritetty
             if (popup.animation !== 'none') {
                 let animationName = '';
