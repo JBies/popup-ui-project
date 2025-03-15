@@ -3,6 +3,7 @@
 
 import API from '../utils/api.js';
 import PopupPreview from './preview.js';
+import FormValidation from '../utils/form-validation.js';
 
 /**
  * PopupForm-luokka hallitsee popupin luomis- ja muokkauslomakkeita
@@ -19,7 +20,7 @@ class PopupForm {
     this.setupCreateForm();
     this.setupEditForm();
     this.setupImageUpload();
-    this.setupPopupTypeChange(); // Add this line
+    this.setupPopupTypeChange();
   }
 
   /**
@@ -32,51 +33,22 @@ class PopupForm {
     createForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const popupType = document.getElementById('popupType').value;
-      const content = document.getElementById('content').value.trim();
-      const linkUrl = document.getElementById('linkUrl')?.value.trim() || '';
+      // Kerää lomakkeen tiedot
+      const popupData = this.collectFormData('create');
       
-      // Tarkistetaan imageUrl
-      const imageUrlInput = document.getElementById('imageUrl');
-      const imageUrl = imageUrlInput ? imageUrlInput.value.trim() : '';
+      // Validoi lomake
+      const { isValid, errors } = FormValidation.validatePopupForm(popupData);
       
-      // Validoi lomakkeella
-      if (popupType === 'image' && !imageUrl) {
-        alert('Kuva on pakollinen, kun popupin tyyppi on "Image"');
+      if (!isValid) {
+        alert(errors.join('\n'));
         return;
       }
-      
-      if (!content && !imageUrl) {
-        alert('Popupissa on oltava joko sisältöä tai kuva');
-        return;
-      }
-      
-      // Kerää tiedot turvallisesti
-      const popupData = {
-        name: document.getElementById('popupName').value.trim() || 'Unnamed Popup',
-        popupType: popupType,
-        width: parseInt(document.getElementById('width').value) || 200,
-        height: parseInt(document.getElementById('height').value) || 150,
-        position: document.getElementById('position').value,
-        animation: document.getElementById('animation').value,
-        backgroundColor: document.getElementById('backgroundColor').value,
-        textColor: document.getElementById('textColor').value,
-        content: content,
-        imageUrl: imageUrl,
-        linkUrl: linkUrl,
-        // Ajastustiedot turvallisesti
-        delay: parseInt(document.getElementById('delay').value) || 0,
-        showDuration: parseInt(document.getElementById('showDuration').value) || 0,
-        // Päivämäärät vain jos ne on asetettu
-        startDate: document.getElementById('startDate').value || null,
-        endDate: document.getElementById('endDate').value || null
-      };
       
       try {
         await API.createPopup(popupData);
         alert('Popup created successfully!');
         
-        // Jos käytössä on popupien listauskomponentti, päivitä lista
+        // Päivitä popupien lista
         if (window.fetchUserPopups) {
           window.fetchUserPopups();
         }
@@ -93,6 +65,33 @@ class PopupForm {
         alert('Error creating popup: ' + error.message);
       }
     });
+  }
+
+  /**
+   * Kerää lomakkeen tiedot objektiin
+   * @param {string} prefix - 'create' tai 'edit' riippuen lomakkeesta
+   * @returns {Object} Kerätyt tiedot
+   */
+  collectFormData(prefix) {
+    return {
+      name: document.getElementById(prefix === 'create' ? 'popupName' : 'editPopupName').value.trim() || 'Unnamed Popup',
+      popupType: document.getElementById(prefix === 'create' ? 'popupType' : 'editPopupType').value,
+      width: parseInt(document.getElementById(prefix === 'create' ? 'width' : 'editWidth').value) || 200,
+      height: parseInt(document.getElementById(prefix === 'create' ? 'height' : 'editHeight').value) || 150,
+      position: document.getElementById(prefix === 'create' ? 'position' : 'editPosition').value,
+      animation: document.getElementById(prefix === 'create' ? 'animation' : 'editAnimation').value,
+      backgroundColor: document.getElementById(prefix === 'create' ? 'backgroundColor' : 'editBackgroundColor').value,
+      textColor: document.getElementById(prefix === 'create' ? 'textColor' : 'editTextColor').value,
+      content: document.getElementById(prefix === 'create' ? 'content' : 'editContent').value.trim(),
+      imageUrl: document.getElementById(prefix === 'create' ? 'imageUrl' : 'editImageUrl').value.trim(),
+      linkUrl: document.getElementById(prefix === 'create' ? 'linkUrl' : 'editLinkUrl')?.value.trim() || '',
+      // Ajastustiedot turvallisesti
+      delay: parseInt(document.getElementById(prefix === 'create' ? 'delay' : 'editDelay').value) || 0,
+      showDuration: parseInt(document.getElementById(prefix === 'create' ? 'showDuration' : 'editShowDuration').value) || 0,
+      // Päivämäärät vain jos ne on asetettu
+      startDate: document.getElementById(prefix === 'create' ? 'startDate' : 'editStartDate').value || null,
+      endDate: document.getElementById(prefix === 'create' ? 'endDate' : 'editEndDate').value || null
+    };
   }
 
   /**
