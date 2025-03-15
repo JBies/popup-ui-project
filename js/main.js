@@ -7,6 +7,7 @@ import PopupForm from './components/popup-form.js';
 import PopupList from './components/popup-list.js';
 import ImageLibrary from './components/image-library.js';
 
+
 /**
  * Sovelluksen pääluokka
  */
@@ -22,10 +23,11 @@ class PopupManager {
     this.init();
   }
 
-  /**
-   * Alustaa sovelluksen
-   */
-  async init() {
+/**
+ * Alustaa sovelluksen
+ */
+async init() {
+  try {
     // Alusta komponentit vasta käyttäjän kirjauduttua
     this.setupAuthListeners();
     
@@ -33,11 +35,15 @@ class PopupManager {
     this.setupGeneralListeners();
     
     // Alustaa preview-toiminnallisuuden (staattinen luokka)
+    console.log("Initializing PopupPreview from main.js");
     PopupPreview.init();
     
     // Tarkista onko käyttäjä kirjautunut
     await this.checkUserAuthentication();
+  } catch (error) {
+    console.error("Error in PopupManager.init():", error);
   }
+}
 
   /**
    * Asettaa kuuntelijat kirjautumistoiminnoille
@@ -142,37 +148,42 @@ async checkUserAuthentication() {
    * Alustaa sovelluksen komponentit
    */
   initComponents() {
-    // Alusta popup-lomake
-    this.components.popupForm = new PopupForm();
-    
-    // Alusta popup-lista
-    this.components.popupList = new PopupList();
-    
-    // Alusta kuvakirjasto
-    this.components.imageLibrary = new ImageLibrary();
-    this.components.imageLibrary.init();
-    
-    // Aseta globaalit viittaukset yhteensopivuuden vuoksi
-    // Nämä mahdollistavat vanhan koodin toiminnan uudessa järjestelmässä
-    window.fetchUserPopups = () => {
-      if (this.components.popupList) {
-        this.components.popupList.fetchUserPopups();
+    try {
+      // Alusta popup-lomake
+      this.components.popupForm = new PopupForm();
+      
+      // Alusta popup-lista
+      this.components.popupList = new PopupList();
+      
+      // Alusta kuvakirjasto
+      this.components.imageLibrary = new ImageLibrary();
+      if (this.components.imageLibrary) {
+        this.components.imageLibrary.init().catch(error => {
+          console.error('Error initializing image library:', error);
+        });
+      } else {
+        console.error('Failed to create ImageLibrary instance');
       }
-    };
-    
-    window.editPopup = (id, popup) => {
-      PopupForm.editPopup(id, popup);
-    };
-    
-    window.deletePopup = (id) => {
-      if (this.components.popupList) {
-        this.components.popupList.deletePopup(id);
-      }
-    };
-    
-    window.updatePreview = (prefix) => {
-      PopupPreview.updatePreview(prefix);
-    };
+      
+      // Aseta globaalit viittaukset yhteensopivuuden vuoksi
+      window.fetchUserPopups = () => {
+        if (this.components.popupList) {
+          this.components.popupList.fetchUserPopups();
+        }
+      };
+      
+      window.editPopup = (id, popup) => {
+        PopupForm.editPopup(id, popup);
+      };
+      
+      window.deletePopup = (id) => {
+        if (this.components.popupList) {
+          this.components.popupList.deletePopup(id);
+        }
+      };
+    } catch (error) {
+      console.error('Error initializing components:', error);
+    }
   }
 }
 

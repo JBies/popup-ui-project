@@ -1,3 +1,4 @@
+// theme.js
 // Vaihtaa teemaa tumman ja vaalean välillä
 function toggleTheme() {
     // Vaihda dark-luokka html-elementissä
