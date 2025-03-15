@@ -125,6 +125,31 @@ class API {
         throw error; // Heitetään virhe eteenpäin, jotta se voidaan käsitellä kutsujassa
       }
     }
+
+    /**
+   * Hakee yksittäisen kuvan tiedot
+   * @param {string} imageId - Kuvan ID
+   * @returns {Promise<Object>} Kuvan tiedot ja tieto missä popupeissa käytetään
+   */
+  static async getImageDetails(imageId) {
+    try {
+      const response = await fetch(`/api/images/${imageId}`, {
+        credentials: 'include'  // Varmista, että evästeet lähetetään
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Et ole kirjautunut sisään tai sessiosi on vanhentunut');
+        }
+        throw new Error(`Virhe kuvan tietojen haussa: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching image details:', error);
+      throw error;
+    }
+  }
   
     /**
      * Poistaa kuvan

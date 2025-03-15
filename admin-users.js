@@ -1,8 +1,8 @@
 // admin-users.js
 
-import UserTable from './admin/user-table.js';
-import UserFilter from './admin/user-filter.js';
-import UserActions from './admin/user-actions.js';
+import UserTable from './js/admin/user-table.js';
+import UserFilter from './js/admin/user-filter.js';
+import UserActions from './js/admin/user-actions.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
