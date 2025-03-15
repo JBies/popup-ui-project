@@ -1,12 +1,15 @@
 // js/main.js
-// Pääskriptitiedosto, joka yhdistää kaikki komponentit
 
 import API from './utils/api.js';
 import PopupPreview from './components/preview.js';
 import PopupForm from './components/popup-form.js';
 import PopupList from './components/popup-list.js';
+import PopupDetails from './components/popup-details.js'; 
+import PopupPreviewModal from './components/popup-preview-modal.js';
 import ImageLibrary from './components/image-library.js';
-
+import ImageGallery from './components/image-gallery.js';
+import ImageUploader from './components/image-uploader.js';
+import ImagePicker from './components/image-picker.js';
 
 /**
  * Sovelluksen pääluokka
@@ -23,27 +26,27 @@ class PopupManager {
     this.init();
   }
 
-/**
- * Alustaa sovelluksen
- */
-async init() {
-  try {
-    // Alusta komponentit vasta käyttäjän kirjauduttua
-    this.setupAuthListeners();
-    
-    // Alusta yleiset toiminnot
-    this.setupGeneralListeners();
-    
-    // Alustaa preview-toiminnallisuuden (staattinen luokka)
-    console.log("Initializing PopupPreview from main.js");
-    PopupPreview.init();
-    
-    // Tarkista onko käyttäjä kirjautunut
-    await this.checkUserAuthentication();
-  } catch (error) {
-    console.error("Error in PopupManager.init():", error);
+  /**
+   * Alustaa sovelluksen
+   */
+  async init() {
+    try {
+      // Alusta komponentit vasta käyttäjän kirjauduttua
+      this.setupAuthListeners();
+      
+      // Alusta yleiset toiminnot
+      this.setupGeneralListeners();
+      
+      // Alustaa preview-toiminnallisuuden (staattinen luokka)
+      console.log("Initializing PopupPreview from main.js");
+      PopupPreview.init();
+      
+      // Tarkista onko käyttäjä kirjautunut
+      await this.checkUserAuthentication();
+    } catch (error) {
+      console.error("Error in PopupManager.init():", error);
+    }
   }
-}
 
   /**
    * Asettaa kuuntelijat kirjautumistoiminnoille
@@ -79,55 +82,41 @@ async init() {
         document.getElementById('popup').style.display = 'none';
       });
     }
-    
-    // Jos on Admin-painike, lisää toiminnallisuus sille
-    const delayButton = document.getElementById('delayButton');
-    if (delayButton) {
-      delayButton.addEventListener('click', () => {
-        console.log('5s viive käynnistetty');
-        setTimeout(() => {
-          console.log('5s on kulunut!');
-          // Demo popupin avaamisesta
-          document.getElementById('overlay').style.display = 'block';
-          document.getElementById('popup').style.display = 'block';
-        }, 5000);
-      });
-    }
   }
 
-/**
+  /**
    * Tarkistaa onko käyttäjä kirjautunut
    */
-async checkUserAuthentication() {
-  try {
-    const response = await fetch('/api/user');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (data.user) {
-      this.currentUser = data.user;
-      
-      // Jos käyttäjä on "pending"-tilassa, ohjataan pending-sivulle
-      if (data.user.role === 'pending') {
-        window.location.href = '/pending';
-        return;
+  async checkUserAuthentication() {
+    try {
+      const response = await fetch('/api/user');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      this.showUserInterface();
+      const data = await response.json();
       
-      // Jos käyttäjä on admin, näytä admin-valikko
-      if (data.user.role === 'admin') {
-        const adminMenu = document.getElementById('adminMenu');
-        if (adminMenu) adminMenu.style.display = 'block';
+      if (data.user) {
+        this.currentUser = data.user;
+        
+        // Jos käyttäjä on "pending"-tilassa, ohjataan pending-sivulle
+        if (data.user.role === 'pending') {
+          window.location.href = '/pending';
+          return;
+        }
+        
+        this.showUserInterface();
+        
+        // Jos käyttäjä on admin, näytä admin-valikko
+        if (data.user.role === 'admin') {
+          const adminMenu = document.getElementById('adminMenu');
+          if (adminMenu) adminMenu.style.display = 'block';
+        }
       }
+    } catch (error) {
+      console.error('Error checking authentication:', error);
     }
-  } catch (error) {
-    console.error('Error checking authentication:', error);
   }
-}
 
   /**
    * Näyttää kirjautuneen käyttäjän käyttöliittymän
@@ -157,13 +146,6 @@ async checkUserAuthentication() {
       
       // Alusta kuvakirjasto
       this.components.imageLibrary = new ImageLibrary();
-      if (this.components.imageLibrary) {
-        this.components.imageLibrary.init().catch(error => {
-          console.error('Error initializing image library:', error);
-        });
-      } else {
-        console.error('Failed to create ImageLibrary instance');
-      }
       
       // Aseta globaalit viittaukset yhteensopivuuden vuoksi
       window.fetchUserPopups = () => {
@@ -189,6 +171,5 @@ async checkUserAuthentication() {
 
 // Käynnistä sovellus kun DOM on valmis
 document.addEventListener('DOMContentLoaded', () => {
-  // Luodaan instanssi pääsovelluksesta
   const app = new PopupManager();
 });
