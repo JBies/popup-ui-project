@@ -182,6 +182,7 @@ select, input, textarea {
 .animate-slide-in {
     animation: slideIn 0.5s ease-in-out;
 }
+
 .color-controls {
     margin: 15px 0;
     padding: 10px;

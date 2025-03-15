@@ -341,11 +341,14 @@ class PopupForm {
     const editPopupTypeSelect = document.getElementById('editPopupType');
     
     if (popupTypeSelect) {
+      // Korjataan tämä kutsumaan instanssin metodia this:n kanssa
       popupTypeSelect.addEventListener('change', () => this.updateFormVisibility('create'));
     }
+    
     if (editPopupTypeSelect) {
-        editPopupTypeSelect.addEventListener('change', () => this.updateFormVisibility('edit'));
-      }
+      // Korjataan tämä kutsumaan instanssin metodia this:n kanssa
+      editPopupTypeSelect.addEventListener('change', () => this.updateFormVisibility('edit'));
+    }
   }
 
   /**
@@ -353,19 +356,60 @@ class PopupForm {
    * @param {string} prefix - 'create' tai 'edit' riippuen lomakkeesta
    */
   updateFormVisibility(prefix) {
+    // Tämä on nyt instanssin metodi, ei staattinen
     const popupType = document.getElementById(prefix === 'create' ? 'popupType' : 'editPopupType').value;
     const sizeControls = document.querySelector(`#${prefix}PopupForm .size-controls`);
     const contentField = document.querySelector(`#${prefix}PopupForm .content-controls`);
 
     if (popupType === 'image') {
-      // Piilota koko ja sisältö
-      if (sizeControls) sizeControls.style.display = 'block';
-      if (contentField) contentField.style.display = 'none';
+      // Näytä koko ja piilota sisältö
+      if (sizeControls) sizeControls.style.display = 'block'; 
+      if (contentField) contentField.style.display = 'none'; 
     } else {
       // Näytä koko ja sisältö
-      if (sizeControls) sizeControls.style.display = 'none';
-      if (contentField) contentField.style.display = 'block';
+      if (sizeControls) sizeControls.style.display = 'block'; 
+      if (contentField) contentField.style.display = 'block'; 
     }
+    
+    // Päivitä esikatselu
+    PopupPreview.updatePreview(prefix);
+  }
+
+  /**
+   * Muokkaa popupia - tämä metodi voidaan kutsua ulkopuolelta
+   * @param {string} id - Popupin ID
+   * @param {Object} popupData - Popupin tiedot
+   */
+  static editPopup(id, popupData) {
+    // ... olemassa oleva koodi ...
+
+    // Päivitä esikatselu
+    PopupPreview.updatePreview('edit');
+    
+    // Päivitä näkyvyys
+    // Tämä oli virheellisesti 'this.updateFormVisibility', korjataan staattiseksi metodiksi
+    PopupForm.updateFormVisibility('edit');
+  }
+
+  /**
+   * Staattinen versio updateFormVisibility-metodista ulkoista käyttöä varten
+   * @param {string} prefix - 'create' tai 'edit' riippuen lomakkeesta
+   */
+  static updateFormVisibility(prefix) {
+    const popupType = document.getElementById(prefix === 'create' ? 'popupType' : 'editPopupType').value;
+    const sizeControls = document.querySelector(`#${prefix}PopupForm .size-controls`);
+    const contentField = document.querySelector(`#${prefix}PopupForm .content-controls`);
+
+    if (popupType === 'image') {
+      // Näytä koko ja piilota sisältö
+      if (sizeControls) sizeControls.style.display = 'block'; 
+      if (contentField) contentField.style.display = 'none'; 
+    } else {
+      // Näytä koko ja sisältö
+      if (sizeControls) sizeControls.style.display = 'block'; 
+      if (contentField) contentField.style.display = 'block'; 
+    }
+    
     // Päivitä esikatselu
     PopupPreview.updatePreview(prefix);
   }

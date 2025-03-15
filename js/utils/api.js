@@ -103,24 +103,27 @@ class API {
      * @returns {Promise<Array>} Lista käyttäjän kuvista
      */
     static async getUserImages() {
-      const response = await fetch('/api/images');
-      if (!response.ok) {
-        throw new Error('Failed to fetch images');
+      try {
+        const response = await fetch('/api/images', {
+          credentials: 'include' // Varmistetaan, että evästeet lähetetään
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Kirjautuminen on vanhentunut. Kirjaudu sisään uudelleen.');
+          } else if (response.status === 403) {
+            throw new Error('Käyttäjätilisi odottaa hyväksyntää tai sinulla ei ole oikeuksia.');
+          } else {
+            throw new Error(`Virhe kuvien hakemisessa: ${response.status}`);
+          }
+        }
+        
+        const data = await response.json();
+        return Array.isArray(data) ? data : []; // Varmistetaan, että palautetaan aina taulukko
+      } catch (error) {
+        console.error('Error fetching images:', error);
+        throw error; // Heitetään virhe eteenpäin, jotta se voidaan käsitellä kutsujassa
       }
-      return await response.json();
-    }
-  
-    /**
-     * Hakee yksittäisen kuvan tiedot
-     * @param {string} imageId - Kuvan ID
-     * @returns {Promise<Object>} Kuvan tiedot ja tieto missä popupeissa käytetään
-     */
-    static async getImageDetails(imageId) {
-      const response = await fetch(`/api/images/${imageId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch image details');
-      }
-      return await response.json();
     }
   
     /**

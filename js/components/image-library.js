@@ -2,18 +2,19 @@
 // Kuvakirjaston toiminnallisuudet
 
 import API from '../utils/api.js';
+import PopupPreview from './preview.js';
 
 /**
  * ImageLibrary-luokka hallitsee kuvakirjaston toimintoja
  */
 class ImageLibrary {
   constructor() {
-    // Kuvakirjaston tila
+    // Alustetaan tila selkeästi ja kokonaan
     this.state = {
-      images: [],
-      selectedImageUrl: null,
-      selectedImageId: null,
-      targetForm: null  // 'create' tai 'edit'
+      images: [],           // Kuvien lista
+      selectedImageUrl: null, // Valitun kuvan URL
+      selectedImageId: null,  // Valitun kuvan ID
+      targetForm: null       // 'create' tai 'edit'
     };
   }
 
@@ -22,6 +23,16 @@ class ImageLibrary {
    */
   async init() {
     try {
+      // Varmistetaan, että tilaobjekti on olemassa ennen metodikutsuja
+      if (!this.state) {
+        this.state = {
+          images: [],
+          selectedImageUrl: null,
+          selectedImageId: null,
+          targetForm: null
+        };
+      }
+      
       await this.loadImageLibrary();
       this.setupEventListeners();
     } catch (error) {
@@ -35,7 +46,13 @@ class ImageLibrary {
   async loadImageLibrary() {
     try {
       const images = await API.getUserImages();
-      this.state.images = images;
+      
+      // Varmista, että this.state on määritelty ennen kuin asetat arvoja
+      if (!this.state) {
+        this.state = {};
+      }
+      
+      this.state.images = images || []; // Varmista, että images-kenttä on aina vähintään tyhjä taulukko
       
       const imageGrid = document.getElementById('imageGrid');
       const imagePickerGrid = document.getElementById('imagePickerGrid');
@@ -44,9 +61,9 @@ class ImageLibrary {
       if (imageGrid) imageGrid.innerHTML = '';
       if (imagePickerGrid) imagePickerGrid.innerHTML = '';
       
-      if (images.length === 0) {
-        if (imageGrid) imageGrid.innerHTML = '<p>Ei kuvia kirjastossa</p>';
-        if (imagePickerGrid) imagePickerGrid.innerHTML = '<p>Ei kuvia kirjastossa</p>';
+      if (!images || images.length === 0) {
+        if (imageGrid) imageGrid.innerHTML = '<p class="p-4 text-gray-500 dark:text-gray-400">Ei kuvia kirjastossa</p>';
+        if (imagePickerGrid) imagePickerGrid.innerHTML = '<p class="p-4 text-gray-500 dark:text-gray-400">Ei kuvia kirjastossa</p>';
         return;
       }
       
@@ -58,8 +75,43 @@ class ImageLibrary {
       if (libraryElement) libraryElement.style.display = 'block';
     } catch (error) {
       console.error('Error loading image library:', error);
-      alert('Virhe kuvakirjaston lataamisessa');
+      
+      // Näytä käyttäjäystävällinen virheilmoitus
+      const imageGrid = document.getElementById('imageGrid');
+      const imagePickerGrid = document.getElementById('imagePickerGrid');
+      
+      const errorMessage = '<div class="p-4 bg-red-100 border border-red-300 text-red-700 rounded-lg">Virhe kuvakirjaston lataamisessa. Yritä päivittää sivu.</div>';
+      
+      if (imageGrid) imageGrid.innerHTML = errorMessage;
+      if (imagePickerGrid) imagePickerGrid.innerHTML = errorMessage;
     }
+  }
+
+  selectImageFromLibrary(imageUrl) {
+    const target = this.state.targetForm || 'create';
+
+    if (target === 'create') {
+      document.getElementById('imageUrl').value = imageUrl;
+      document.getElementById('imagePreview').src = imageUrl;
+      document.getElementById('imagePreviewContainer').style.display = 'block';
+    } else if (target === 'edit') {
+      document.getElementById('editImageUrl').value = imageUrl;
+      document.getElementById('editImagePreview').src = imageUrl;
+      document.getElementById('editImagePreviewContainer').style.display = 'block';
+    }
+
+    // Päivitä esikatselu
+    // Korjataan tämä rivi käyttämään importattua PopupPreview-luokkaa
+    PopupPreview.updatePreview(target === 'edit' ? 'edit' : 'create');
+
+    // Sulje dialogi
+    const dialog = document.getElementById('imagePickerDialog');
+    if (dialog) dialog.style.display = 'none';
+
+    // Nollaa valinta
+    this.state.selectedImageUrl = null;
+    this.state.selectedImageId = null;
+    this.state.targetForm = null;
   }
 
   /**
@@ -69,32 +121,46 @@ class ImageLibrary {
    * @param {HTMLElement} imagePickerGrid - Kuvavalitsimen grid-elementti
    */
   renderImageItem(image, imageGrid, imagePickerGrid) {
+    // Varmistetaan, että image-objekti on validi
+    if (!image || !image.url) {
+      console.warn('Invalid image object:', image);
+      return;
+    }
+  
     // Kuvakirjaston näkymä
     if (imageGrid) {
-      const imageItem = document.createElement('div');
-      imageItem.className = 'image-item';
-      imageItem.innerHTML = `
-        <img src="${image.url}" alt="${image.name}">
-        <div class="image-info">
-          <span>${this.formatFileSize(image.size)}</span>
-        </div>
-        <div class="image-actions">
-          <button type="button" data-action="use" data-id="${image._id}" data-url="${image.url}">Käytä</button>
-          <button type="button" data-action="details" data-id="${image._id}">Info</button>
-          <button type="button" data-action="delete" data-id="${image._id}">Poista</button>
-        </div>
-      `;
-      imageGrid.appendChild(imageItem);
+      try {
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+        imageItem.innerHTML = `
+          <img src="${image.url}" alt="${image.name || 'Kuva'}" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%3E%3Crect%20fill%3D%22%23ddd%22%20width%3D%22100%22%20height%3D%22100%22%2F%3E%3Ctext%20fill%3D%22%23888%22%20font-family%3D%22Arial%22%20font-size%3D%2212%22%20x%3D%2220%22%20y%3D%2250%22%3EVirheellinen%20kuva%3C%2Ftext%3E%3C%2Fsvg%3E';">
+          <div class="image-info">
+            <span>${this.formatFileSize(image.size || 0)}</span>
+          </div>
+          <div class="image-actions">
+            <button type="button" data-action="use" data-id="${image._id}" data-url="${image.url}">Käytä</button>
+            <button type="button" data-action="details" data-id="${image._id}">Info</button>
+            <button type="button" data-action="delete" data-id="${image._id}">Poista</button>
+          </div>
+        `;
+        imageGrid.appendChild(imageItem);
+      } catch (error) {
+        console.error('Error rendering image item to grid:', error);
+      }
     }
     
     // Valitsin-dialoogi näkymä
     if (imagePickerGrid) {
-      const pickerItem = document.createElement('div');
-      pickerItem.className = 'picker-image-item';
-      pickerItem.dataset.id = image._id;
-      pickerItem.dataset.url = image.url;
-      pickerItem.innerHTML = `<img src="${image.url}" alt="${image.name}">`;
-      imagePickerGrid.appendChild(pickerItem);
+      try {
+        const pickerItem = document.createElement('div');
+        pickerItem.className = 'picker-image-item';
+        pickerItem.dataset.id = image._id;
+        pickerItem.dataset.url = image.url;
+        pickerItem.innerHTML = `<img src="${image.url}" alt="${image.name || 'Kuva'}" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%3E%3Crect%20fill%3D%22%23ddd%22%20width%3D%22100%22%20height%3D%22100%22%2F%3E%3Ctext%20fill%3D%22%23888%22%20font-family%3D%22Arial%22%20font-size%3D%2212%22%20x%3D%2220%22%20y%3D%2250%22%3EVirheellinen%20kuva%3C%2Ftext%3E%3C%2Fsvg%3E';">`;
+        imagePickerGrid.appendChild(pickerItem);
+      } catch (error) {
+        console.error('Error rendering image item to picker:', error);
+      }
     }
   }
 
@@ -254,7 +320,7 @@ class ImageLibrary {
    */
   selectImageFromLibrary(imageUrl) {
     const target = this.state.targetForm || 'create';
-    
+
     if (target === 'create') {
       document.getElementById('imageUrl').value = imageUrl;
       document.getElementById('imagePreview').src = imageUrl;
@@ -264,17 +330,15 @@ class ImageLibrary {
       document.getElementById('editImagePreview').src = imageUrl;
       document.getElementById('editImagePreviewContainer').style.display = 'block';
     }
-    
+
     // Päivitä esikatselu
     // Huom: Tämä riippuu siitä, miten updatePreview on toteutettu
-    if (window.updatePreview) {
-      window.updatePreview(target === 'edit' ? 'edit' : 'create');
-    }
-    
+    PopupPreview.updatePreview(target === 'edit' ? 'edit' : 'create');
+
     // Sulje dialogi
     const dialog = document.getElementById('imagePickerDialog');
     if (dialog) dialog.style.display = 'none';
-    
+
     // Nollaa valinta
     this.state.selectedImageUrl = null;
     this.state.selectedImageId = null;

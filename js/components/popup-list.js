@@ -468,13 +468,40 @@ class PopupList {
         previewPopup.style.opacity = '1';
       }, 10);
     } else if (popup.animation === 'slide') {
-      previewPopup.style.transform = 'translateY(-50px)';
-      previewPopup.style.transition = 'transform 0.5s';
-      setTimeout(() => {
-        previewPopup.style.transform = 'translateY(0)';
-      }, 10);
+        let animationName = '';
+        switch (popup.position) {
+            case 'top-left':
+            case 'top-right':
+                animationName = 'slideInTop';
+                break;
+            case 'bottom-left':
+            case 'bottom-right':
+                animationName = 'slideInBottom';
+                break;
+            default:
+                animationName = 'slideInTop'; // Oletus ylhäältä alas
+        }
+
+        // Jos animaatio on "slide", käytetään oikeaa animaatiota sijainnin mukaan
+        if (popup.animation === 'slide') {
+            switch (popup.position) {
+                case 'top-left':
+                case 'bottom-left':
+                    animationName = 'slideInLeft';
+                    break;
+                case 'top-right':
+                case 'bottom-right':
+                    animationName = 'slideInRight';
+                    break;
+                default:
+                    animationName = 'slideInTop'; // Oletus ylhäältä alas
+            }
+        }
+        previewPopup.style.animation = `${animationName} 0.5s`;
     }
   }
+  
+
 
   /**
    * Lataa ja näyttää popupin tilastot

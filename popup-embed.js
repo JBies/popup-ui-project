@@ -194,6 +194,44 @@
                 contentElement.style.marginBottom = popup.imageUrl ? '10px' : '0';
                 contentContainer.appendChild(contentElement);
             }
+
+            // Lisää animaatio jos määritetty
+            if (popup.animation !== 'none') {
+                let animationName = '';
+                switch (popup.position) {
+                    case 'top-left':
+                    case 'top-right':
+                        animationName = 'slideInTop';
+                        break;
+                    case 'bottom-left':
+                    case 'bottom-right':
+                        animationName = 'slideInBottom';
+                        break;
+                    default:
+                        animationName = 'slideInTop'; // Oletus ylhäältä alas
+                }
+
+                // Jos animaatio on "slide", käytetään oikeaa animaatiota sijainnin mukaan
+                if (popup.animation === 'slide') {
+                    switch (popup.position) {
+                        case 'top-left':
+                        case 'bottom-left':
+                            animationName = 'slideInLeft';
+                            break;
+                        case 'top-right':
+                        case 'bottom-right':
+                            animationName = 'slideInRight';
+                            break;
+                        default:
+                            animationName = 'slideInTop'; // Oletus ylhäältä alas
+                    }
+                } else if (popup.animation === 'fade') {
+                    animationName = 'fadeIn';
+                }
+
+                previewPopup.style.animation = `${animationName} 0.5s`;
+                console.log(`Applied animation: ${animationName}`);
+            }
     
             // Lisää kuva, jos on
             if (popup.imageUrl) {
