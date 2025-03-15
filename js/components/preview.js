@@ -313,9 +313,49 @@ class PopupPreview {
 
       // Lisää animaatio jos määritetty
       if (animation !== 'none') {
-        const animationName = animation === 'fade' ? 'fadeIn' : 'slideIn';
-        previewPopup.style.animation = `${animationName} 1s`;
-        console.log(`Applied animation: ${animationName}`);
+        // Käsitellään fade-animaatio yksinkertaisesti
+        if (animation === 'fade') {
+          previewPopup.style.opacity = '0';
+          previewPopup.style.transition = 'opacity 0.5s ease-in-out';
+          setTimeout(() => {
+            previewPopup.style.opacity = '1';
+          }, 10);
+        } else if (animation === 'slide') {
+          // Slide-animaatio - tallenna alkuperäinen transform-arvo
+          const originalTransform = position === 'center' ? 'translate(-50%, -50%)' : '';
+          
+          // Muokkaa transformia sijainnin mukaan
+          let additionalTransform;
+          switch (position) {
+            case 'top-left':
+            case 'top-right':
+              additionalTransform = 'translateY(-20px)';
+              break;
+            case 'bottom-left':
+            case 'bottom-right':
+              additionalTransform = 'translateY(20px)';
+              break;
+            default: // center
+              additionalTransform = 'translateY(-20px)';
+          }
+          
+          // Yhdistä transformit
+          if (position === 'center') {
+            // Keskitetylle popupille
+            previewPopup.style.transform = 'translate(-50%, calc(-50% - 20px))';
+          } else {
+            // Muille sijainneille
+            previewPopup.style.transform = additionalTransform;
+          }
+          
+          previewPopup.style.opacity = '0';
+          previewPopup.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
+          
+          setTimeout(() => {
+            previewPopup.style.transform = originalTransform;
+            previewPopup.style.opacity = '1';
+          }, 10);
+        }
       }
 
       // Lisää sijaintitieto esikatseluun

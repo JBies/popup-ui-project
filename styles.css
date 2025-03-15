@@ -176,11 +176,73 @@ select, input, textarea {
     from { transform: translateY(-100%); }
     to { transform: translateY(0); }
 }
-.animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out;
+
+@keyframes slideFromTop {
+  from { 
+    transform: translateY(-100px); 
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1;
+  }
 }
+
+@keyframes slideFromBottom {
+  from { 
+    transform: translateY(100px); 
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1;
+  }
+}
+
+@keyframes slideFromLeft {
+  from { 
+    transform: translateX(-100px); 
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0); 
+    opacity: 1;
+  }
+}
+
+@keyframes slideFromRight {
+  from { 
+    transform: translateX(100px); 
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0); 
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
 .animate-slide-in {
-    animation: slideIn 0.5s ease-in-out;
+  animation: slideIn 0.5s ease-in-out;
+}
+
+.animate-slide-from-top {
+  animation: slideFromTop 0.5s ease-in-out;
+}
+
+.animate-slide-from-bottom {
+  animation: slideFromBottom 0.5s ease-in-out;
+}
+
+.animate-slide-from-left {
+  animation: slideFromLeft 0.5s ease-in-out;
+}
+
+.animate-slide-from-right {
+  animation: slideFromRight 0.5s ease-in-out;
 }
 
 .color-controls {
