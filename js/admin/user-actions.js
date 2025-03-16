@@ -1,5 +1,4 @@
 // js/admin/user-actions.js
-// Käyttäjätoimintojen logiikka
 
 /**
  * UserActions-luokka vastaa käyttäjiin liittyvistä toiminnoista
