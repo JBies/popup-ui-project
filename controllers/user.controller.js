@@ -1,5 +1,4 @@
 // controllers/user.controller.js
-// Käyttäjätoimintojen kontrollerilogiikka
 
 const User = require('../models/User');
 
@@ -61,7 +60,7 @@ class UserController {
           if (previousRole === 'pending' && role === 'user') {
             user.approvedAt = new Date();
             
-            // Tässä voisit lisätä sähköposti-ilmoituksen lähettämisen
+            // Tähän lisätä sähköposti-ilmoituksen lähettämisen
             console.log(`Käyttäjä ${user.displayName} (${user.email}) hyväksytty.`);
           }
           

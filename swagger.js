@@ -249,7 +249,7 @@ const swaggerOptions = {
     ]
   },
   // Polut API-reittejä sisältäviin tiedostoihin
-  apis: ['./routes/*.js', './models/*.js', './swagger-docs/*.js'], // huomaa, että tässä on reittitiedostoja ja mallitiedostoja
+  apis: ['./routes/*.js', './models/*.js', './swagger-docs/*.js'], // reittitiedostoja ja mallitiedostoja
 };
 
 // Luo swagger-spesifikaatio
@@ -266,7 +266,7 @@ function swaggerDocs(app, port) {
       customCss: '.swagger-ui .topbar { display: none }', // Piilotetaan Swagger-yläpalkki
       customSiteTitle: "Popup Manager API Documentation",
       swaggerOptions: {
-        // Tämä parantaa Authorize-dialogin ohjetekstiä
+        // parantaa Authorize-dialogin ohjetekstiä
         authAction: {
           cookieAuth: {
             name: "cookieAuth",

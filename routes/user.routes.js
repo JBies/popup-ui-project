@@ -11,6 +11,6 @@ const router = express.Router();
  * @desc    Hakee kirjautuneen käyttäjän tiedot
  * @access  Public
  */
-router.get('/user', UserController.getCurrentUser);
+router.get('/', UserController.getCurrentUser);
 
 module.exports = router;
