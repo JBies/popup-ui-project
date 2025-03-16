@@ -1,13 +1,18 @@
-// server.js
-// Sovelluksen pääsisääntulopiste
+// Parannellut server.js tuotantokäyttöön
 
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const path = require('path');
+const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const MongoStore = require('connect-mongo');
 const connectDB = require('./db');
-// Swagger-dokumentaation tuonti
+
+// Swagger dokumentaatio
 const { swaggerDocs } = require('./swagger');
+
 // Reittien tuonti
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
@@ -21,32 +26,88 @@ const authMiddleware = require('./middleware/auth.middleware');
 // Autentikaation asetukset
 require('./auth');
 
+// Ympäristömuuttujat
+const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
+const sessionSecret = process.env.SESSION_SECRET || 'local-dev-secret';
+const cookieSecure = process.env.COOKIE_SECURE === 'true';
+const allowedOrigins = process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',') 
+    : ['http://localhost:3000'];
+
 // Alustetaan Express
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Yhdistetään tietokantaan
 connectDB();
 
-// Middleware
+// Tuotannon turvallisuusmekanismit
+if (isProduction) {
+    // Helmetin perusasetus, mutta salli JavaScript-moduulit
+app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+          imgSrc: ["'self'", 'data:', 'https://storage.googleapis.com'],
+          connectSrc: ["'self'"]
+        }
+      }
+    })
+  );
+    
+    // Gzip-pakkaus
+    app.use(compression());
+    
+    // Rajoitetut CORS-asetukset
+    app.use(cors({
+        origin: allowedOrigins,
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization']
+    }));
+} else {
+    // Kehityksessä sallivammat CORS-asetukset
+    app.use(cors({
+        origin: true,
+        credentials: true
+    }));
+}
+
+// Perusmiddleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '/')));
+
+// Sessioasetukset
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    secret: sessionSecret,
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: process.env.NODE_ENV === 'production' }
+    saveUninitialized: false,
+    cookie: { 
+        secure: cookieSecure, // HTTPS vaaditaan tuotannossa
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 tuntia
+    },
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI,
+        ttl: 24 * 60 * 60 // 24 tuntia (sekunteina)
+    })
 }));
+
+// Autentikointi
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Embedin js tiedosto
-app.use('/popup-embed.js', express.static(path.join(__dirname, 'popup-embed.js')));
-
-// Sovelluksen päänäkymä - tarkistetaan pending-status
+// Pääreitti
 app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+// Embedin js tiedosto
+app.use('/popup-embed.js', express.static(path.join(__dirname, 'popup-embed.js')));
 
 // Pending-näkymä
 app.get('/pending', (req, res) => {
@@ -58,16 +119,22 @@ app.get('/pending', (req, res) => {
 
 // Reittien rekisteröinti
 app.use('/auth', authRoutes);
-app.use('/api', userRoutes);
-// Käytetään isUser-middleware popupeille ja kuville
+app.use('/api/user', userRoutes);
 app.use('/api/popups', authMiddleware.isUser, popupRoutes);
 app.use('/api/upload', authMiddleware.isUser, imageRoutes);
 app.use('/api/images', authMiddleware.isUser, imageRoutes);
-// Admin-reitit suojataan isAdmin-middlewarella
 app.use('/api/admin', authMiddleware.isAdmin, adminRoutes);
 
-// Swagger-dokumentaatio
-swaggerDocs(app, PORT);
+// Swagger-dokumentaatio (vain kehitysympäristössä tai admin-käyttäjille)
+if (!isProduction) {
+    swaggerDocs(app, PORT);
+} else {
+    // Tuotannossa Swagger vain admineille
+    app.use('/api-docs', authMiddleware.isAdmin, (req, res, next) => {
+        next();
+    });
+    swaggerDocs(app, PORT);
+}
 
 // Ohjaa staattiset .html-sivut
 app.get('*.html', (req, res) => {
@@ -82,12 +149,23 @@ app.use((req, res) => {
 // Käsittele palvelinvirheet
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
-    res.status(500).json({ message: 'Internal server error', error: err.message });
+    res.status(500).json({ 
+        message: isProduction ? 'Internal server error' : err.message,
+        stack: isProduction ? undefined : err.stack
+    });
 });
 
 // Käynnistä palvelin
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on ${isProduction ? 'production' : 'development'} mode`);
+    console.log(`Listening on port ${PORT}`);
 });
 
-module.exports = app;
+// Hallittu palvelimen sammutus
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    app.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+    });
+});
