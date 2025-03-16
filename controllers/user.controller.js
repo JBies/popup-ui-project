@@ -25,14 +25,17 @@ class UserController {
    * @param {Object} res - Express response object
    */
   static async getAllUsers(req, res) {
+	console.log('Admin getAllUsers called, user:', req.user ? req.user.email : 'unknown');
     if (req.user && req.user.role === 'admin') {
       try {
         const users = await User.find({});
         res.json(users);
       } catch (err) {
+	console.error('Error fetching users:', err);
         res.status(500).json({ message: 'Error fetching users', error: err });
       }
     } else {
+	console.log('Access denied. User role:', req.user ? req.user.role : 'no user');
       res.status(403).send('Access denied');
     }
   }

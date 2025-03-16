@@ -1,42 +1,31 @@
-// auth.js
+// auth.js - Simple version
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('./models/User'); // Tuodaan User-malli
+const User = require('./models/User');
 
-// Admins list - näitä sähköposteja käytetään automaattiseen admin-rooliin
-const ADMIN_EMAILS = [
-    'joni.bies@gmail.com',
-    // Lisää tähän muut admin-sähköpostit tarvittaessa
-];
+// Admins
+const ADMIN_EMAILS = ['joni.bies@gmail.com'];
 
-// Configure the Google OAuth strategy
+// Google OAuth
 passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID, // Google OAuth client ID
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET, // Google OAuth client secret
-    callbackURL: "http://localhost:3000/auth/google/callback" // Callback URL after Google login
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL
 },
 async (accessToken, refreshToken, profile, done) => {
     try {
-        // Etsitään käyttäjä ensin
         let user = await User.findOne({ googleId: profile.id });
-        
-        // Jos käyttäjä löytyi, päivitetään viimeisin kirjautumisaika
         if (user) {
             user.lastLogin = new Date();
             await user.save();
         } else {
-            // Määritetään rooli sähköpostin perusteella
-            let role = 'pending'; // Oletusosoite on nyt "pending"
-            
-            // Määritetään automaattisesti admin-rooli tietyille sähköposteille
+            let role = 'pending';
             if (profile.emails && profile.emails.length > 0) {
                 const email = profile.emails[0].value;
                 if (ADMIN_EMAILS.includes(email)) {
                     role = 'admin';
                 }
             }
-            
-            // Luodaan uusi käyttäjä
             user = new User({
                 googleId: profile.id,
                 displayName: profile.displayName,
@@ -48,25 +37,23 @@ async (accessToken, refreshToken, profile, done) => {
             });
             await user.save();
         }
-        
-        done(null, user); // Palautetaan käyttäjä
+        done(null, user);
     } catch (error) {
-        console.error('Error in Google authentication:', error);
         done(error, null);
     }
 }));
 
-// käyttäjän tallennus sessioon
 passport.serializeUser((user, done) => {
-    done(null, user.id); 
+    done(null, user.id);
 });
 
-// käyttäjän haku sessiosta
 passport.deserializeUser(async (id, done) => {
     try {
-        const user = await User.findById(id); // hae käyttäjä id:n perusteella
-        done(null, user); // vie käyttäjä sessioon
+        const user = await User.findById(id);
+        done(null, user);
     } catch (error) {
         done(error, null);
     }
 });
+
+module.exports = passport;

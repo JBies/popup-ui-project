@@ -13,4 +13,32 @@ const router = express.Router();
  */
 router.get('/', UserController.getCurrentUser);
 
+// Lisää tämä uusi reitti
+/**
+ * @route   GET /api/check-auth
+ * @desc    Tarkistaa käyttäjän kirjautumistilan
+ * @access  Public
+ */
+
+// Testireitti kirjautumistilan tarkistamiseen
+router.get('/', (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.json({
+      authenticated: true,
+      user: {
+        id: req.user._id,
+        name: req.user.displayName,
+        email: req.user.email,
+        role: req.user.role
+      }
+    });
+  } else {
+    return res.json({
+      authenticated: false,
+      session: req.sessionID
+    });
+  }
+});
+
 module.exports = router;
+

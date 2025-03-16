@@ -12,18 +12,27 @@ const router = express.Router();
  * @desc    Aloittaa Google-autentikaation
  * @access  Public
  */
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', (req, res, next) => {
+  console.log('Starting Google authentication');
+  console.log('Session ID:', req.sessionID);
+  console.log('Callback URL:', process.env.GOOGLE_CALLBACK_URL);
+  next();
+}, passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 /**
  * @route   GET /auth/google/callback
  * @desc    Google-autentikaation callback
  * @access  Public
  */
-router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res) => {
-    res.redirect('/');
-  });
+router.get('/google/callback', (req, res, next) => {
+  console.log('Google callback route hit');
+  console.log('Query params:', req.query);
+  next();
+}, passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
+  console.log('Authentication successful, user:', req.user ? req.user.displayName : 'unknown');
+  console.log('User object:', req.user);
+  res.redirect('/index.html');
+});
 
 /**
  * @route   POST /auth/logout

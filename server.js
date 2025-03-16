@@ -44,20 +44,20 @@ connectDB();
 // Tuotannon turvallisuusmekanismit
 if (isProduction) {
     // Helmetin perusasetus, mutta salli JavaScript-moduulit
-app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-          imgSrc: ["'self'", 'data:', 'https://storage.googleapis.com'],
-          connectSrc: ["'self'"]
-        }
+	app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com", "https://cdn.tailwindcss.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+        imgSrc: ["'self'", "data:", "https://storage.googleapis.com", "https://lh3.googleusercontent.com"],
+        connectSrc: ["'self'"]
       }
-    })
-  );
+    }
+  })
+);
     
     // Gzip-pakkaus
     app.use(compression());
@@ -79,7 +79,9 @@ app.use(
 
 // Perusmiddleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '/')));
+app.use(express.static(path.join(__dirname, 'public/')));
+
+app.set('trust proxy', 1); // Tarvitaan kun käytetään proxya (Nginx)
 
 // Sessioasetukset
 app.use(session({
@@ -139,6 +141,15 @@ if (!isProduction) {
 // Ohjaa staattiset .html-sivut
 app.get('*.html', (req, res) => {
     res.sendFile(path.join(__dirname, req.path));
+});
+
+// Haetaan admin users ja popupit public kansiosta
+app.get('/admin-popups.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/admin-popups.html'));
+});
+
+app.get('/admin-users.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/admin-users.html'));
 });
 
 // Käsittele mahdolliset 404-virheet
