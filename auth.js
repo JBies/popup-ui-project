@@ -13,7 +13,7 @@ const ADMIN_EMAILS = [
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID, // Google OAuth client ID
     clientSecret: process.env.GOOGLE_CLIENT_SECRET, // Google OAuth client secret
-    callbackURL: "http://localhost:3000/auth/google/callback" // Callback URL after Google login
+    callbackURL: "https://popupmanager.net/auth/google/callback" // Callback URL after Google login
 },
 async (accessToken, refreshToken, profile, done) => {
     try {
