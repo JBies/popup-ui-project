@@ -6,23 +6,23 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const MongoStore = require('connect-mongo');
-const connectDB = require('./public/db');
+const connectDB = require('./db');
 
 // Swagger dokumentaatio
-const { swaggerDocs } = require('./public/swagger');
+const { swaggerDocs } = require('./swagger');
 
 // Reittien tuonti
-const authRoutes = require('./routes/auth.routes');
-const userRoutes = require('./routes/user.routes');
-const popupRoutes = require('./routes/popup.routes');
-const imageRoutes = require('./routes/image.routes');
-const adminRoutes = require('./routes/admin.routes');
+const authRoutes = require('../routes/auth.routes');
+const userRoutes = require('../routes/user.routes');
+const popupRoutes = require('../routes/popup.routes');
+const imageRoutes = require('../routes/image.routes');
+const adminRoutes = require('../routes/admin.routes');
 
 // Middleware
-const authMiddleware = require('./middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 
 // Autentikaation asetukset
-require('./public/auth');
+require('./auth');
 
 // Ympäristömuuttujat
 const PORT = process.env.PORT || 3000;
