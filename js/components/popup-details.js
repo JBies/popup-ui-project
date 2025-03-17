@@ -112,7 +112,8 @@ class PopupDetails {
       <div>
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Upotuskoodi</h3>
         <textarea readonly class="w-full p-2 text-xs font-mono bg-gray-100 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded h-24" onclick="this.select()">
-<script src="${window.location.origin}/popup-embed.js" class="popup-embed dark:text-white"></script>
+<script src="${window.location.origin}/popup-embed.js">
+</script>
 <script>
   window.addEventListener('load', function() {
     ShowPopup('${popup._id}');

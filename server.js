@@ -44,25 +44,33 @@ connectDB();
 // Tuotannon turvallisuusmekanismit
 if (isProduction) {
     // Helmetin perusasetus, mutta salli JavaScript-moduulit
-app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-          imgSrc: ["'self'", 'data:', 'https://storage.googleapis.com'],
-          connectSrc: ["'self'"]
-        }
-      }
-    })
-  );
+    app.use(
+        helmet({
+            contentSecurityPolicy: {
+                directives: {
+                    defaultSrc: ["'self'"],
+                    scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+                    styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+                    fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+                    imgSrc: ["'self'", 'data:', 'https://storage.googleapis.com'],
+                    connectSrc: ["'self'"]
+                }
+            }
+        })
+    );
     
     // Gzip-pakkaus
     app.use(compression());
     
-    // Rajoitetut CORS-asetukset
+    // Erillinen CORS-asetus popup-embed.js tiedostolle
+    app.use('/popup-embed.js', (req, res, next) => {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET');
+        res.header('Access-Control-Allow-Headers', 'Content-Type');
+        next();
+    });
+    
+    // Rajoitetut CORS-asetukset muille reiteille
     app.use(cors({
         origin: allowedOrigins,
         credentials: true,
