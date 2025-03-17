@@ -125,7 +125,9 @@ app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
 });
 
 // Embedin js tiedosto
-app.use('/popup-embed.js', express.static(path.join(__dirname, 'popup-embed.js')));
+app.get('/popup-embed.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'js/components/popup-embed.js')); // Tai mikä tahansa oikea polku
+  });
 
 // Pending-näkymä
 app.get('/pending', (req, res) => {
