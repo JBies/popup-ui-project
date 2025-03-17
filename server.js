@@ -1,5 +1,3 @@
-// Parannellut server.js tuotantokäyttöön
-
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
@@ -41,13 +39,13 @@ const app = express();
 // Yhdistetään tietokantaan
 connectDB();
 
-    // Erillinen CORS-asetus popup-embed.js tiedostolle
-    app.use('/popup-embed.js', (req, res, next) => {
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Methods', 'GET');
-        res.header('Access-Control-Allow-Headers', 'Content-Type');
-        next();
-    });
+// Erillinen CORS-asetus popup-embed.js tiedostolle
+app.use('/popup-embed.js', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
 
 // Tuotannon turvallisuusmekanismit
 if (isProduction) {
@@ -71,14 +69,14 @@ if (isProduction) {
     // Gzip-pakkaus
     app.use(compression());
     
- // Rajoitetut CORS-asetukset
-app.use(cors({
-    origin: allowedOrigins,
-    credentials: true, // Tärkeä istuntojen toiminnalle
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200 // Yhteensopivuus mobiiliselaimien kanssa
-}));
+    // Rajoitetut CORS-asetukset
+    app.use(cors({
+        origin: allowedOrigins,
+        credentials: true, // Tärkeä istuntojen toiminnalle
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        optionsSuccessStatus: 200 // Yhteensopivuus mobiiliselaimien kanssa
+    }));
 } else {
     // Kehityksessä sallivammat CORS-asetukset
     app.use(cors({
@@ -126,8 +124,14 @@ app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
 
 // Embedin js tiedosto
 app.get('/popup-embed.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'js/components/popup-embed.js')); // Tai mikä tahansa oikea polku
-  });
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.header('Content-Type', 'application/javascript');
+    
+    // Lähetä tiedosto
+    res.sendFile(path.join(__dirname, 'popup-embed.js'));
+});
 
 // Pending-näkymä
 app.get('/pending', (req, res) => {
