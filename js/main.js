@@ -1,15 +1,15 @@
 // js/main.js
 
-import API from '../js/utils/api.js';
-import PopupPreview from '../js/components/preview.js';
-import PopupForm from '../js/components/popup-form.js';
-import PopupList from '../js/components/popup-list.js';
-import PopupDetails from '../js/components/popup-details.js'; 
-import PopupPreviewModal from '../js/components/popup-preview-modal.js';
-import ImageLibrary from '../js/components/image-library.js';
-import ImageGallery from '../js/components/image-gallery.js';
-import ImageUploader from '../js/components/image-uploader.js';
-import ImagePicker from '../js/components/image-picker.js';
+import API from './utils/api.js';
+import PopupPreview from './components/preview.js';
+import PopupForm from './components/popup-form.js';
+import PopupList from './components/popup-list.js';
+import PopupDetails from './components/popup-details.js'; 
+import PopupPreviewModal from './components/popup-preview-modal.js';
+import ImageLibrary from './components/image-library.js';
+import ImageGallery from './components/image-gallery.js';
+import ImageUploader from './components/image-uploader.js';
+import ImagePicker from './components/image-picker.js';
 
 /**
  * Sovelluksen pääluokka
