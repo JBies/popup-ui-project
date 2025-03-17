@@ -29,23 +29,15 @@ const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionSecret = process.env.SESSION_SECRET || 'local-dev-secret';
 const cookieSecure = process.env.COOKIE_SECURE === 'true';
-const allowedOrigins = process.env.CORS_ORIGIN 
-    ? process.env.CORS_ORIGIN.split(',') 
-    : ['http://localhost:3000'];
+const allowedOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',')
+    : ['http://localhost:3000', 'https://www.popupmanager.net', 'https://sinunnettisivusi.com']; // Lisätty oletusarvot kehitystä varten
 
 // Alustetaan Express
 const app = express();
 
 // Yhdistetään tietokantaan
 connectDB();
-
-// Erillinen CORS-asetus popup-embed.js tiedostolle
-app.use('/popup-embed.js', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-});
 
 // Tuotannon turvallisuusmekanismit
 if (isProduction) {
@@ -65,10 +57,10 @@ if (isProduction) {
             }
         })
     );
-    
+
     // Gzip-pakkaus
     app.use(compression());
-    
+
     // Rajoitetut CORS-asetukset
     app.use(cors({
         origin: allowedOrigins,
@@ -87,7 +79,7 @@ if (isProduction) {
 
 // Perusmiddleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '/')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Lisää tämä ennen session-konfigurointia
 if (isProduction) {
@@ -99,7 +91,7 @@ app.use(session({
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    cookie: { 
+    cookie: {
         secure: cookieSecure, // HTTPS vaaditaan tuotannossa
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 tuntia
@@ -119,18 +111,7 @@ app.use(passport.session());
 
 // Pääreitti
 app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Embedin js tiedosto
-app.get('/popup-embed.js', (req, res) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    res.header('Content-Type', 'application/javascript');
-    
-    // Lähetä tiedosto
-    res.sendFile(path.join(__dirname, 'popup-embed.js'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Pending-näkymä
@@ -138,7 +119,7 @@ app.get('/pending', (req, res) => {
     if (!req.user || req.user.role !== 'pending') {
         return res.redirect('/');
     }
-    res.sendFile(path.join(__dirname, 'pending.html'));
+    res.sendFile(path.join(__dirname, 'public', 'pending.html'));
 });
 
 // Reittien rekisteröinti
@@ -162,7 +143,7 @@ if (!isProduction) {
 
 // Ohjaa staattiset .html-sivut
 app.get('*.html', (req, res) => {
-    res.sendFile(path.join(__dirname, req.path));
+    res.sendFile(path.join(__dirname, 'public', req.path));
 });
 
 // Käsittele mahdolliset 404-virheet
@@ -173,7 +154,7 @@ app.use((req, res) => {
 // Käsittele palvelinvirheet
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
-    res.status(500).json({ 
+    res.status(500).json({
         message: isProduction ? 'Internal server error' : err.message,
         stack: isProduction ? undefined : err.stack
     });
