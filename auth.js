@@ -1,7 +1,7 @@
 // auth.js
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../models/User'); // Tuodaan User-malli
+const User = require('./models/User'); // Tuodaan User-malli
 
 // Admins list - näitä sähköposteja käytetään automaattiseen admin-rooliin
 const ADMIN_EMAILS = [

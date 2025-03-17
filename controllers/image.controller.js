@@ -4,7 +4,7 @@
 const fs = require('fs');
 const Image = require('../models/Image');
 const Popup = require('../models/Popup');
-const { bucket } = require('../public/firebase');
+const { bucket } = require('../firebase');
 
 /**
  * ImageController vastaa kuvien hallinnan toimintalogiikasta

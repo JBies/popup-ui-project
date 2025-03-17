@@ -12,14 +12,14 @@ const connectDB = require('./db');
 const { swaggerDocs } = require('./swagger');
 
 // Reittien tuonti
-const authRoutes = require('../routes/auth.routes');
-const userRoutes = require('../routes/user.routes');
-const popupRoutes = require('../routes/popup.routes');
-const imageRoutes = require('../routes/image.routes');
-const adminRoutes = require('../routes/admin.routes');
+const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+const popupRoutes = require('./routes/popup.routes');
+const imageRoutes = require('./routes/image.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 // Middleware
-const authMiddleware = require('../middleware/auth.middleware');
+const authMiddleware = require('./middleware/auth.middleware');
 
 // Autentikaation asetukset
 require('./auth');
