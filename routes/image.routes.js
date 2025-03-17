@@ -2,7 +2,7 @@
 // Kuvien hallintaan liittyvät reitit
 
 const express = require('express');
-const upload = require('../upload');
+const upload = require('../public/upload');
 const ImageController = require('../controllers/image.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 
