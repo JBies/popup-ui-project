@@ -6,8 +6,8 @@
             console.log("ShowPopup called with ID:", popupId); // Debug
             
             // Hae popup data API:sta
-            const baseUrl = window.location.origin;
-            const url = `${baseUrl}/api/popups/${popupId}`;
+            const baseUrl = "https://popupmanager.net";
+            const url = `${baseUrl}/api/popups/embed/${popupId}`;
             console.log("Fetching popup data from:", url);
             
             const response = await fetch(url);
