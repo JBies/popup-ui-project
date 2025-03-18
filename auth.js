@@ -56,17 +56,21 @@ async (accessToken, refreshToken, profile, done) => {
     }
 }));
 
-// käyttäjän tallennus sessioon
 passport.serializeUser((user, done) => {
+    console.log('Serializing user:', user.id);
     done(null, user.id); 
 });
 
-// käyttäjän haku sessiosta
 passport.deserializeUser(async (id, done) => {
     try {
+        console.log('Deserializing user ID:', id);
         const user = await User.findById(id); // hae käyttäjä id:n perusteella
+        console.log('Deserialized user:', user ? 'User found' : 'User not found');
         done(null, user); // vie käyttäjä sessioon
     } catch (error) {
+        console.error('Error in deserializeUser:', error);
         done(error, null);
     }
 });
+
+module.exports = passport;

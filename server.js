@@ -30,10 +30,9 @@ require('./auth');
 const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionSecret = process.env.SESSION_SECRET || 'local-dev-secret';
-const cookieSecure = process.env.COOKIE_SECURE === 'true';
 const allowedOrigins = process.env.CORS_ORIGIN 
     ? process.env.CORS_ORIGIN.split(',') 
-    : ['http://localhost:3000'];
+    : ['http://localhost:3000', 'https://popupmanager.net', 'https://www.popupmanager.net'];
 
 // Alustetaan Express
 const app = express();
@@ -112,7 +111,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: cookieSecure, // HTTPS vaaditaan tuotannossa
+        secure: false, // Muutetaan secure: false jotta toimii myös ilman HTTPS:ää
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000 // 24 tuntia
     },
@@ -133,7 +132,7 @@ app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
 
 // Embedin js tiedosto
 app.get('/popup-embed.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'js/components/popup-embed.js')); // Tai mikä tahansa oikea polku
+    res.sendFile(path.join(__dirname, 'public/popup-embed.js'));
   });
 
 // Pending-näkymä

@@ -22,6 +22,8 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 router.get('/google/callback', 
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
+    console.log('Google authentication successful, redirecting to home');
+    console.log('User in session:', req.user ? `ID: ${req.user.id}, Role: ${req.user.role}` : 'No user');
     res.redirect('/');
   });
 
