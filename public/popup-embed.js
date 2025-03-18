@@ -1,13 +1,14 @@
 // popup-embed.js
 (function() {
+    // API-palvelimen URL
+    const API_BASE_URL = 'https://popupmanager.net/';
     // Popup Manager
     window.ShowPopup = async function(popupId) {
         try {
             console.log("ShowPopup called with ID:", popupId); // Debug
             
             // Hae popup data API:sta
-            const baseUrl = "https://popupmanager.net";
-            const url = `${baseUrl}/api/popups/embed/${popupId}`;
+            const url = `${API_BASE_URL}/api/popups/embed/${popupId}`;
             console.log("Fetching popup data from:", url);
             
             const response = await fetch(url);
@@ -20,7 +21,7 @@
             
             // Rekisteröi näyttökerta
             try {
-                await fetch(`${baseUrl}/api/popups/view/${popupId}`, { method: 'POST' });
+                await fetch(`${API_BASE_URL}/api/popups/view/${popupId}`, { method: 'POST' });
                 console.log("View registered for popup:", popupId);
             } catch (statsError) {
                 console.error("Failed to register view:", statsError);
@@ -31,7 +32,7 @@
             if (!shouldShowPopup(popup)) return;
 
             // Luo popup elementti
-            createAndShowPopup(popup);
+            createAndShowPopup(popup, popupId);
         } catch (error) {
             console.error('Error showing popup:', error);
         }
@@ -77,17 +78,7 @@
         return true;
     }
 
-    // Apufunktio klikkausten rekisteröintiin
-    async function registerClick(popupId) {
-        try {
-            const baseUrl = window.location.origin;
-            await fetch(`${baseUrl}/api/popups/click/${popupId}`, { method: 'POST' });
-            console.log("Click registered for popup:", popupId);
-        } catch (error) {
-            console.error("Failed to register click:", error);
-        }
-    }
-
+ 
     // Apufunktio popupin luomiseen ja näyttämiseen
     function createAndShowPopup(popup) {
         // Hae ja loki timing-tiedot
@@ -332,8 +323,7 @@
                 
                 // Rekisteröi klikkaus
                 try {
-                    const baseUrl = window.location.origin;
-                    fetch(`${baseUrl}/api/popups/click/${popup._id}`, { method: 'POST' })
+                    fetch(`${API_BASE_URL}/api/popups/click/${popup._id}`, { method: 'POST' })
                         .then(response => {
                             console.log("Click registered successfully:", response.status);
                         })
@@ -393,8 +383,7 @@
     // Apufunktio klikkausten rekisteröintiin
     async function registerClick(popupId) {
         try {
-            const baseUrl = window.location.origin;
-            const response = await fetch(`${baseUrl}/api/popups/click/${popupId}`, { method: 'POST' });
+            const response = await fetch(`${API_BASE_URL}/api/popups/click/${popupId}`, { method: 'POST' });
             console.log("Click registered for popup:", popupId, "Status:", response.status);
             return true;
         } catch (error) {
