@@ -265,6 +265,9 @@ class PopupForm {
    * @param {Object} popupData - Popupin tiedot
    */
   static editPopup(id, popupData) {
+    console.log("PopupForm.editPopup called with ID:", id);
+    console.log("Popup data received:", popupData);
+    try {
     // Parsitaan popup-data, jos se on string
     const popup = typeof popupData === 'string' ? JSON.parse(popupData) : popupData;
     
@@ -324,13 +327,21 @@ class PopupForm {
     }
     
     // Näytä lomake
-    document.getElementById('editPopupForm').style.display = 'block';
+    const formElement = document.getElementById('editPopupForm');
+    if (formElement) {
+      formElement.style.display = 'block';
+      console.log("Edit form displayed");
+    } else {
+      console.error("Element not found: editPopupForm");
+    }
     
     // Päivitä esikatselu
     PopupPreview.updatePreview('edit');
-    // Päivitä näkyvyys
-    this.updateFormVisibility('edit');
+  } catch (error) {
+    console.error("Error in editPopup method:", error);
   }
+  }
+  
 
   /**
    * Lisää kuuntelijan popupin tyypin muutokselle
