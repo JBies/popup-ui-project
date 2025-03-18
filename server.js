@@ -57,7 +57,7 @@ app.get('/popup-embed.js', (req, res) => {
     res.header('Content-Type', 'application/javascript');
     
     // Lähetetään tiedosto - varmista että polku on oikea
-    res.sendFile(path.join(__dirname, 'js/components/popup-embed.js'));
+    res.sendFile(path.join(__dirname, 'public/popup-embed.js'));
 });
 
 // Tuotannon turvallisuusmekanismit
