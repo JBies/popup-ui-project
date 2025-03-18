@@ -130,7 +130,7 @@ app.use(passport.session());
 
 // Pääreitti
 app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, '/'));
 });
 
 // Embedin js tiedosto
