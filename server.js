@@ -30,6 +30,7 @@ require('./auth');
 const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionSecret = process.env.SESSION_SECRET || 'local-dev-secret';
+const cookieSecure = process.env.COOKIE_SECURE === 'false';
 const allowedOrigins = process.env.CORS_ORIGIN 
     ? process.env.CORS_ORIGIN.split(',') 
     : ['http://localhost:3000', 'https://popupmanager.net', 'https://www.popupmanager.net'];
@@ -39,6 +40,25 @@ const app = express();
 
 // Yhdistetään tietokantaan
 connectDB();
+
+// Tärkeä: Määritellään popup-embed.js reitti ENNEN mitään muita middleware-määrityksiä
+// Tämä varmistaa, että se käsitellään ennen CORS ja muita middlewareja
+app.get('/popup-embed.js', (req, res) => {
+    // CORS-otsikot tarkasti tälle tiedostolle
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // Cross-Origin-Resource-Policy otsikko
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    
+    // Cache-otsikot
+    res.header('Cache-Control', 'public, max-age=86400'); // 1 päivä
+    res.header('Content-Type', 'application/javascript');
+    
+    // Lähetetään tiedosto - varmista että polku on oikea
+    res.sendFile(path.join(__dirname, 'js/components/popup-embed.js'));
+});
 
 // Tuotannon turvallisuusmekanismit
 if (isProduction) {
@@ -59,46 +79,27 @@ if (isProduction) {
         })
     );
 }
-    
-    // Gzip-pakkaus
-    app.use(compression());
-    
 
- // Rajoitetut CORS-asetukset
-app.use(cors({
-    origin: allowedOrigins,
-    credentials: true, // Tärkeä istuntojen toiminnalle
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200 // Yhteensopivuus mobiiliselaimien kanssa
+// Gzip-pakkaus
+app.use(compression());
 
-}));
-
+// CORS-asetukset - poistetaan päällekkäisyydet
 if (isProduction) {
-    // Erillinen CORS-asetus popup-embed.js tiedostolle
-    app.use('/popup-embed.js', (req, res, next) => {
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Methods', 'GET');
-        res.header('Access-Control-Allow-Headers', 'Content-Type');
-        res.header('Content-Type', 'application/javascript'); // Tärkeä asetus JSONP-muotoisille vastauksille
-        res.header('Cache-Control', 'no-cache'); // Ei välimuistitusta
-        res.header('Pragma', 'no-cache'); // Ei välimuistitusta
-        res.header('Expires', '0'); // Ei välimuistitusta
-        res.header('X-Content-Type-Options', 'nosniff'); // Tietoturva-asetus
-
-        next();
-    });
-    
-
+    // Rajoitetut CORS-asetukset tuotannossa
+    app.use(cors({
+        origin: allowedOrigins,
+        credentials: true, // Tärkeä istuntojen toiminnalle
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        optionsSuccessStatus: 200 // Yhteensopivuus mobiiliselaimien kanssa
+    }));
 } else {
     // Kehityksessä sallivammat CORS-asetukset
     app.use(cors({
         origin: true,
         credentials: true
     }));
-
 }
-
 
 // Perusmiddleware
 app.use(express.json());
@@ -111,7 +112,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: false, // Muutetaan secure: false jotta toimii myös ilman HTTPS:ää
+        secure: cookieSecure, // Käytetään ympäristömuuttujaa, tuotannossa true jos HTTPS
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000 // 24 tuntia
     },
@@ -124,16 +125,12 @@ app.use(session({
 // Autentikointi
 app.use(passport.initialize());
 app.use(passport.session());
-
 // Pääreitti
 app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
     res.sendFile(path.join(__dirname, '/'));
 });
 
-// Embedin js tiedosto
-app.get('/popup-embed.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/popup-embed.js'));
-  });
+
 
 // Pending-näkymä
 app.get('/pending', (req, res) => {
