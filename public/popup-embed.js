@@ -1,7 +1,7 @@
 // popup-embed.js
 (function() {
     // API-palvelimen URL
-    const API_BASE_URL = 'https://popupmanager.net/';
+    const API_BASE_URL = 'https://popupmanager.net';
     // Popup Manager
     window.ShowPopup = async function(popupId) {
         try {
