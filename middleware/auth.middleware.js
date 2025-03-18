@@ -5,12 +5,12 @@
  * Tarkistaa, onko käyttäjä kirjautunut
  */
 const isAuthenticated = (req, res, next) => {
-    if (req.isAuthenticated()) {
-      return next();
-    }
-    res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
-  };
-  
+  console.log('isAuthenticated check - User in session:', req.isAuthenticated(), req.user ? `ID: ${req.user._id}, Role: ${req.user.role}` : 'No user');
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
+};
   /**
    * Tarkistaa, onko käyttäjällä user-oikeudet (user tai admin)
    */
