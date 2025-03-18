@@ -41,14 +41,6 @@ const app = express();
 // Yhdistetään tietokantaan
 connectDB();
 
-    // Erillinen CORS-asetus popup-embed.js tiedostolle
-    app.use('/popup-embed.js', (req, res, next) => {
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Methods', 'GET');
-        res.header('Access-Control-Allow-Headers', 'Content-Type');
-        next();
-    });
-
 // Tuotannon turvallisuusmekanismit
 if (isProduction) {
     // Helmetin perusasetus, mutta sallitaan tarvittavat ulkoiset resurssit
@@ -89,6 +81,12 @@ if (isProduction) {
         res.header('Access-Control-Allow-Origin', '*');
         res.header('Access-Control-Allow-Methods', 'GET');
         res.header('Access-Control-Allow-Headers', 'Content-Type');
+        res.header('Content-Type', 'application/javascript'); // Tärkeä asetus JSONP-muotoisille vastauksille
+        res.header('Cache-Control', 'no-cache'); // Ei välimuistitusta
+        res.header('Pragma', 'no-cache'); // Ei välimuistitusta
+        res.header('Expires', '0'); // Ei välimuistitusta
+        res.header('X-Content-Type-Options', 'nosniff'); // Tietoturva-asetus
+
         next();
     });
     
