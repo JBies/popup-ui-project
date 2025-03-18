@@ -15,6 +15,14 @@ const isAuthenticated = (req, res, next) => {
    * Tarkistaa, onko käyttäjällä user-oikeudet (user tai admin)
    */
   const isUser = (req, res, next) => {
+    // Ohita autentikaatio julkisille reiteille
+    if (
+      req.path.startsWith('/embed/') || 
+      req.path.startsWith('/view/') || 
+      req.path.startsWith('/click/')
+    ) {
+      return next();
+    }
     if (req.isAuthenticated() && (req.user.role === 'user' || req.user.role === 'admin')) {
       return next();
     }
