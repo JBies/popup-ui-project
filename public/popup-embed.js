@@ -7,7 +7,7 @@
             
             // Hae popup data API:sta
             const baseUrl = window.location.origin;
-            const url = `${baseUrl}/api/popups/embed/${popupId}`;
+            const url = `${baseUrl}/api/popups/${popupId}`;
             console.log("Fetching popup data from:", url);
             
             const response = await fetch(url);
