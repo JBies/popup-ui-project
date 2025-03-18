@@ -372,23 +372,11 @@ class PopupForm {
     
     // Päivitä esikatselu
     PopupPreview.updatePreview(prefix);
-  }
 
-  /**
-   * Muokkaa popupia - tämä metodi voidaan kutsua ulkopuolelta
-   * @param {string} id - Popupin ID
-   * @param {Object} popupData - Popupin tiedot
-   */
-  static editPopup(id, popupData) {
-    // ... olemassa oleva koodi ...
-
-    // Päivitä esikatselu
-    PopupPreview.updatePreview('edit');
-    
-    // Päivitä näkyvyys
-    // Tämä oli virheellisesti 'this.updateFormVisibility', korjataan staattiseksi metodiksi
     PopupForm.updateFormVisibility('edit');
   }
+
+
 
   /**
    * Staattinen versio updateFormVisibility-metodista ulkoista käyttöä varten
