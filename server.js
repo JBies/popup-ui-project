@@ -44,7 +44,7 @@ connectDB();
 // Tärkeä: Määritellään popup-embed.js reitti ENNEN mitään muita middleware-määrityksiä
 // Tämä varmistaa, että se käsitellään ennen CORS ja muita middlewareja
 app.get('/popup-embed.js', (req, res) => {
-    // CORS-otsikot tarkasti tälle tiedostolle
+    /* CORS-otsikot tarkasti tälle tiedostolle
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
@@ -55,57 +55,25 @@ app.get('/popup-embed.js', (req, res) => {
     // Cache-otsikot
     res.header('Cache-Control', 'public, max-age=86400'); // 1 päivä
     res.header('Content-Type', 'application/javascript');
-    
+    */
     // Lähetetään tiedosto - varmista että polku on oikea
     res.sendFile(path.join(__dirname, 'public/popup-embed.js'));
 });
 
 // Erillinen CORS-käsittely API:n public-reiteille
 app.use('/api/popups/embed', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-    
-    if (req.method === 'OPTIONS') {
-        return res.status(204).end();
-    }
     next();
 });
 
 app.use('/api/popups/view', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-    
-    if (req.method === 'OPTIONS') {
-        return res.status(204).end();
-    }
     next();
 });
 
 app.use('/api/popups/click', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-    
-    if (req.method === 'OPTIONS') {
-        return res.status(204).end();
-    }
     next();
 });
 
 app.use('/api/images', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-    
-    if (req.method === 'OPTIONS') {
-        return res.status(204).end();
-    }
     next();
 });
 
