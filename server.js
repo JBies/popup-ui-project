@@ -67,6 +67,7 @@ if (isProduction) {
             }
         })
     );
+}
     
     // Gzip-pakkaus
     app.use(compression());
@@ -80,6 +81,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 200 // Yhteensopivuus mobiiliselaimien kanssa
 
+}));
+
+if (isProduction) {
     // Erillinen CORS-asetus popup-embed.js tiedostolle
     app.use('/popup-embed.js', (req, res, next) => {
         res.header('Access-Control-Allow-Origin', '*');
@@ -95,10 +99,13 @@ app.use(cors({
         origin: true,
         credentials: true
     }));
+
 }
+
 
 // Perusmiddleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '/')));
 
 // Sessioasetukset
@@ -190,4 +197,9 @@ process.on('SIGTERM', () => {
         console.log('HTTP server closed');
         process.exit(0);
     });
-});
+}
+);
+
+  
+
+    
