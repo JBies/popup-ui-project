@@ -71,6 +71,7 @@ if (isProduction) {
     // Gzip-pakkaus
     app.use(compression());
     
+
  // Rajoitetut CORS-asetukset
 app.use(cors({
     origin: allowedOrigins,
@@ -78,7 +79,16 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 200 // Yhteensopivuus mobiiliselaimien kanssa
-}));
+
+    // Erillinen CORS-asetus popup-embed.js tiedostolle
+    app.use('/popup-embed.js', (req, res, next) => {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET');
+        res.header('Access-Control-Allow-Headers', 'Content-Type');
+        next();
+    });
+    
+
 } else {
     // Kehityksessä sallivammat CORS-asetukset
     app.use(cors({
@@ -91,11 +101,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '/')));
 
-// Lisää tämä ennen session-konfigurointia
-if (isProduction) {
-    app.set('trust proxy', 1); // Tarvitaan jos käytössä on proxy/load balancer
-}
-
 // Sessioasetukset
 app.use(session({
     secret: sessionSecret,
@@ -104,14 +109,11 @@ app.use(session({
     cookie: { 
         secure: cookieSecure, // HTTPS vaaditaan tuotannossa
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000, // 24 tuntia
-        sameSite: 'lax' // Parantaa yhteensopivuutta selainten välillä
+        maxAge: 24 * 60 * 60 * 1000 // 24 tuntia
     },
     store: MongoStore.create({
         mongoUrl: process.env.MONGODB_URI,
-        ttl: 24 * 60 * 60, // 24 tuntia (sekunteina)
-        autoRemove: 'native', // Siivoa vanhentuneet sessiot
-        touchAfter: 24 * 3600 // Vähentää tietokannan kuormitusta
+        ttl: 24 * 60 * 60 // 24 tuntia (sekunteina)
     })
 }));
 
