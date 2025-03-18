@@ -161,6 +161,8 @@ class PopupList {
       editBtn.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
+        console.log("Edit button clicked for popup:", popup._id);
+        console.log("Popup data:", popup);
         PopupForm.editPopup(popup._id, popup);
       });
     }
