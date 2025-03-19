@@ -50,4 +50,11 @@ router.get('/popups', isAdmin, PopupController.getAllPopups);
  */
 router.put('/popups/:id', isAdmin, PopupController.adminUpdatePopup);
 
+/**
+ * @route   POST /api/admin/users/update-limit/:id
+ * @desc    Päivittää käyttäjän popup-limiitin (vain admin)
+ * @access  Admin
+ */
+router.post('/users/update-limit/:id', isAdmin, UserController.updateUserPopupLimit);
+
 module.exports = router;

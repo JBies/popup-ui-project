@@ -111,6 +111,48 @@ class UserController {
   }
 
   /**
+ * Päivittää käyttäjän popup-limiitin
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+static async updateUserPopupLimit(req, res) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+  
+  const userId = req.params.id;
+  const { popupLimit } = req.body;
+  
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Validoi että rajoitus on positiivinen kokonaisluku
+    const limit = parseInt(popupLimit);
+    if (isNaN(limit) || limit < 1) {
+      return res.status(400).json({ message: 'Invalid popup limit value' });
+    }
+    
+    user.popupLimit = limit;
+    await user.save();
+    
+    res.status(200).json({ 
+      message: 'Popup limit updated successfully!',
+      user: {
+        id: user._id,
+        displayName: user.displayName,
+        email: user.email,
+        popupLimit: user.popupLimit
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating popup limit', error: err });
+  }
+}
+
+  /**
    * Käsittelee uloskirjautumisen
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object

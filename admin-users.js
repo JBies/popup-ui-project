@@ -32,23 +32,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     UserTable.renderUserTable(users, handleUserAction);
     
     // Käsittele käyttäjätoiminnot
-    async function handleUserAction(action, userId, data) {
-      try {
-        switch (action) {
-          case 'approve':
-          case 'updateRole':
-            await UserActions.updateUserRole(userId, data);
-            break;
-          case 'delete':
-            await UserActions.deleteUser(userId);
-            break;
-        }
-        // Päivitä sivu toiminnon jälkeen
-        window.location.reload();
-      } catch (error) {
-        console.error(`Error handling user action ${action}:`, error);
-      }
+async function handleUserAction(action, userId, data) {
+  try {
+    switch (action) {
+      case 'approve':
+      case 'updateRole':
+        await UserActions.updateUserRole(userId, data);
+        break;
+      case 'updatePopupLimit':  // Uusi toiminto
+        await UserActions.updatePopupLimit(userId, data);
+        break;
+      case 'delete':
+        await UserActions.deleteUser(userId);
+        break;
     }
+    // Päivitä sivu toiminnon jälkeen
+    window.location.reload();
+  } catch (error) {
+    console.error(`Error handling user action ${action}:`, error);
+  }
+}
   } catch (err) {
     console.error('Error fetching users:', err);
     document.getElementById('usersTable').innerHTML = 

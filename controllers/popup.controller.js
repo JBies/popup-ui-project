@@ -18,6 +18,22 @@ class PopupController {
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
+    try {
+      const userPopupCount = await Popup.countDocuments({ userId: req.user._id });
+
+      // admin voi luoida rajattomasti popuppeja
+      if (req.user.role !== 'admin' && userPopupCount >= req.user.popupLimit) {
+        return res.status(403).json({
+          message: `Olet saavuttanut maksimimäärän popuppeja (${req.user.popupLimit}). Ota yhteyttä joni.bies@gmail.com lisätietoja varten.`,
+          limitReached: true
+        });
+      }
+    } catch (err) {
+      console.error('Error checking popup limit:', err);
+      return res.status(500).json({ message: 'Error checking popup limit', error: err.toString() });
+    }
+    
+
     const { 
       name,
       popupType, 

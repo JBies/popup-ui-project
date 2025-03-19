@@ -91,6 +91,35 @@ class UserActions {
         notification.classList.remove('show');
       }, 3000);
     }
+    /**
+   * Päivittää käyttäjän popup-limiitin
+   * @param {string} userId - Käyttäjän ID
+   * @param {number} limit - Uusi rajoitus
+   * @returns {Promise<Object>} API-vastaus
+   */
+  static async updatePopupLimit(userId, limit) {
+    try {
+      const response = await fetch(`/api/admin/users/update-limit/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ popupLimit: limit })
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        this.showNotification(`Popup-rajoitus päivitetty: ${limit} kpl`, 'success');
+        return result;
+      } else {
+        throw new Error(result.message || 'Error updating popup limit');
+      }
+    } catch (error) {
+      console.error('Error updating popup limit:', error);
+      this.showNotification('Virhe popup-rajoituksen päivityksessä: ' + error.message, 'error');
+      throw error;
+    }
+
   }
+}
   
   export default UserActions;

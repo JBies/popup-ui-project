@@ -167,6 +167,62 @@ class PopupForm {
   }
 
   /**
+   * popupien määrä ja rajoitukset
+   * @param {Object} currentUser - Kirjautunut käyttäjä
+   * @param {Array} userPopups - Käyttäjän popupit
+   * @returns {Promise<void>}
+   * 
+   */
+  async init() {
+    try {
+      // Tarkista käyttäjän popupien määrä ja rajoitukset
+      const currentUser = await API.getCurrentUser();
+      const userPopups = await API.getUserPopups();
+      
+      if (currentUser && currentUser.role !== 'admin') {
+        const popupCount = userPopups ? userPopups.length : 0;
+        const popupLimit = currentUser.popupLimit || 1;
+        
+        // Näytä jäljellä olevat popupit
+        const remainingPopups = popupLimit - popupCount;
+        const limitInfo = document.createElement('div');
+        limitInfo.className = 'popup-limit-info';
+        limitInfo.innerHTML = `
+          <p class="text-${remainingPopups > 0 ? 'green' : 'red'}-600 dark:text-${remainingPopups > 0 ? 'green' : 'red'}-400 text-sm mb-4">
+            <i class="fas fa-info-circle mr-1"></i>
+            ${remainingPopups > 0 
+              ? `Voit luoda vielä ${remainingPopups} popup${remainingPopups !== 1 ? 'ia' : 'in'} (rajoitus: ${popupLimit}).` 
+              : 'Olet saavuttanut popupien maksimimäärän. Ota yhteyttä adminiin saadaksesi lisää.'}
+          </p>
+        `;
+        
+        const formElement = document.getElementById('createPopupForm');
+        if (formElement) {
+          formElement.insertBefore(limitInfo, formElement.firstChild);
+        }
+        
+        // Piilota luomislomake, jos rajoitus on saavutettu
+        if (remainingPopups <= 0) {
+          const submitButton = document.getElementById('createPopup');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.style.opacity = '0.5';
+            submitButton.style.cursor = 'not-allowed';
+          }
+        }
+      }
+      
+      // Muut alustukset...
+      this.setupCreateForm();
+      this.setupEditForm();
+      this.setupImageUpload();
+      this.setupPopupTypeChange();
+    } catch (error) {
+      console.error('Error initializing popup form:', error);
+    }
+  }
+
+  /**
    * Alustaa kuvien latauksen
    */
   setupImageUpload() {
