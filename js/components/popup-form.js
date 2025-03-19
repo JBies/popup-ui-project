@@ -383,8 +383,6 @@ class PopupForm {
     
     // Päivitä esikatselu
     PopupPreview.updatePreview(prefix);
-
-    PopupForm.updateFormVisibility('edit');
   }
 
 

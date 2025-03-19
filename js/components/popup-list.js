@@ -24,17 +24,22 @@ class PopupList {
   /**
    * Hakee käyttäjän popupit ja näyttää ne listassa
    */
-  async fetchUserPopups() {
-    try {
-      const popups = await API.getUserPopups();
-      this.renderPopupList(popups);
-    } catch (error) {
-      console.error('Error fetching popups:', error);
-      const popupList = document.getElementById('popups');
-      if (popupList) {
-        popupList.innerHTML = '<p>Virhe popupien lataamisessa</p>';
-      }
-    }
+  fetchUserPopups() {
+    API.getUserPopups()
+      .then(popups => {
+        this.renderPopupList(popups);
+        
+        // Lisätään testikutsu ensimmäiselle popupille
+        if (popups && popups.length > 0) {
+          console.log("Testing direct call to editPopup with first popup");
+          setTimeout(() => {
+            PopupForm.editPopup(popups[0]._id, popups[0]);
+          }, 2000);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching popups:', error);
+      });
   }
 
   /**
@@ -57,6 +62,7 @@ class PopupList {
       // Luodaan korttipohjainen layout
       const li = document.createElement('li');
       li.className = 'bg-gray-800 dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden h-auto';
+      li.dataset.id = popup._id;
       
       // Luodaan otsikko+infot
       const card = document.createElement('div');
@@ -126,6 +132,9 @@ class PopupList {
       card.appendChild(actions);
       li.appendChild(card);
       popupList.appendChild(li);
+
+          // Varmista, että popup-data on kokonainen objekti
+          console.log("Popup data for", popup._id, ":", popup);
       
       // Tapahtumakuuntelijat
       this.addCardEventListeners(li, popup);
@@ -157,6 +166,8 @@ class PopupList {
     }
     
     const editBtn = card.querySelector('.edit-btn');
+    console.log("Searching for edit button in card:", card);
+    console.log("Edit button found:", editBtn);
     if (editBtn) {
       editBtn.addEventListener('click', (event) => {
         event.preventDefault();
