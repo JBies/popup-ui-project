@@ -140,12 +140,19 @@ app.use(session({
     })
 }));
 
-// Autentikointi
-app.use(passport.initialize());
-app.use(passport.session());
-// Pääreitti
 app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
-    res.sendFile(path.join(__dirname, '/'));
+    // Jos käyttäjä on kirjautunut, näytä hallintapaneeli
+    if (req.isAuthenticated()) {
+        res.sendFile(path.join(__dirname, 'index.html')); // Alkuperäinen hallintapaneeli
+    } else {
+        // Jos käyttäjä ei ole kirjautunut, näytä landing-sivu
+        res.sendFile(path.join(__dirname, 'landing.html')); // Uusi landing-sivu
+    }
+});
+
+// Lisää suora reitti hallintapaneeliin kirjautuneille käyttäjille
+app.get('/dashboard', authMiddleware.isUser, (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 
