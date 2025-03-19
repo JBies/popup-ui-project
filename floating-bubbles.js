@@ -21,8 +21,10 @@ class FloatingBubbles {
         messages: options.messages || [                // Oletusviestit
           "Lisää sivustosi myyntiä popupeilla",
           "Lisää konversiota sivustolla vierailijoista",
-          "Mutta popupit ovat ärsyttäviä",
-          "...Mutta tehokkaita!",
+          "Popupit ovat ärsyttäviä! ...mutta toimivia",
+          "Luo popuppeja helposti ja nopeasti",
+          "Popupit ovat tehokas markkinointityökalu",
+          "Lisää sivustosi konversiota popupeilla",
           "Näe kuinka moni klikkaa popuppiasi",
           "Tuo sivustosi eloon popupeilla",
           "Ota yhteyttä asiakkaisiisi tehokkaasti",
@@ -129,24 +131,97 @@ class FloatingBubbles {
     }
   
     // Poksauttaa pallon ja näyttää viestin
-    popBubble(bubble) {
-      if (bubble.popped || bubble.hasMessage) return;
+    // Poksauttaa pallon ja näyttää viestin
+popBubble(bubble) {
+    if (bubble.popped || bubble.hasMessage) return;
+    
+    bubble.popped = true;
+    
+    // Lisätään poksahdusanimaatio
+    const popEffect = document.createElement('div');
+    Object.assign(popEffect.style, {
+      position: 'absolute',
+      width: `${bubble.size * 1.2}px`,
+      height: `${bubble.size * 1.2}px`,
+      left: `${bubble.x - bubble.size * 0.1}px`,
+      top: `${bubble.y - bubble.size * 0.1}px`,
+      borderRadius: '50%',
+      background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)',
+      transform: 'scale(0.3)',
+      opacity: '1',
+      zIndex: '6',
+      pointerEvents: 'none',
+      transition: 'all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1)'
+    });
+    
+    // Lisää pieniä palasia poksahdukseen
+    for (let i = 0; i < 8; i++) {
+      const piece = document.createElement('div');
+      const angle = (i / 8) * Math.PI * 2;
+      const distance = bubble.size * 0.8;
+      Object.assign(piece.style, {
+        position: 'absolute',
+        width: `${Math.random() * 8 + 4}px`,
+        height: `${Math.random() * 8 + 4}px`,
+        left: `${bubble.x + Math.cos(angle) * 10}px`,
+        top: `${bubble.y + Math.sin(angle) * 10}px`,
+        borderRadius: '50%',
+        backgroundColor: bubble.element.style.backgroundColor,
+        opacity: '0.8',
+        transform: 'scale(0.5)',
+        zIndex: '6',
+        pointerEvents: 'none',
+        transition: 'all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1)'
+      });
+      this.container.appendChild(piece);
       
-      bubble.popped = true;
-      bubble.element.style.transform = 'scale(0)';
-      
-      // Näytä viesti
-      this.showMessage();
-      
-      // Luo uusi pallo poistetun tilalle pienen viiveen jälkeen
+      // Animoi palaset ulospäin
       setTimeout(() => {
-        this.container.removeChild(bubble.element);
-        const index = this.bubbles.indexOf(bubble);
-        if (index > -1) {
-          this.bubbles[index] = this.createBubble();
+        piece.style.transform = 'scale(0)';
+        piece.style.left = `${bubble.x + Math.cos(angle) * distance}px`;
+        piece.style.top = `${bubble.y + Math.sin(angle) * distance}px`;
+        piece.style.opacity = '0';
+      }, 10);
+      
+      // Poista palaset animaation jälkeen
+      setTimeout(() => {
+        if (piece.parentNode) {
+          this.container.removeChild(piece);
         }
-      }, 300);
+      }, 600);
     }
+    
+    this.container.appendChild(popEffect);
+    
+    // Animoi poksahdusefekti
+    setTimeout(() => {
+      popEffect.style.transform = 'scale(1.5)';
+      popEffect.style.opacity = '0';
+      bubble.element.style.transform = 'scale(0)';
+      bubble.element.style.opacity = '0';
+    }, 10);
+    
+    // Poista poksahdusefekti animaation jälkeen
+    setTimeout(() => {
+      if (popEffect.parentNode) {
+        this.container.removeChild(popEffect);
+      }
+    }, 300);
+    
+    // Näytä viesti
+    this.showMessage();
+    
+    // Luo uusi pallo poistetun tilalle pienen viiveen jälkeen
+    setTimeout(() => {
+      if (bubble.element.parentNode) {
+        this.container.removeChild(bubble.element);
+      }
+      const index = this.bubbles.indexOf(bubble);
+      if (index > -1) {
+        this.bubbles[index] = this.createBubble();
+      }
+    }, 300);
+  }
   
     // Poksauttaa satunnaisen pallon
     popRandomBubble() {
