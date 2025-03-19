@@ -49,6 +49,19 @@ class UserTable {
         roleCell.innerHTML = `
           <span class="role-badge role-${user.role}">${user.role}</span>
         `;
+        // Popup-rajoitus 
+        const popupLimitCell = row.insertCell();
+        if (user.role === 'admin') {
+          popupLimitCell.innerHTML = `<span class="unlimited-badge">∞</span>`;
+        } else {
+          popupLimitCell.innerHTML = `
+            <div class="popup-limit-control">
+              <input type="number" class="popup-limit-input" min="1" max="100" value="${user.popupLimit || 1}" 
+                    data-id="${user._id}" data-original-value="${user.popupLimit || 1}">
+              <button class="save-limit-btn" data-id="${user._id}" style="display: none;"><i class="fas fa-check"></i></button>
+            </div>
+      `;
+    }
         
         // Rekisteröityminen
         const registeredCell = row.insertCell();
@@ -129,6 +142,8 @@ class UserTable {
       this.setupActionHandlers(onAction);
     }
   }
+
+  
   
   /**
    * Lisää tapahtumakuuntelijat toimintopainikkeille
@@ -161,6 +176,27 @@ class UserTable {
         }
       });
     });
+    // tapahtumakäsittelijät popup-rajoituksille
+  document.querySelectorAll('.popup-limit-input').forEach(input => {
+    input.addEventListener('input', function() {
+      const saveBtn = this.parentElement.querySelector('.save-limit-btn');
+      if (this.value !== this.dataset.originalValue) {
+        saveBtn.style.display = 'inline-block';
+      } else {
+        saveBtn.style.display = 'none';
+      }
+    });
+  });
+  // Tallennuspainike popup-rajoituksille
+  document.querySelectorAll('.save-limit-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const userId = this.dataset.id;
+      const input = this.parentElement.querySelector('.popup-limit-input');
+      const newLimit = parseInt(input.value);
+      onAction('updatePopupLimit', userId, newLimit);
+    });
+  });
+
   }
   
   /**

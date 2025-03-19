@@ -5,7 +5,7 @@
     // Popup Manager
     window.ShowPopup = async function(popupId) {
         try {
-            console.log("ShowPopup called with ID:", popupId); // Debug
+            console.log("ShowPopup called with ID:", popupId);
             
             // Hae popup data API:sta
             const url = `${API_BASE_URL}/api/popups/embed/${popupId}`;
