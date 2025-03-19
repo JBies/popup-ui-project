@@ -122,9 +122,7 @@ if (isProduction) {
 // Perusmiddleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '/'), {
-    index: false  // Tämä estää express.static:ia tarjoamasta index.html-tiedostoa automaattisesti
-}));
+
 
 // Sessioasetukset
 app.use(session({
@@ -142,16 +140,34 @@ app.use(session({
     })
 }));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(express.static(path.join(__dirname, '/'), {
+    index: false  // Tämä estää express.static:ia tarjoamasta index.html-tiedostoa automaattisesti
+}));
+
 // Pääreitti
-app.get('/', (req, res) => {  // authMiddleware väliaikaisesti pois testausta varten
-    console.log("Root route accessed, isAuthenticated:", req.isAuthenticated());
-    
-    if (req.isAuthenticated()) {
-        console.log("User authenticated, serving index.html");
-        res.sendFile(path.join(__dirname, '/index.html'));
-    } else {
-        console.log("User not authenticated, serving landing.html");
-        res.sendFile(path.join(__dirname, '/landing.html'));
+app.get('/', (req, res) => {
+    try {
+        console.log("Checking authentication status");
+        // Tarkista ensin onko isAuthenticated olemassa
+        const isLoggedIn = req.isAuthenticated && typeof req.isAuthenticated === 'function' 
+            ? req.isAuthenticated() 
+            : false;
+            
+        console.log("Is authenticated:", isLoggedIn);
+        
+        if (isLoggedIn) {
+            console.log("Serving index.html");
+            res.sendFile(path.join(__dirname, '/index.html'));
+        } else {
+            console.log("Serving landing.html");
+            res.sendFile(path.join(__dirname, '/landing.html'));
+        }
+    } catch (error) {
+        console.error("Error in root route:", error);
+        res.status(500).send("Server error: " + error.message);
     }
 });
 
