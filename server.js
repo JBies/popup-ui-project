@@ -150,11 +150,12 @@ app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
     }
 });
 
+/*
 // Lisää suora reitti hallintapaneeliin kirjautuneille käyttäjille
 app.get('/dashboard', authMiddleware.isUser, (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
-
+*/
 
 
 // Pending-näkymä
