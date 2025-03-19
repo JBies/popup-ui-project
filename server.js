@@ -122,7 +122,9 @@ if (isProduction) {
 // Perusmiddleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '/')));
+app.use(express.static(path.join(__dirname, '/'), {
+    index: false  // Tämä estää express.static:ia tarjoamasta index.html-tiedostoa automaattisesti
+}));
 
 // Sessioasetukset
 app.use(session({
@@ -140,22 +142,25 @@ app.use(session({
     })
 }));
 
-app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
-    // Jos käyttäjä on kirjautunut, näytä hallintapaneeli
+// Pääreitti
+app.get('/', (req, res) => {  // authMiddleware väliaikaisesti pois testausta varten
+    console.log("Root route accessed, isAuthenticated:", req.isAuthenticated());
+    
     if (req.isAuthenticated()) {
-        res.sendFile(path.join(__dirname, 'index.html')); // Alkuperäinen hallintapaneeli
+        console.log("User authenticated, serving index.html");
+        res.sendFile(path.join(__dirname, '/index.html'));
     } else {
-        // Jos käyttäjä ei ole kirjautunut, näytä landing-sivu
-        res.sendFile(path.join(__dirname, 'landing.html')); // Uusi landing-sivu
+        console.log("User not authenticated, serving landing.html");
+        res.sendFile(path.join(__dirname, '/landing.html'));
     }
 });
 
-/*
+
 // Lisää suora reitti hallintapaneeliin kirjautuneille käyttäjille
 app.get('/dashboard', authMiddleware.isUser, (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
-*/
+
 
 
 // Pending-näkymä

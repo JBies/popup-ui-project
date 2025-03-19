@@ -52,11 +52,14 @@ const isAuthenticated = (req, res, next) => {
    * Jos on, ohjaa pending-näkymään
    */
   const checkPendingStatus = (req, res, next) => {
+    console.log("checkPendingStatus middleware called, isAuthenticated:", req.isAuthenticated());
+    console.log("User role:", req.user ? req.user.role : "no user");
+    
     if (req.isAuthenticated() && req.user.role === 'pending') {
-      return res.redirect('/pending');
+        return res.redirect('/pending');
     }
     next();
-  };
+};
   
   module.exports = {
     isAuthenticated,
