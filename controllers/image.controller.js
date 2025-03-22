@@ -5,6 +5,7 @@ const fs = require('fs');
 const Image = require('../models/Image');
 const Popup = require('../models/Popup');
 const { bucket } = require('../firebase');
+const recentUploads = new Map(); // Säilyttää viimeisimmät lataukset muistissa
 
 /**
  * ImageController vastaa kuvien hallinnan toimintalogiikasta
@@ -27,6 +28,18 @@ class ImageController {
   
       console.log("Processing uploaded file:", req.file);
   
+      // Luo uniikki avain tiedostolle (käyttäjä + tiedostonimi + koko + aikaleima viimeisen 2 sekunnin tarkkuudella)
+      const currentTimeGroup = Math.floor(Date.now() / 2000); // Ryhmittele 2 sekunnin jaksoihin
+      const fileKey = `${req.user._id}-${req.file.originalname}-${req.file.size}-${currentTimeGroup}`;
+      
+      // Tarkista, onko sama tiedosto juuri ladattu (viimeisen 2 sekunnin aikana)
+      if (recentUploads.has(fileKey)) {
+        console.log("Duplicate upload detected, returning previous result");
+        const cachedResult = recentUploads.get(fileKey);
+        return res.json(cachedResult);
+      }
+  
+      // Jatka normaalilla kuvan latauksella
       const filePath = req.file.path;
       const fileExtension = require('path').extname(req.file.originalname);
       
@@ -34,7 +47,7 @@ class ImageController {
       const fileName = `${req.user._id}-${Date.now()}${fileExtension}`;
       const firebasePath = `popupImages/${fileName}`;
   
-      // Lataa tiedosto Firebaseen
+      // Lataa tiedosto Firebaseen ja jatka normaalia käsittelyä...
       await bucket.upload(filePath, {
         destination: firebasePath,
         metadata: {
@@ -62,13 +75,22 @@ class ImageController {
   
       await newImage.save();
       
-      // Palauta URL ja muut tiedot clientille
-      res.json({ 
+      // Tallenna tulos väliaikaismuistiin
+      const result = { 
         imageUrl,
         imageId: newImage._id,
         name: newImage.name,
         size: newImage.size
-      });
+      };
+      recentUploads.set(fileKey, result);
+      
+      // Poista vanhentuneet tiedostot väliaikaismuistista (yli 10 sekuntia)
+      setTimeout(() => {
+        recentUploads.delete(fileKey);
+      }, 10000);
+      
+      // Palauta URL ja muut tiedot clientille
+      res.json(result);
     } catch (error) {
       console.error('Virhe kuvan latauksessa:', error);
       res.status(500).json({ message: 'Virhe kuvan latauksessa', error: error.message });
