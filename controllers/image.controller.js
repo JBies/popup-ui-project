@@ -6,6 +6,7 @@ const Image = require('../models/Image');
 const Popup = require('../models/Popup');
 const { bucket } = require('../firebase');
 const recentUploads = new Map(); // Säilyttää viimeisimmät lataukset muistissa
+const activeUploads = new Set(); // Tallentaa parhaillaan käynnissä olevat lataukset
 
 /**
  * ImageController vastaa kuvien hallinnan toimintalogiikasta
@@ -28,15 +29,60 @@ class ImageController {
   
       console.log("Processing uploaded file:", req.file);
   
-      // Luo uniikki avain tiedostolle (käyttäjä + tiedostonimi + koko + aikaleima viimeisen 2 sekunnin tarkkuudella)
-      const currentTimeGroup = Math.floor(Date.now() / 2000); // Ryhmittele 2 sekunnin jaksoihin
-      const fileKey = `${req.user._id}-${req.file.originalname}-${req.file.size}-${currentTimeGroup}`;
+      // Luo uniikki avain tiedostolle (käyttäjä + tiedostonimi + koko)
+      const fileKey = `${req.user._id}-${req.file.originalname}-${req.file.size}`;
       
-      // Tarkista, onko sama tiedosto juuri ladattu (viimeisen 2 sekunnin aikana)
+      // Jos tämä tiedosto on jo käsittelyssä, odota kunnes se valmistuu
+      if (activeUploads.has(fileKey)) {
+        console.log(`File ${fileKey} is already being processed, waiting...`);
+        
+        // Odota että aiempi käsittely valmistuu
+        let retryCount = 0;
+        while (activeUploads.has(fileKey) && retryCount < 10) {
+          await new Promise(resolve => setTimeout(resolve, 500)); // Odota 500ms
+          retryCount++;
+        }
+        
+        // Tarkista onko kuva jo ladattu onnistuneesti
+        if (recentUploads.has(fileKey)) {
+          console.log("Using previously uploaded image");
+          const result = recentUploads.get(fileKey);
+          return res.json(result);
+        }
+      }
+      
+      // Merkkaa tämä tiedosto käsittelyyn
+      activeUploads.add(fileKey);
+      
+      // Tarkista onko sama tiedosto jo ladattu lähiaikoina
       if (recentUploads.has(fileKey)) {
-        console.log("Duplicate upload detected, returning previous result");
-        const cachedResult = recentUploads.get(fileKey);
-        return res.json(cachedResult);
+        console.log("Duplicate upload detected, returning cached result");
+        const result = recentUploads.get(fileKey);
+        activeUploads.delete(fileKey);
+        return res.json(result);
+      }
+      
+      // Tarkista onko tietokannassa jo sama kuva tältä käyttäjältä
+      const existingImage = await Image.findOne({
+        userId: req.user._id,
+        name: req.file.originalname,
+        size: req.file.size
+      }).sort({ createdAt: -1 }).limit(1);
+      
+      // Jos kuva on ladattu viimeisen 5 minuutin aikana, käytä sitä
+      if (existingImage && 
+          (new Date() - new Date(existingImage.createdAt)) < 5 * 60 * 1000) {
+        console.log("Using recently uploaded image from database");
+        const result = {
+          imageUrl: existingImage.url,
+          imageId: existingImage._id,
+          name: existingImage.name,
+          size: existingImage.size
+        };
+        
+        recentUploads.set(fileKey, result);
+        activeUploads.delete(fileKey);
+        return res.json(result);
       }
   
       // Jatka normaalilla kuvan latauksella
@@ -82,20 +128,32 @@ class ImageController {
         name: newImage.name,
         size: newImage.size
       };
+      
       recentUploads.set(fileKey, result);
       
-      // Poista vanhentuneet tiedostot väliaikaismuistista (yli 10 sekuntia)
+      // Poista tiedosto käsittelystä
+      activeUploads.delete(fileKey);
+      
+      // Poista vanhentuneet tiedostot väliaikaismuistista (10 minuutin jälkeen)
       setTimeout(() => {
         recentUploads.delete(fileKey);
-      }, 10000);
+      }, 10 * 60 * 1000);
       
       // Palauta URL ja muut tiedot clientille
       res.json(result);
     } catch (error) {
       console.error('Virhe kuvan latauksessa:', error);
+      
+      // Varmista, että tiedosto poistetaan käsittelystä virhetilanteessakin
+      if (req.file) {
+        const fileKey = `${req.user._id}-${req.file.originalname}-${req.file.size}`;
+        activeUploads.delete(fileKey);
+      }
+      
       res.status(500).json({ message: 'Virhe kuvan latauksessa', error: error.message });
     }
   }
+
 
   /**
    * Hakee käyttäjän kaikki kuvat

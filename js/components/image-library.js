@@ -11,6 +11,7 @@ import PopupPreview from './preview.js';
  */
 class ImageLibrary {
   constructor() {
+    console.log('ImageLibrary constructor called');
     this.images = [];
     this.init();
   }
@@ -19,6 +20,7 @@ class ImageLibrary {
    * Alustaa kuvakirjaston
    */
   async init() {
+    console.log('ImageLibrary.init called');
     try {
       // Lataa kuvat
       this.images = await ImageGallery.loadGallery(this.handleImageAction.bind(this));
