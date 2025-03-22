@@ -137,6 +137,7 @@ class PopupManager {
    * Alustaa sovelluksen komponentit
    */
   initComponents() {
+    console.log('PopupManager.initComponents called');
     try {
       // Alusta popup-lomake
       this.components.popupForm = new PopupForm();

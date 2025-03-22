@@ -14,6 +14,7 @@ class ImageUploader {
    * @param {Function} options.onError - Callback virhetilanteissa
    */
   static init(options = {}) {
+    console.log('ImageUploader.init called');
     this.setupCreateFormUploader(options);
     this.setupEditFormUploader(options);
     this.setupLibraryUploader(options);
@@ -24,6 +25,7 @@ class ImageUploader {
    * @param {Object} options - Asetukset
    */
   static setupCreateFormUploader(options = {}) {
+    console.log('ImageUploader.setupCreateFormUploader called');
     const imageInput = document.getElementById('image');
     const imagePreviewContainer = document.getElementById('imagePreviewContainer');
     const imagePreview = document.getElementById('imagePreview');
