@@ -83,6 +83,7 @@ class API {
      * @returns {Promise<Object>} Ladatun kuvan tiedot
      */
     static async uploadImage(file) {
+      console.log("API.uploadImage kutsu tiedostolle:", file.name);
       const formData = new FormData();
       formData.append('image', file);
       

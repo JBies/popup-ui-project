@@ -155,6 +155,7 @@ class ImageUploader {
    * @returns {Promise<Object>} Latauksen vastaus
    */
   static async uploadImage(file) {
+    console.log("ImageUploader.uploadImage kutsu tiedostolle:", file.name);
     return API.uploadImage(file);
   }
 }

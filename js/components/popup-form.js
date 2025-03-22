@@ -4,6 +4,7 @@
 import API from '../utils/api.js';
 import PopupPreview from './preview.js';
 import FormValidation from '../utils/form-validation.js';
+import ImageUploader from './image-uploader.js';
 
 /**
  * PopupForm-luokka hallitsee popupin luomis- ja muokkauslomakkeita
@@ -226,93 +227,24 @@ class PopupForm {
    * Alustaa kuvien latauksen
    */
   setupImageUpload() {
-    // Kuvan latauksen käsittely create-lomakkeessa
-    const imageInput = document.getElementById('image');
-    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-    const imagePreview = document.getElementById('imagePreview');
-    const imageUrlInput = document.getElementById('imageUrl');
-    const removeImageBtn = document.getElementById('removeImage');
+    // Sen sijaan että määritetään omat kuuntelijat, käytetään ImageUploader-luokkaa
     
-    if (imageInput) {
-      imageInput.addEventListener('change', async (e) => {
-        if (e.target.files && e.target.files[0]) {
-          const file = e.target.files[0];
+    ImageUploader.init({
+      onUploadComplete: (data) => {
+        // Päivitä lomakkeen tiedot
+        if (data) {
+          const imageUrlInput = document.getElementById('imageUrl');
+          if (imageUrlInput) imageUrlInput.value = data.imageUrl;
           
-          // Näytä latausanimaatio tai -ilmoitus
-          imagePreviewContainer.style.display = 'block';
-          imagePreview.src = URL.createObjectURL(file);
-          
-          try {
-            const data = await API.uploadImage(file);
-            
-            // Tallenna saatu URL piilotettuun input-kenttään
-            imageUrlInput.value = data.imageUrl;
-            
-            // Päivitä esikatselu
-            PopupPreview.updatePreview('create');
-          } catch (error) {
-            console.error('Virhe kuvan latauksessa:', error);
-            alert('Virhe kuvan latauksessa: ' + error.message);
-            
-            // Tyhjennä tiedosto ja esikatselu virheen sattuessa
-            imageInput.value = '';
-            imagePreviewContainer.style.display = 'none';
-          }
+          // Päivitä esikatselu
+          PopupPreview.updatePreview('create');
         }
-      });
-    }
-    
-    // Kuvan poistopainikkeen toiminta
-    if (removeImageBtn) {
-      removeImageBtn.addEventListener('click', () => {
-        if (imageInput) imageInput.value = '';
-        if (imageUrlInput) imageUrlInput.value = '';
-        if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
-        
-        // Päivitä esikatselu
-        PopupPreview.updatePreview('create');
-      });
-    }
-    
-    // Edit-lomakkeen toiminnot kuville
-    const editImageInput = document.getElementById('editImage');
-    const editImagePreviewContainer = document.getElementById('editImagePreviewContainer');
-    const editImagePreview = document.getElementById('editImagePreview');
-    const editImageUrlInput = document.getElementById('editImageUrl');
-    const editRemoveImageBtn = document.getElementById('editRemoveImage');
-    
-    if (editImageInput) {
-      editImageInput.addEventListener('change', async (e) => {
-        if (e.target.files && e.target.files[0]) {
-          const file = e.target.files[0];
-          
-          editImagePreviewContainer.style.display = 'block';
-          editImagePreview.src = URL.createObjectURL(file);
-          
-          try {
-            const data = await API.uploadImage(file);
-            editImageUrlInput.value = data.imageUrl;
-            PopupPreview.updatePreview('edit');
-          } catch (error) {
-            console.error('Virhe kuvan latauksessa:', error);
-            alert('Virhe kuvan latauksessa');
-            
-            editImageInput.value = '';
-            editImagePreviewContainer.style.display = 'none';
-          }
-        }
-      });
-    }
-    
-    if (editRemoveImageBtn) {
-      editRemoveImageBtn.addEventListener('click', () => {
-        if (editImageInput) editImageInput.value = '';
-        if (editImageUrlInput) editImageUrlInput.value = '';
-        if (editImagePreviewContainer) editImagePreviewContainer.style.display = 'none';
-        
-        PopupPreview.updatePreview('edit');
-      });
-    }
+      },
+      onError: (error) => {
+        console.error('Virhe kuvan latauksessa:', error);
+        alert('Virhe kuvan latauksessa: ' + error.message);
+      }
+    });
   }
 
   /**
