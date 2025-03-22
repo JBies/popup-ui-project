@@ -4,7 +4,6 @@
 import API from '../utils/api.js';
 import PopupPreview from './preview.js';
 import FormValidation from '../utils/form-validation.js';
-import ImageUploader from './image-uploader.js';
 
 /**
  * PopupForm-luokka hallitsee popupin luomis- ja muokkauslomakkeita
@@ -227,24 +226,8 @@ class PopupForm {
    * Alustaa kuvien latauksen
    */
   setupImageUpload() {
-    // Sen sijaan että määritetään omat kuuntelijat, käytetään ImageUploader-luokkaa
-    
-    ImageUploader.init({
-      onUploadComplete: (data) => {
-        // Päivitä lomakkeen tiedot
-        if (data) {
-          const imageUrlInput = document.getElementById('imageUrl');
-          if (imageUrlInput) imageUrlInput.value = data.imageUrl;
-          
-          // Päivitä esikatselu
-          PopupPreview.updatePreview('create');
-        }
-      },
-      onError: (error) => {
-        console.error('Virhe kuvan latauksessa:', error);
-        alert('Virhe kuvan latauksessa: ' + error.message);
-      }
-    });
+    // Tyhjennä tämä metodi kokonaan ja käytä vain ImageUploader-komponentin logiikkaa
+    console.log("PopupForm: setupImageUpload called - ei tehdä mitään, käytetään vain ImageUploaderia");
   }
 
   /**

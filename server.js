@@ -82,21 +82,21 @@ app.use('/api/images', (req, res, next) => {
 if (isProduction) {
     // Helmetin perusasetus, mutta sallitaan tarvittavat ulkoiset resurssit
     app.use(
-        helmet({
-            contentSecurityPolicy: {
-                directives: {
-                    defaultSrc: ["'self'"],
-                    scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com"],
-                    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-                    fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-                    imgSrc: ["'self'", "data:", "https://storage.googleapis.com", "https://lh3.googleusercontent.com"],
-                    connectSrc: ["'self'", "https://accounts.google.com"],
-                    frameSrc: ["'self'", "https://accounts.google.com"],
-                }
-            }
-        })
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "blob:", "https://storage.googleapis.com", "https://lh3.googleusercontent.com"],
+            connectSrc: ["'self'", "https://accounts.google.com"],
+            frameSrc: ["'self'", "https://accounts.google.com"],
+          }
+        }
+      })
     );
-}
+  }
 
 // Gzip-pakkaus
 app.use(compression());
