@@ -170,7 +170,9 @@ class PopupManager {
   }
 }
 
+
 // Käynnistä sovellus kun DOM on valmis
 document.addEventListener('DOMContentLoaded', () => {
   const app = new PopupManager();
 });
+
