@@ -45,14 +45,6 @@
             }
           }
         }
-        document.addEventListener('DOMContentLoaded', () => {
-          // Varmistetaan että muokkauslomake on piilotettu alussa
-          const editForm = document.getElementById('editPopupForm');
-          if (editForm) {
-            console.log('Hiding edit form on page load');
-            editForm.style.display = 'none';
-          }
-        });
       </script>
 </head>
 <body>
@@ -410,5 +402,33 @@
     <!-- Lataa JavaScript ES moduulit -->
     <script type="module" src="js/main.js"></script>
     <script src="themes.js"></script>
+    <script>
+      // Tämä skripti suoritetaan heti kun se ladataan, ilman DOMContentLoaded-kuuntelijaa
+      (function() {
+        const editPopupForm = document.getElementById('editPopupForm');
+        if (editPopupForm) {
+          console.log('Explicitly hiding edit popup form');
+          editPopupForm.style.display = 'none';
+        }
+      })();
+      
+      // Tämä suoritetaan kun DOM on ladattu kokonaan
+      document.addEventListener('DOMContentLoaded', function() {
+        const editPopupForm = document.getElementById('editPopupForm');
+        if (editPopupForm) {
+          console.log('Hiding edit popup form after DOM loaded');
+          editPopupForm.style.display = 'none';
+        }
+      });
+      
+      // Tämä suoritetaan kun sivu on täysin ladattu (mukaan lukien kuvat)
+      window.addEventListener('load', function() {
+        const editPopupForm = document.getElementById('editPopupForm');
+        if (editPopupForm) {
+          console.log('Hiding edit popup form after page fully loaded');
+          editPopupForm.style.display = 'none';
+        }
+      });
+    </script>
 </body>
 </html>

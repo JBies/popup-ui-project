@@ -147,57 +147,49 @@ class PopupList {
    * @param {Object} popup - Popupin tiedot
    */
   addCardEventListeners(card, popup) {
-    const detailsBtn = card.querySelector('.details-btn');
-    if (detailsBtn) {
-      detailsBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        PopupDetails.showPopupDetails(popup);
-      });
-    }
-
-    const previewBtn = card.querySelector('.preview-btn');
-    if (previewBtn) {
-      previewBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        PopupPreviewModal.previewPopup(popup);
-      });
-    }
-    
     const editBtn = card.querySelector('.edit-btn');
     console.log("Searching for edit button in card:", card);
     console.log("Edit button found:", editBtn);
+    
     if (editBtn) {
-      // Poista olemassaolevat kuuntelijat (varmuudeksi)
-      editBtn.removeEventListener('click', handleEditClick);
+      // Tehdään napista isompi ja helpommin klikattava mobiililla
+      editBtn.style.minHeight = '44px';  // Apple suosittelee vähintään 44px kosketuselementeille
+      editBtn.style.minWidth = '44px';
+      editBtn.style.padding = '10px 15px';
       
-      // Määritellään tapahtumakäsittelijä
-      function handleEditClick(event) {
+      // Lisätään tapahtumakuuntelija
+      const handleClick = (event) => {
+        console.log("Edit button clicked for popup:", popup._id);
+        
         // Estetään tapahtuman leviäminen
         event.preventDefault();
         event.stopPropagation();
         
-        console.log("Edit button clicked for popup:", popup._id);
-        
-        // Kutsutaan editPopup funktiota
+        // Kutsutaan editPopup-funktiota
         try {
           PopupForm.editPopup(popup._id, popup);
           
           // Vieritetään lomake näkyviin
           setTimeout(() => {
             const editForm = document.getElementById('editPopupForm');
-            if (editForm && editForm.style.display === 'block') {
+            if (editForm) {
               editForm.scrollIntoView({ behavior: 'smooth' });
             }
           }, 100);
         } catch (error) {
-          console.error("Error editing popup:", error);
+          console.error("Error in edit popup:", error);
+          alert("Virhe muokkauslomakkeen avaamisessa. Ole hyvä ja yritä uudelleen.");
         }
-      }
+      };
       
-      // Lisätään kuuntelija
-      editBtn.addEventListener('click', handleEditClick);
+      // Poista mahdolliset olemassa olevat kuuntelijat
+      editBtn.replaceWith(editBtn.cloneNode(true));
+      const newEditBtn = card.querySelector('.edit-btn');
+      
+      // Lisää touch-tapahtumakuuntelija mobiililaitteille
+      newEditBtn.addEventListener('touchstart', handleClick);
+      // Lisää click-tapahtumakuuntelija tietokoneille
+      newEditBtn.addEventListener('click', handleClick);
     }
 
     const deleteBtn = card.querySelector('.delete-btn');
