@@ -1,184 +1,108 @@
 <!-- admin-popups.html -->
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Admin - Manage Popups</title>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-        <style>
-            body {
-                font-family: 'Poppins', sans-serif;
-                background-color: #f9fafb;
-                color: #333;
-                margin: 0;
-                padding: 20px;
-            }
-            
-            .admin-container {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 20px;
-                background: white;
-                border-radius: 10px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            }
-            
-            .admin-header {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Popups</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        a {
+            color: blue;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .delete-button {
+            background-color: #f44336;
+        }
+        .delete-button:hover {
+            background-color: #d32f2f;
+        }
+        input, select, textarea {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+        }
+        .preview {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            min-height: 200px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        @media (max-width: 768px) {
+            .form-group {
                 display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #eee;
+                flex-direction: column;
             }
-            
-            .back-link {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                color: #4a6cf7;
-                text-decoration: none;
-                font-weight: 600;
-                transition: all 0.2s;
-            }
-            
-            .back-link:hover {
-                transform: translateX(-3px);
-            }
-            
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 20px 0;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            }
-            
-            th, td {
-                padding: 12px 15px;
-                text-align: left;
-                border-bottom: 1px solid #eee;
-            }
-            
-            th {
-                background-color: #f8f9fa;
-                font-weight: 600;
-            }
-            
-            tr:hover {
-                background-color: #f8f9fa;
-            }
-            
-            button {
-                padding: 8px 12px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: 500;
-                transition: all 0.2s;
-            }
-            
-            button[onclick*="editPopup"] {
-                background-color: #4a6cf7;
-                color: white;
-            }
-            
-            button[onclick*="deletePopup"] {
-                background-color: #ef4444;
-                color: white;
-            }
-            
-            button:hover {
-                filter: brightness(1.1);
-                transform: translateY(-2px);
-            }
-            
-            #editPopupForm {
-                padding: 20px;
-                background: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                margin-top: 20px;
-            }
-            
-            #editPopupForm h3 {
-                margin-top: 0;
-                color: #333;
-            }
-            
             input, select, textarea {
+                max-width: 100%;
+            }
+            #editPopupForm {
                 width: 100%;
-                padding: 10px;
-                margin-bottom: 15px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                box-sizing: border-box;
             }
-            
-            label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: 500;
-            }
-            
-            small {
-                color: #6b7280;
-                font-size: 12px;
-            }
-            
-            /* Responsive styles */
-            @media (max-width: 768px) {
-                .admin-container {
-                    padding: 15px;
-                }
-                
-                .admin-header {
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 10px;
-                }
-                
-                table {
-                    display: block;
-                    overflow-x: auto;
-                }
-                
-                input, select, textarea {
-                    font-size: 16px;
-                }
-                
-                button {
-                    width: 100%;
-                    margin-bottom: 5px;
-                }
-                
-                td:last-child {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 5px;
-                }
-            }
-        </style>
-    </head>
+        }
+    </style>
+</head>
 <body>
-    <div class="admin-container">
-        <div class="admin-header">
-            <h1>Popup Management</h1>
-            <a href="index.html" class="back-link">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
-        </div>
-        
-        <table id="popupsTable">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Content</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+    <div style="margin-bottom: 20px;">
+        <a href="index.html" style="text-decoration: none; color: blue;">Back to Main Page</a>
+    </div>
+    <h1>Manage Popups</h1>
+    <table id="popupsTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Popup Type</th>
+                <th>Content</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
         <tbody>
             <!-- Popups will be added here by JavaScript -->
         </tbody>
@@ -189,49 +113,77 @@
         <h3>Edit Popup</h3>
         <form id="updatePopupForm">
             <input type="hidden" id="editPopupId">
-            <label for="editPopupName">Popup Name:</label>
-            <input type="text" id="editPopupName" name="name" value="Unnamed Popup" required><br>
-            <small>Anna popupillesi selkeä nimi missä se sijaitsee</small><br>
-            <label for="editPopupType">Popup Type:</label>
-            <select id="editPopupType" name="popupType" oninput="updatePreview('edit')">
-                <option value="square">Square</option>
-                <option value="circle">Circle</option>
-                <option value="image">Image (Only image)</option>
-            </select><br>
-            <label for="editWidth">Width (px):</label>
-            <input type="number" id="editWidth" name="width" min="100" max="800" value="200" oninput="updatePreview('edit')"><br>
-            <label for="editHeight">Height (px):</label>
-            <input type="number" id="editHeight" name="height" min="100" max="600" value="150" oninput="updatePreview('edit')"><br>
-            <label for="editPosition">Position:</label>
-            <select id="editPosition" name="position" oninput="updatePreview('edit')">
-                <option value="center">Center</option>
-                <option value="top-left">Top Left</option>
-                <option value="top-right">Top Right</option>
-                <option value="bottom-left">Bottom Left</option>
-                <option value="bottom-right">Bottom Right</option>
-            </select><br>
-            <label for="editAnimation">Animation:</label>
-            <select id="editAnimation" name="animation" oninput="updatePreview('edit')">
-                <option value="none">None</option>
-                <option value="fade">Fade</option>
-                <option value="slide">Slide</option>
-            </select><br>
-            <label for="editBackgroundColor">Background Color:</label>
-            <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff" oninput="updatePreview('edit')"><br>
-            <label for="editTextColor">Text Color:</label>
-            <input type="color" id="editTextColor" name="textColor" value="#000000" oninput="updatePreview('edit')"><br>
-            <label for="editContent">Content:</label>
-            <textarea id="editContent" name="content" rows="4" cols="50" oninput="updatePreview('edit')"></textarea><br>
-            <label for="editDelay">Show Delay (seconds):</label>
-            <input type="number" id="editDelay" name="delay" min="0" value="0" oninput="updatePreview('edit')"><br>
-            <label for="editShowDuration">Show Duration (seconds, 0 = until closed):</label>
-            <input type="number" id="editShowDuration" name="showDuration" min="0" value="0" oninput="updatePreview('edit')"><br>
-            <label for="editStartDate">Start Date:</label>
-            <input type="datetime-local" id="editStartDate" name="startDate" oninput="updatePreview('edit')"><br>
-            <label for="editEndDate">End Date (optional):</label>
-            <input type="datetime-local" id="editEndDate" name="endDate" oninput="updatePreview('edit')"><br>
-            <button type="submit">Update Popup</button>
-            <button type="button" onclick="document.getElementById('editPopupForm').style.display='none';">Cancel</button>
+            <div class="form-group">
+                <label for="editPopupName">Popup Name:</label>
+                <input type="text" id="editPopupName" name="name" value="Unnamed Popup" required><br>
+                <small>Anna popupillesi selkeä nimi missä se sijaitsee</small>
+            </div>
+            <div class="form-group">
+                <label for="editPopupType">Popup Type:</label>
+                <select id="editPopupType" name="popupType">
+                    <option value="square">Square</option>
+                    <option value="circle">Circle</option>
+                    <option value="image">Image (Only image)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editWidth">Width (px):</label>
+                <input type="number" id="editWidth" name="width" min="100" max="800" value="200">
+            </div>
+            <div class="form-group">
+                <label for="editHeight">Height (px):</label>
+                <input type="number" id="editHeight" name="height" min="100" max="600" value="150">
+            </div>
+            <div class="form-group">
+                <label for="editPosition">Position:</label>
+                <select id="editPosition" name="position">
+                    <option value="center">Center</option>
+                    <option value="top-left">Top Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="bottom-right">Bottom Right</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editAnimation">Animation:</label>
+                <select id="editAnimation" name="animation">
+                    <option value="none">None</option>
+                    <option value="fade">Fade</option>
+                    <option value="slide">Slide</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editBackgroundColor">Background Color:</label>
+                <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff">
+            </div>
+            <div class="form-group">
+                <label for="editTextColor">Text Color:</label>
+                <input type="color" id="editTextColor" name="textColor" value="#000000">
+            </div>
+            <div class="form-group">
+                <label for="editContent">Content:</label>
+                <textarea id="editContent" name="content" rows="4" cols="50"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editDelay">Show Delay (seconds):</label>
+                <input type="number" id="editDelay" name="delay" min="0" value="0">
+            </div>
+            <div class="form-group">
+                <label for="editShowDuration">Show Duration (seconds, 0 = until closed):</label>
+                <input type="number" id="editShowDuration" name="showDuration" min="0" value="0">
+            </div>
+            <div class="form-group">
+                <label for="editStartDate">Start Date:</label>
+                <input type="datetime-local" id="editStartDate" name="startDate">
+            </div>
+            <div class="form-group">
+                <label for="editEndDate">End Date (optional):</label>
+                <input type="datetime-local" id="editEndDate" name="endDate">
+            </div>
+            <div class="form-group">
+                <button type="submit">Update Popup</button>
+                <button type="button" id="cancelEdit">Cancel</button>
+            </div>
         </form>
         <div class="preview" id="editPreview"></div>
     </div>
