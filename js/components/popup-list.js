@@ -18,7 +18,10 @@ class PopupList {
    */
   init() {
     // Haetaan popupit heti kun komponentti ladataan
-    this.fetchUserPopups();
+    // Käytetään setTimeout, jotta varmistetaan, että kaikki komponentit ovat valmiita
+    setTimeout(() => {
+      this.fetchUserPopups();
+    }, 100);
   }
 
   /**
@@ -101,41 +104,24 @@ class PopupList {
       // Toimintopainikkeet
       const actions = document.createElement('div');
       actions.className = 'p-3 bg-gray-700 dark:bg-gray-700 flex justify-between items-center mt-auto border-t border-gray-600';
-      
-      // Mobiiliystävällinen versio painikkeista
-      const buttonContainer1 = document.createElement('div');
-      buttonContainer1.className = 'flex items-center space-x-2';
-      
-      const detailsBtn = document.createElement('button');
-      detailsBtn.className = 'details-btn text-gray-300 hover:text-white';
-      detailsBtn.title = 'Näytä tiedot';
-      detailsBtn.innerHTML = '<i class="fas fa-info-circle"></i>';
-      
-      const previewBtn = document.createElement('button');
-      previewBtn.className = 'preview-btn text-gray-300 hover:text-white';
-      previewBtn.title = 'Esikatsele';
-      previewBtn.innerHTML = '<i class="fas fa-eye"></i>';
-      
-      buttonContainer1.appendChild(detailsBtn);
-      buttonContainer1.appendChild(previewBtn);
-      
-      const buttonContainer2 = document.createElement('div');
-      buttonContainer2.className = 'flex items-center space-x-2';
-      
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'delete-btn text-red-500 hover:text-red-700';
-      deleteBtn.title = 'Poista';
-      deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-      
-      const editBtn = document.createElement('button');
-      editBtn.className = 'edit-btn bg-primary-600 hover:bg-primary-700 text-white py-1 px-3 rounded-md text-sm';
-      editBtn.textContent = 'Muokkaa';
-      
-      buttonContainer2.appendChild(deleteBtn);
-      buttonContainer2.appendChild(editBtn);
-      
-      actions.appendChild(buttonContainer1);
-      actions.appendChild(buttonContainer2);
+      actions.innerHTML = `
+        <div>
+          <button type="button" class="details-btn text-gray-300 hover:text-white" title="Näytä tiedot">
+            <i class="fas fa-info-circle"></i>
+          </button>
+          <button type="button" class="preview-btn text-gray-300 hover:text-white ml-2" title="Esikatsele">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        <div>
+          <button type="button" class="delete-btn text-red-500 hover:text-red-700" title="Poista">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          <button type="button" class="edit-btn bg-primary-600 hover:bg-primary-700 text-white py-1 px-3 rounded-md text-sm">
+            Muokkaa
+          </button>
+        </div>
+      `;
       
       // Kootaan kortti
       card.appendChild(previewArea);
@@ -144,31 +130,53 @@ class PopupList {
       li.appendChild(card);
       popupList.appendChild(li);
       
-      // Lisää tapahtumakuuntelijat
+      // Tapahtumakuuntelijat
+      this.addCardEventListeners(li, popup);
+    });
+  }
+
+  /**
+   * Lisää kortille tapahtumakuuntelijat
+   * @param {HTMLElement} card - Popup-kortin elementti
+   * @param {Object} popup - Popupin tiedot
+   */
+  addCardEventListeners(card, popup) {
+    const detailsBtn = card.querySelector('.details-btn');
+    if (detailsBtn) {
       detailsBtn.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
         PopupDetails.showPopupDetails(popup);
       });
-      
+    }
+
+    const previewBtn = card.querySelector('.preview-btn');
+    if (previewBtn) {
       previewBtn.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
         PopupPreviewModal.previewPopup(popup);
       });
-      
+    }
+    
+    const editBtn = card.querySelector('.edit-btn');
+    if (editBtn) {
       editBtn.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
+        // Kutsutaan PopupForm.editPopup staattista metodia
         PopupForm.editPopup(popup._id, popup);
       });
-      
+    }
+
+    const deleteBtn = card.querySelector('.delete-btn');
+    if (deleteBtn) {
       deleteBtn.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
         this.deletePopup(popup._id);
       });
-    });
+    }
   }
 
   /**

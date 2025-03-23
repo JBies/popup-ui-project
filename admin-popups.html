@@ -5,89 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Manage Popups</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 20px 0;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        a {
-            color: blue;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            margin: 2px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .delete-button {
-            background-color: #f44336;
-        }
-        .delete-button:hover {
-            background-color: #d32f2f;
-        }
-        input, select, textarea {
-            padding: 8px;
-            margin: 5px 0;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        label {
-            font-weight: bold;
-        }
-        .preview {
-            margin: 20px 0;
-            padding: 15px;
-            border: 1px dashed #ccc;
-            border-radius: 5px;
-            min-height: 200px;
-            background-color: #f9f9f9;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        @media (max-width: 768px) {
-            .form-group {
-                display: flex;
-                flex-direction: column;
-            }
-            input, select, textarea {
-                max-width: 100%;
-            }
-            #editPopupForm {
-                width: 100%;
-            }
-        }
-    </style>
 </head>
 <body>
     <div style="margin-bottom: 20px;">
@@ -113,77 +30,49 @@
         <h3>Edit Popup</h3>
         <form id="updatePopupForm">
             <input type="hidden" id="editPopupId">
-            <div class="form-group">
-                <label for="editPopupName">Popup Name:</label>
-                <input type="text" id="editPopupName" name="name" value="Unnamed Popup" required><br>
-                <small>Anna popupillesi selkeä nimi missä se sijaitsee</small>
-            </div>
-            <div class="form-group">
-                <label for="editPopupType">Popup Type:</label>
-                <select id="editPopupType" name="popupType">
-                    <option value="square">Square</option>
-                    <option value="circle">Circle</option>
-                    <option value="image">Image (Only image)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="editWidth">Width (px):</label>
-                <input type="number" id="editWidth" name="width" min="100" max="800" value="200">
-            </div>
-            <div class="form-group">
-                <label for="editHeight">Height (px):</label>
-                <input type="number" id="editHeight" name="height" min="100" max="600" value="150">
-            </div>
-            <div class="form-group">
-                <label for="editPosition">Position:</label>
-                <select id="editPosition" name="position">
-                    <option value="center">Center</option>
-                    <option value="top-left">Top Left</option>
-                    <option value="top-right">Top Right</option>
-                    <option value="bottom-left">Bottom Left</option>
-                    <option value="bottom-right">Bottom Right</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="editAnimation">Animation:</label>
-                <select id="editAnimation" name="animation">
-                    <option value="none">None</option>
-                    <option value="fade">Fade</option>
-                    <option value="slide">Slide</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="editBackgroundColor">Background Color:</label>
-                <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff">
-            </div>
-            <div class="form-group">
-                <label for="editTextColor">Text Color:</label>
-                <input type="color" id="editTextColor" name="textColor" value="#000000">
-            </div>
-            <div class="form-group">
-                <label for="editContent">Content:</label>
-                <textarea id="editContent" name="content" rows="4" cols="50"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="editDelay">Show Delay (seconds):</label>
-                <input type="number" id="editDelay" name="delay" min="0" value="0">
-            </div>
-            <div class="form-group">
-                <label for="editShowDuration">Show Duration (seconds, 0 = until closed):</label>
-                <input type="number" id="editShowDuration" name="showDuration" min="0" value="0">
-            </div>
-            <div class="form-group">
-                <label for="editStartDate">Start Date:</label>
-                <input type="datetime-local" id="editStartDate" name="startDate">
-            </div>
-            <div class="form-group">
-                <label for="editEndDate">End Date (optional):</label>
-                <input type="datetime-local" id="editEndDate" name="endDate">
-            </div>
-            <div class="form-group">
-                <button type="submit">Update Popup</button>
-                <button type="button" id="cancelEdit">Cancel</button>
-            </div>
+            <label for="editPopupName">Popup Name:</label>
+            <input type="text" id="editPopupName" name="name" value="Unnamed Popup" required><br>
+            <small>Anna popupillesi selkeä nimi missä se sijaitsee</small><br>
+            <label for="editPopupType">Popup Type:</label>
+            <select id="editPopupType" name="popupType">
+                <option value="square">Square</option>
+                <option value="circle">Circle</option>
+                <option value="image">Image (Only image)</option>
+            </select><br>
+            <label for="editWidth">Width (px):</label>
+            <input type="number" id="editWidth" name="width" min="100" max="800" value="200"><br>
+            <label for="editHeight">Height (px):</label>
+            <input type="number" id="editHeight" name="height" min="100" max="600" value="150"><br>
+            <label for="editPosition">Position:</label>
+            <select id="editPosition" name="position">
+                <option value="center">Center</option>
+                <option value="top-left">Top Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-right">Bottom Right</option>
+            </select><br>
+            <label for="editAnimation">Animation:</label>
+            <select id="editAnimation" name="animation">
+                <option value="none">None</option>
+                <option value="fade">Fade</option>
+                <option value="slide">Slide</option>
+            </select><br>
+            <label for="editBackgroundColor">Background Color:</label>
+            <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff"><br>
+            <label for="editTextColor">Text Color:</label>
+            <input type="color" id="editTextColor" name="textColor" value="#000000"><br>
+            <label for="editContent">Content:</label>
+            <textarea id="editContent" name="content" rows="4" cols="50"></textarea><br>
+            <label for="editDelay">Show Delay (seconds):</label>
+            <input type="number" id="editDelay" name="delay" min="0" value="0"><br>
+            <label for="editShowDuration">Show Duration (seconds, 0 = until closed):</label>
+            <input type="number" id="editShowDuration" name="showDuration" min="0" value="0"><br>
+            <label for="editStartDate">Start Date:</label>
+            <input type="datetime-local" id="editStartDate" name="startDate"><br>
+            <label for="editEndDate">End Date (optional):</label>
+            <input type="datetime-local" id="editEndDate" name="endDate"><br>
+            <button type="submit">Update Popup</button>
+            <button type="button" id="cancelEditBtn">Cancel</button>
         </form>
         <div class="preview" id="editPreview"></div>
     </div>
