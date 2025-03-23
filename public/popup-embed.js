@@ -1,13 +1,14 @@
 // popup-embed.js
 (function() {
+    // API-palvelimen URL
+    const API_BASE_URL = 'https://popupmanager.net';
     // Popup Manager
     window.ShowPopup = async function(popupId) {
         try {
-            console.log("ShowPopup called with ID:", popupId); // Debug
+            console.log("ShowPopup called with ID:", popupId);
             
             // Hae popup data API:sta
-            const baseUrl = window.location.origin;
-            const url = `${baseUrl}/api/popups/embed/${popupId}`;
+            const url = `${API_BASE_URL}/api/popups/embed/${popupId}`;
             console.log("Fetching popup data from:", url);
             
             const response = await fetch(url);
@@ -20,7 +21,7 @@
             
             // Rekisteröi näyttökerta
             try {
-                await fetch(`${baseUrl}/api/popups/view/${popupId}`, { method: 'POST' });
+                await fetch(`${API_BASE_URL}/api/popups/view/${popupId}`, { method: 'POST' });
                 console.log("View registered for popup:", popupId);
             } catch (statsError) {
                 console.error("Failed to register view:", statsError);
@@ -31,7 +32,7 @@
             if (!shouldShowPopup(popup)) return;
 
             // Luo popup elementti
-            createAndShowPopup(popup);
+            createAndShowPopup(popup, popupId);
         } catch (error) {
             console.error('Error showing popup:', error);
         }
@@ -77,17 +78,7 @@
         return true;
     }
 
-    // Apufunktio klikkausten rekisteröintiin
-    async function registerClick(popupId) {
-        try {
-            const baseUrl = window.location.origin;
-            await fetch(`${baseUrl}/api/popups/click/${popupId}`, { method: 'POST' });
-            console.log("Click registered for popup:", popupId);
-        } catch (error) {
-            console.error("Failed to register click:", error);
-        }
-    }
-
+ 
     // Apufunktio popupin luomiseen ja näyttämiseen
     function createAndShowPopup(popup) {
         // Hae ja loki timing-tiedot
@@ -196,20 +187,20 @@
             }
 
             // Lisää animaatio
-            if (popup.animation !== 'none') {
+            if (animation !== 'none') {
                 let animationClass;
     
-                if (popup.animation === 'fade') {
+                    if (animation === 'fade') {
                     popupElement.style.opacity = '0';
                     popupElement.style.transition = 'opacity 0.5s ease-in-out';
                     setTimeout(() => {
                         popupElement.style.opacity = '1';
                     }, 10);
-                } else if (popup.animation === 'slide') {
+                    } else if (animation === 'slide') {
                     // Valitaan animaation suunta sijainnin perusteella
                     let startTransform;
                     
-                    switch (popup.position) {
+                    switch (position) {
                         case 'top-left':
                         case 'top-right':
                         startTransform = 'translateY(-50px)';
@@ -222,16 +213,54 @@
                         startTransform = 'translateY(-50px)';
                     }
         
-                    popupElement.style.transform = startTransform;
-                    popupElement.style.opacity = '0';
-                    popupElement.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
-                    setTimeout(() => {
-                        popupElement.style.transform = 'translateY(0)';
-                        popupElement.style.opacity = '1';
-                    }, 10);
-                }
-            }
+        popupElement.style.transform = startTransform;
+        popupElement.style.opacity = '0';
+        popupElement.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
+        setTimeout(() => {
+            popupElement.style.transform = 'translateY(0)';
+            popupElement.style.opacity = '1';
+        }, 10);
+        }
+    }
 
+            // Lisää animaatio jos määritetty
+            if (popup.animation !== 'none') {
+                let animationName = '';
+                switch (popup.position) {
+                    case 'top-left':
+                    case 'top-right':
+                        animationName = 'slideInTop';
+                        break;
+                    case 'bottom-left':
+                    case 'bottom-right':
+                        animationName = 'slideInBottom';
+                        break;
+                    default:
+                        animationName = 'slideInTop'; // Oletus ylhäältä alas
+                }
+
+                // Jos animaatio on "slide", käytetään oikeaa animaatiota sijainnin mukaan
+                if (popup.animation === 'slide') {
+                    switch (popup.position) {
+                        case 'top-left':
+                        case 'bottom-left':
+                            animationName = 'slideInLeft';
+                            break;
+                        case 'top-right':
+                        case 'bottom-right':
+                            animationName = 'slideInRight';
+                            break;
+                        default:
+                            animationName = 'slideInTop'; // Oletus ylhäältä alas
+                    }
+                } else if (popup.animation === 'fade') {
+                    animationName = 'fadeIn';
+                }
+
+                previewPopup.style.animation = `${animationName} 0.5s`;
+                console.log(`Applied animation: ${animationName}`);
+            }
+    
             // Lisää kuva, jos on
             if (popup.imageUrl) {
                 const imageElement = document.createElement('img');
@@ -294,8 +323,7 @@
                 
                 // Rekisteröi klikkaus
                 try {
-                    const baseUrl = window.location.origin;
-                    fetch(`${baseUrl}/api/popups/click/${popup._id}`, { method: 'POST' })
+                    fetch(`${API_BASE_URL}/api/popups/click/${popup._id}`, { method: 'POST' })
                         .then(response => {
                             console.log("Click registered successfully:", response.status);
                         })
@@ -355,8 +383,7 @@
     // Apufunktio klikkausten rekisteröintiin
     async function registerClick(popupId) {
         try {
-            const baseUrl = window.location.origin;
-            const response = await fetch(`${baseUrl}/api/popups/click/${popupId}`, { method: 'POST' });
+            const response = await fetch(`${API_BASE_URL}/api/popups/click/${popupId}`, { method: 'POST' });
             console.log("Click registered for popup:", popupId, "Status:", response.status);
             return true;
         } catch (error) {
