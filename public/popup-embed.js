@@ -189,6 +189,19 @@
             // Lisää animaatio
             if (animation !== 'none') {
                 let animationClass;
+                switch (animation) {
+                    case 'fade':
+                        animationClass = 'fade-in';
+                        break;
+                    case 'slide':
+                        animationClass = 'slide-in';
+                        break;
+                    default:
+                        animationClass = 'fade-in';
+                }
+                popupElement.classList.add(animationClass);
+            
+
     
                     if (animation === 'fade') {
                     popupElement.style.opacity = '0';
