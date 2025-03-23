@@ -84,8 +84,16 @@ function editPopup(id, popupData) {
     // Näytä lomake
     document.getElementById('editPopupForm').style.display = 'block';
 
-    // Päivitä esikatselu
-    updatePreview('edit');
+    // Vieritä lomake näkyviin
+    document.getElementById('editPopupForm').scrollIntoView({ behavior: 'smooth' });
+
+    setTimeout(() => {
+        try {
+            updatePreview('edit');
+        } catch(e) {
+            console.warn("Preview update failed:", e);
+        }
+    }, 100);
 }
 
 async function updatePopup() {
