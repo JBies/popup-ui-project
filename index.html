@@ -45,6 +45,14 @@
             }
           }
         }
+        document.addEventListener('DOMContentLoaded', () => {
+          // Varmistetaan että muokkauslomake on piilotettu alussa
+          const editForm = document.getElementById('editPopupForm');
+          if (editForm) {
+            console.log('Hiding edit form on page load');
+            editForm.style.display = 'none';
+          }
+        });
       </script>
 </head>
 <body>

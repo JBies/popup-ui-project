@@ -169,13 +169,35 @@ class PopupList {
     console.log("Searching for edit button in card:", card);
     console.log("Edit button found:", editBtn);
     if (editBtn) {
-      editBtn.addEventListener('click', (event) => {
+      // Poista olemassaolevat kuuntelijat (varmuudeksi)
+      editBtn.removeEventListener('click', handleEditClick);
+      
+      // Määritellään tapahtumakäsittelijä
+      function handleEditClick(event) {
+        // Estetään tapahtuman leviäminen
         event.preventDefault();
         event.stopPropagation();
+        
         console.log("Edit button clicked for popup:", popup._id);
-        console.log("Popup data:", popup);
-        PopupForm.editPopup(popup._id, popup);
-      });
+        
+        // Kutsutaan editPopup funktiota
+        try {
+          PopupForm.editPopup(popup._id, popup);
+          
+          // Vieritetään lomake näkyviin
+          setTimeout(() => {
+            const editForm = document.getElementById('editPopupForm');
+            if (editForm && editForm.style.display === 'block') {
+              editForm.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 100);
+        } catch (error) {
+          console.error("Error editing popup:", error);
+        }
+      }
+      
+      // Lisätään kuuntelija
+      editBtn.addEventListener('click', handleEditClick);
     }
 
     const deleteBtn = card.querySelector('.delete-btn');
