@@ -19,32 +19,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.insertCell().textContent = popup.popupType;
             row.insertCell().textContent = popup.content;
 
-            // Luodaan toimintopainikkeet ilman inline-tapahtumankäsittelijöitä
             const actionsCell = row.insertCell();
-            
-            // Edit-painike
-            const editButton = document.createElement('button');
-            editButton.textContent = 'Edit';
-            editButton.dataset.id = popup._id;
-            editButton.dataset.popup = JSON.stringify(popup).replace(/"/g, '&quot;');
-            editButton.className = 'edit-popup-btn';
-            actionsCell.appendChild(editButton);
-            
-            // Delete-painike
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Delete';
-            deleteButton.dataset.id = popup._id;
-            deleteButton.className = 'delete-popup-btn';
-            actionsCell.appendChild(deleteButton);
+            actionsCell.innerHTML = `
+                <button onclick="editPopup('${popup._id}', ${JSON.stringify(popup).replace(/"/g, '&quot;')})">Edit</button>
+                <button onclick="deletePopup('${popup._id}')">Delete</button>
+            `;
         });
-        
-        // Lisätään tapahtumankäsittelijät toimintopainikkeille
-        setupButtonEventListeners();
     } catch (error) {
         console.error('Error loading popups:', error);
     }
 
-    // Lisätään lomakkeiden kenttiin tapahtumankäsittelijät esikatselu-päivitykselle
+    // Only setup edit form event listeners
     const editFields = ['editPopupType','editWidth','editHeight','editPosition','editAnimation','editBackgroundColor','editTextColor','editContent','editDelay','editShowDuration','editStartDate','editEndDate'];
     editFields.forEach(field => {
         const element = document.getElementById(field);
@@ -53,40 +38,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Alusta esikatselu
+    // Initialize only the edit preview
     updatePreview('edit');
 
-    // Rekisteröi päivityslomakkeen lähetys
-    setupUpdatePopupForm();
+    // Register update popup form submission
+    updatePopup();
 });
-
-// Lisätään tapahtumankäsittelijät toimintopainikkeille
-function setupButtonEventListeners() {
-    // Edit-painikkeiden käsittelijät
-    document.querySelectorAll('.edit-popup-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const id = button.dataset.id;
-            const popupData = button.dataset.popup;
-            editPopup(id, popupData);
-        });
-    });
-    
-    // Delete-painikkeiden käsittelijät
-    document.querySelectorAll('.delete-popup-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const id = button.dataset.id;
-            deletePopup(id);
-        });
-    });
-    
-    // Peruuta-painikkeen käsittelijä
-    const cancelButton = document.getElementById('cancelEditBtn');
-    if (cancelButton) {
-        cancelButton.addEventListener('click', () => {
-            document.getElementById('editPopupForm').style.display = 'none';
-        });
-    }
-}
 
 // Edit popup
 function editPopup(id, popupData) {
@@ -131,7 +88,7 @@ function editPopup(id, popupData) {
     updatePreview('edit');
 }
 
-function setupUpdatePopupForm() {
+async function updatePopup() {
     // Handle popup update form submission
     document.getElementById('updatePopupForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -293,3 +250,4 @@ function updatePreview(prefix = 'create') {
     previewWrapper.appendChild(previewPopup);
     previewContainer.appendChild(previewWrapper);
 }
+

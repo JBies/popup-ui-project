@@ -23,12 +23,7 @@ class PopupManager {
       imageLibrary: null
     };
     
-    // Alustetaan sovellus, kun DOM on täysin latautunut
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => this.init());
-    } else {
-      this.init();
-    }
+    this.init();
   }
 
   /**
@@ -36,8 +31,8 @@ class PopupManager {
    */
   async init() {
     try {
-      // Tarkista onko käyttäjä kirjautunut
-      await this.checkUserAuthentication();
+      // Alusta komponentit vasta käyttäjän kirjauduttua
+      this.setupAuthListeners();
       
       // Alusta yleiset toiminnot
       this.setupGeneralListeners();
@@ -45,6 +40,9 @@ class PopupManager {
       // Alustaa preview-toiminnallisuuden (staattinen luokka)
       console.log("Initializing PopupPreview from main.js");
       PopupPreview.init();
+      
+      // Tarkista onko käyttäjä kirjautunut
+      await this.checkUserAuthentication();
     } catch (error) {
       console.error("Error in PopupManager.init():", error);
     }
@@ -84,9 +82,6 @@ class PopupManager {
         document.getElementById('popup').style.display = 'none';
       });
     }
-    
-    // Alustetaan kirjautumiseen liittyvät kuuntelijat
-    this.setupAuthListeners();
   }
 
   /**
@@ -128,32 +123,22 @@ class PopupManager {
    */
   showUserInterface() {
     // Piilota kirjautumisosio ja näytä käyttäjätiedot
-    const loginSection = document.getElementById('loginSection');
-    const userInfo = document.getElementById('userInfo');
-    const popupForm = document.getElementById('popupForm');
-    const popupList = document.getElementById('popupList');
-    const userName = document.getElementById('userName');
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('userInfo').style.display = 'flex';
+    document.getElementById('popupForm').style.display = 'block';
+    document.getElementById('popupList').style.display = 'block';
+    document.getElementById('userName').textContent = this.currentUser.displayName;
     
-    if (loginSection) loginSection.style.display = 'none';
-    if (userInfo) userInfo.style.display = 'flex';
-    if (popupForm) popupForm.style.display = 'block';
-    if (popupList) popupList.style.display = 'block';
-    if (userName) userName.textContent = this.currentUser.displayName;
-    
-    // Alusta komponentit vasta kun käyttöliittymä on näytetty
-    // Pieni viive varmistaa että DOM on päivittynyt
-    setTimeout(() => {
-      this.initComponents();
-    }, 300);
+    // Alusta komponentit
+    this.initComponents();
   }
 
   /**
    * Alustaa sovelluksen komponentit
    */
   initComponents() {
+    console.log('PopupManager.initComponents called');
     try {
-      console.log("Initializing components...");
-      
       // Alusta popup-lomake
       this.components.popupForm = new PopupForm();
       
@@ -179,10 +164,13 @@ class PopupManager {
           this.components.popupList.deletePopup(id);
         }
       };
-      
-      console.log("Components initialized successfully");
     } catch (error) {
       console.error('Error initializing components:', error);
     }
   }
 }
+
+// Käynnistä sovellus kun DOM on valmis
+document.addEventListener('DOMContentLoaded', () => {
+  const app = new PopupManager();
+});

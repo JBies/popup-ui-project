@@ -34,17 +34,17 @@
             <input type="text" id="editPopupName" name="name" value="Unnamed Popup" required><br>
             <small>Anna popupillesi selkeä nimi missä se sijaitsee</small><br>
             <label for="editPopupType">Popup Type:</label>
-            <select id="editPopupType" name="popupType">
+            <select id="editPopupType" name="popupType" oninput="updatePreview('edit')">
                 <option value="square">Square</option>
                 <option value="circle">Circle</option>
                 <option value="image">Image (Only image)</option>
             </select><br>
             <label for="editWidth">Width (px):</label>
-            <input type="number" id="editWidth" name="width" min="100" max="800" value="200"><br>
+            <input type="number" id="editWidth" name="width" min="100" max="800" value="200" oninput="updatePreview('edit')"><br>
             <label for="editHeight">Height (px):</label>
-            <input type="number" id="editHeight" name="height" min="100" max="600" value="150"><br>
+            <input type="number" id="editHeight" name="height" min="100" max="600" value="150" oninput="updatePreview('edit')"><br>
             <label for="editPosition">Position:</label>
-            <select id="editPosition" name="position">
+            <select id="editPosition" name="position" oninput="updatePreview('edit')">
                 <option value="center">Center</option>
                 <option value="top-left">Top Left</option>
                 <option value="top-right">Top Right</option>
@@ -52,27 +52,27 @@
                 <option value="bottom-right">Bottom Right</option>
             </select><br>
             <label for="editAnimation">Animation:</label>
-            <select id="editAnimation" name="animation">
+            <select id="editAnimation" name="animation" oninput="updatePreview('edit')">
                 <option value="none">None</option>
                 <option value="fade">Fade</option>
                 <option value="slide">Slide</option>
             </select><br>
             <label for="editBackgroundColor">Background Color:</label>
-            <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff"><br>
+            <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff" oninput="updatePreview('edit')"><br>
             <label for="editTextColor">Text Color:</label>
-            <input type="color" id="editTextColor" name="textColor" value="#000000"><br>
+            <input type="color" id="editTextColor" name="textColor" value="#000000" oninput="updatePreview('edit')"><br>
             <label for="editContent">Content:</label>
-            <textarea id="editContent" name="content" rows="4" cols="50"></textarea><br>
+            <textarea id="editContent" name="content" rows="4" cols="50" oninput="updatePreview('edit')"></textarea><br>
             <label for="editDelay">Show Delay (seconds):</label>
-            <input type="number" id="editDelay" name="delay" min="0" value="0"><br>
+            <input type="number" id="editDelay" name="delay" min="0" value="0" oninput="updatePreview('edit')"><br>
             <label for="editShowDuration">Show Duration (seconds, 0 = until closed):</label>
-            <input type="number" id="editShowDuration" name="showDuration" min="0" value="0"><br>
+            <input type="number" id="editShowDuration" name="showDuration" min="0" value="0" oninput="updatePreview('edit')"><br>
             <label for="editStartDate">Start Date:</label>
-            <input type="datetime-local" id="editStartDate" name="startDate"><br>
+            <input type="datetime-local" id="editStartDate" name="startDate" oninput="updatePreview('edit')"><br>
             <label for="editEndDate">End Date (optional):</label>
-            <input type="datetime-local" id="editEndDate" name="endDate"><br>
+            <input type="datetime-local" id="editEndDate" name="endDate" oninput="updatePreview('edit')"><br>
             <button type="submit">Update Popup</button>
-            <button type="button" id="cancelEditBtn">Cancel</button>
+            <button type="button" onclick="document.getElementById('editPopupForm').style.display='none';">Cancel</button>
         </form>
         <div class="preview" id="editPreview"></div>
     </div>

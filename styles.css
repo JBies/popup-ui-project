@@ -792,33 +792,3 @@ select, input, textarea {
   border: 1px solid #ddd;
   border-radius: 4px;
 }
-
-@media (max-width: 768px) {
-  /* Isommat painikkeet mobiilissa */
-  .edit-btn, .delete-btn, .preview-btn {
-    padding: 10px;
-    min-height: 44px;
-    font-size: 14px;
-  }
-  
-  /* Lomakkeiden responsiivisuus */
-  #editPopupForm, #createPopupForm {
-    max-width: 100%;
-    padding: 10px;
-  }
-  
-  /* Paranna lomake-elementtien kokoa mobiililla */
-  input, select, textarea {
-    font-size: 16px; /* Estää iOS zoomia */
-    margin-bottom: 15px;
-  }
-}
-
-/* Yleinen muokkausstyyli kaikille laitteille */
-#editPopupForm, #createPopupForm {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  margin-top: 20px;
-  transition: all 0.3s ease;
-}
