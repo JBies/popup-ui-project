@@ -36,6 +36,8 @@ class ImageUploader {
       imageInput.addEventListener('change', async (e) => {
         if (e.target.files && e.target.files[0]) {
           const file = e.target.files[0];
+
+          
           
           // Näytä latausanimaatio tai -ilmoitus
           if (imagePreviewContainer) imagePreviewContainer.style.display = 'block';
