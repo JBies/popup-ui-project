@@ -33,11 +33,21 @@ class ImageUploader {
     const removeImageBtn = document.getElementById('removeImage');
     
     if (imageInput) {
-      imageInput.addEventListener('change', async (e) => {
+      // Poista mahdolliset olemassaolevat event listenerit
+      const newImageInput = imageInput.cloneNode(true);
+      imageInput.parentNode.replaceChild(newImageInput, imageInput);
+      
+      newImageInput.addEventListener('change', async (e) => {
         if (e.target.files && e.target.files[0]) {
           const file = e.target.files[0];
-
           
+          // Tarkista tiedostokoko ennen lähetystä
+          const maxSize = 9 * 1024 * 1024; // 9 MB (hieman alle palvelimen rajoituksen)
+          if (file.size > maxSize) {
+            alert(`Tiedosto on liian suuri (${(file.size / (1024 * 1024)).toFixed(2)} MB). Maksimikoko on ${(maxSize / (1024 * 1024))} MB.`);
+            e.target.value = ''; // Tyhjennä tiedostovalitsin
+            return;
+          }
           
           // Näytä latausanimaatio tai -ilmoitus
           if (imagePreviewContainer) imagePreviewContainer.style.display = 'block';
@@ -58,7 +68,7 @@ class ImageUploader {
             alert('Virhe kuvan latauksessa: ' + error.message);
             
             // Tyhjennä tiedosto ja esikatselu virheen sattuessa
-            if (imageInput) imageInput.value = '';
+            if (e.target) e.target.value = '';
             if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
             
             if (options.onError) {
