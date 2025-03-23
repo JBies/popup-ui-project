@@ -19,6 +19,59 @@ class ImageUploader {
     this.setupEditFormUploader(options);
     this.setupLibraryUploader(options);
   }
+
+  static async resizeImageIfNeeded(file, maxSizeInBytes = 1 * 1024 * 1024) {
+    if (file.size <= maxSizeInBytes) {
+      return file; // Kuva on jo sopivan kokoinen
+    }
+    
+    // Luodaan väliaikainen URL kuvalle
+    const imageUrl = URL.createObjectURL(file);
+    
+    // Luodaan canvas kuvan pienentämistä varten
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    // Ladataan kuva
+    await new Promise((resolve) => {
+      img.onload = resolve;
+      img.src = imageUrl;
+    });
+    
+    // Lasketaan uusi koko
+    let width = img.width;
+    let height = img.height;
+    
+    // Lasketaan kuvan pienennyskerroin
+    const scaleFactor = Math.sqrt(maxSizeInBytes / file.size);
+    
+    width = Math.floor(width * scaleFactor);
+    height = Math.floor(height * scaleFactor);
+    
+    // Asetetaan canvas-koko
+    canvas.width = width;
+    canvas.height = height;
+    
+    // Piirretään kuva pienennettynä
+    ctx.drawImage(img, 0, 0, width, height);
+    
+    // Vapautetaan URL
+    URL.revokeObjectURL(imageUrl);
+    
+    // Muunnetaan canvas BLOB-muotoon
+    const blob = await new Promise(resolve => {
+      // Käytetään 90% laatua JPEG-muodossa tai alkuperäistä formaattia
+      const format = file.type.startsWith('image/png') ? 'image/png' : 'image/jpeg';
+      const quality = format === 'image/jpeg' ? 0.9 : undefined;
+      canvas.toBlob(resolve, format, quality);
+    });
+    
+    // Luodaan uusi tiedosto
+    return new File([blob], file.name, {
+      type: blob.type
+    });
+  }
   
   /**
    * Alustaa kuvien latauksen luomislomakkeelle
@@ -41,20 +94,23 @@ class ImageUploader {
         if (e.target.files && e.target.files[0]) {
           const file = e.target.files[0];
           
-          // Tarkista tiedostokoko ennen lähetystä
-          const maxSize = 9 * 1024 * 1024; // 9 MB (hieman alle palvelimen rajoituksen)
-          if (file.size > maxSize) {
-            alert(`Tiedosto on liian suuri (${(file.size / (1024 * 1024)).toFixed(2)} MB). Maksimikoko on ${(maxSize / (1024 * 1024))} MB.`);
-            e.target.value = ''; // Tyhjennä tiedostovalitsin
-            return;
-          }
-          
           // Näytä latausanimaatio tai -ilmoitus
           if (imagePreviewContainer) imagePreviewContainer.style.display = 'block';
           if (imagePreview) imagePreview.src = URL.createObjectURL(file);
           
           try {
-            const data = await this.uploadImage(file);
+            // Kokeile pienentää kuvaa jos se on liian iso
+            const maxSize = 950 * 1024; // 950 KB, jotta varmasti pysyy alle rajoituksen
+            const processedFile = await this.resizeImageIfNeeded(file, maxSize);
+            
+            console.log(`Original file: ${file.size} bytes, Processed file: ${processedFile.size} bytes`);
+            
+            // Jos kuva pienentyi, näytä ilmoitus käyttäjälle
+            if (processedFile.size < file.size) {
+              console.log(`Kuvan kokoa pienennetty: ${(file.size/1024/1024).toFixed(2)}MB → ${(processedFile.size/1024/1024).toFixed(2)}MB`);
+            }
+            
+            const data = await this.uploadImage(processedFile);
             
             // Tallenna saatu URL piilotettuun input-kenttään
             if (imageUrlInput) imageUrlInput.value = data.imageUrl;

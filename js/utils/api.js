@@ -86,6 +86,7 @@ class API {
       console.log("API.uploadImage kutsu tiedostolle:", file.name);
       const formData = new FormData();
       formData.append('image', file);
+      console.log("Uploading file:", file.name, "size:", file.size);
       
       const response = await fetch('/api/upload', {
         method: 'POST',
