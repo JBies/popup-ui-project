@@ -1,49 +1,71 @@
 // admin-popups.js
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const response = await fetch('/api/admin/popups');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const popups = await response.json();
-
-        if (!Array.isArray(popups)) {
-            throw new Error('Expected an array of popups');
-        }
-
-        const popupsTable = document.getElementById('popupsTable').getElementsByTagName('tbody')[0];
-
-        popups.forEach(popup => {
-            const row = popupsTable.insertRow();
-            row.insertCell().textContent = popup.name;
-            row.insertCell().textContent = popup.popupType;
-            row.insertCell().textContent = popup.content;
-
-            const actionsCell = row.insertCell();
-            actionsCell.innerHTML = `
-                <button onclick="editPopup('${popup._id}', ${JSON.stringify(popup).replace(/"/g, '&quot;')})">Edit</button>
-                <button onclick="deletePopup('${popup._id}')">Delete</button>
-            `;
-        });
+      const response = await fetch('/api/admin/popups');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const popups = await response.json();
+  
+      if (!Array.isArray(popups)) {
+        throw new Error('Expected an array of popups');
+      }
+  
+      const popupsTable = document.getElementById('popupsTable').getElementsByTagName('tbody')[0];
+  
+      popups.forEach(popup => {
+        const row = popupsTable.insertRow();
+        row.insertCell().textContent = popup.name;
+        row.insertCell().textContent = popup.popupType;
+        row.insertCell().textContent = popup.content;
+  
+        const actionsCell = row.insertCell();
+        // Käytä data-attribuutteja onclick-attribuuttien sijaan
+        actionsCell.innerHTML = `
+          <button data-action="edit" data-id="${popup._id}" data-popup="${JSON.stringify(popup).replace(/"/g, '&quot;')}">Edit</button>
+          <button data-action="delete" data-id="${popup._id}">Delete</button>
+        `;
+      });
+      
+      // Aseta tapahtumakuuntelijat heti, kun taulukko on täytetty
+      setupEditButtons();
     } catch (error) {
-        console.error('Error loading popups:', error);
+      console.error('Error loading popups:', error);
     }
-
-    // Only setup edit form event listeners
-    const editFields = ['editPopupType','editWidth','editHeight','editPosition','editAnimation','editBackgroundColor','editTextColor','editContent','editDelay','editShowDuration','editStartDate','editEndDate'];
-    editFields.forEach(field => {
-        const element = document.getElementById(field);
-        if (element) {
-            element.addEventListener('input', () => updatePreview('edit'));
-        }
-    });
-
-    // Initialize only the edit preview
-    updatePreview('edit');
-
+  
     // Register update popup form submission
     updatePopup();
-});
+  });
+  
+  // Määritellään setupEditButtons-funktio globaalisti
+  function setupEditButtons() {
+    const editButtons = document.querySelectorAll('button[data-action="edit"]');
+    editButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        const popupData = this.getAttribute('data-popup');
+        
+        if (id && popupData) {
+          try {
+            const popup = JSON.parse(popupData.replace(/&quot;/g, '"'));
+            editPopup(id, popup);
+          } catch (e) {
+            console.error('Error parsing popup data:', e);
+          }
+        }
+      });
+    });
+    
+    const deleteButtons = document.querySelectorAll('button[data-action="delete"]');
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        if (id) {
+          deletePopup(id);
+        }
+      });
+    });
+  }
 
 // Edit popup
 function editPopup(id, popupData) {
@@ -258,4 +280,53 @@ function updatePreview(prefix = 'create') {
     previewWrapper.appendChild(previewPopup);
     previewContainer.appendChild(previewWrapper);
 }
-
+document.addEventListener('DOMContentLoaded', function() {
+    // Hakee kaikki editPopup-painikkeet ja lisää niille tapahtumakuuntelijat
+    function setupEditButtons() {
+      const popupsTable = document.getElementById('popupsTable');
+      if (!popupsTable) return;
+      
+      const editButtons = popupsTable.querySelectorAll('button[data-action="edit"]');
+      editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          const popupData = this.getAttribute('data-popup');
+          
+          if (id && popupData) {
+            try {
+              // Muunna popup-data takaisin objektiksi
+              const popup = JSON.parse(popupData.replace(/&quot;/g, '"'));
+              editPopup(id, popup);
+            } catch (e) {
+              console.error('Error parsing popup data:', e);
+            }
+          }
+        });
+      });
+      
+      const deleteButtons = popupsTable.querySelectorAll('button[data-action="delete"]');
+      deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          if (id) {
+            deletePopup(id);
+          }
+        });
+      });
+    }
+    
+    // Aseta alustusintervalli
+    const intervalId = setInterval(function() {
+      // Tarkista onko taulukossa rivejä
+      const rows = document.querySelectorAll('#popupsTable tbody tr');
+      if (rows.length > 0) {
+        setupEditButtons();
+        clearInterval(intervalId);
+      }
+    }, 500);
+    
+    // Varmista että nappien alustus suoritetaan enintään 5 sekunnin ajan
+    setTimeout(function() {
+      clearInterval(intervalId);
+    }, 5000);
+  });
