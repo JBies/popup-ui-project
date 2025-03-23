@@ -43,23 +43,27 @@ connectDB();
 
 // Tuotannon turvallisuusmekanismit
 if (isProduction) {
-    // Helmetin perusasetus, mutta salli JavaScript-moduulit ja script-src-attr
+    // Helmetin perusasetus, jolla parannettu CSP
     app.use(
-        helmet({
-            contentSecurityPolicy: {
-                directives: {
-                    defaultSrc: ["'self'"],
-                    scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com"],
-                    scriptSrcElem: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com"],
-                    scriptSrcAttr: ["'unsafe-inline'"],
-                    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-                    styleSrcElem: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-                    fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-                    imgSrc: ["'self'", "data:", "https://storage.googleapis.com"],
-                    connectSrc: ["'self'"]
-                }
-            }
-        })
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            // Sallitaan inline-JavaScript ja eval (kehitystyökalut)
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com"],
+            // Sallitaan inline-tyylit ja Google Fonts
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
+            // Sallitaan fontit Google Fonts -palvelusta
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            // Sallitaan kuvat data URL:eina ja Firebasesta
+            imgSrc: ["'self'", "data:", "https://storage.googleapis.com"],
+            // Sallitaan yhteydet omalle palvelimelle
+            connectSrc: ["'self'"],
+            // Sallitaan myös scriptSrcAttr
+            scriptSrcAttr: ["'unsafe-inline'"]
+          }
+        }
+      })
     );
     
     // Gzip-pakkaus
