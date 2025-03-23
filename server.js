@@ -104,6 +104,41 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Varmista että myös HTML-tiedostot toimivat oikein
+app.get('*.html', (req, res) => {
+    console.log(`Serving HTML file: ${req.path}`);
+    res.sendFile(path.join(__dirname, req.path));
+});
+
+// Lisää erillinen reitti landing.html:lle
+app.get('/landing.html', (req, res) => {
+    console.log('Serving landing.html');
+    res.sendFile(path.join(__dirname, 'landing.html'));
+});
+
+// Lisää varasuunnitelma kaikkien tiedostojen etsimiseen
+app.get('*', (req, res, next) => {
+    if (!req.path.includes('.')) {
+        // Tämä on todennäköisesti API-kutsu tai muu dynaaminen reitti
+        return next();
+    }
+    
+    const filePath = path.join(__dirname, req.path);
+    
+    // Tarkista onko tiedosto olemassa
+    try {
+        if (require('fs').existsSync(filePath)) {
+            console.log(`Serving file: ${req.path}`);
+            return res.sendFile(filePath);
+        }
+    } catch (err) {
+        console.error(`Error checking file ${filePath}:`, err);
+    }
+    
+    // Jos tiedostoa ei löydy, jatka seuraavaan käsittelijään
+    next();
+});
+
 // Pääreitti
 app.get('/', authMiddleware.checkPendingStatus, (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
