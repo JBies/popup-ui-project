@@ -185,3 +185,4 @@ class PopupManager {
       console.error('Error initializing components:', error);
     }
   }
+}
