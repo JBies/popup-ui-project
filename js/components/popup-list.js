@@ -165,18 +165,18 @@ class PopupList {
       });
     }
     
-
+    const editBtn = card.querySelector('.edit-btn');
     console.log("Searching for edit button in card:", card);
     console.log("Edit button found:", editBtn);
-    const editBtn = card.querySelector('.edit-btn');
-      if (editBtn) {
+    if (editBtn) {
       editBtn.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
-        // Välitä tieto että käyttäjä on käynnistänyt toiminnon
-        PopupForm.editPopup(popup._id, popup, true);
-  });
-}
+        console.log("Edit button clicked for popup:", popup._id);
+        console.log("Popup data:", popup);
+        PopupForm.editPopup(popup._id, popup);
+      });
+    }
 
     const deleteBtn = card.querySelector('.delete-btn');
     if (deleteBtn) {
