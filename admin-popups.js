@@ -48,7 +48,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error loading popups:', error);
     }
 
-    // Only setup edit form event listeners
+    // Lisätään tapahtumankuuntelija peruuta-napille
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', function() {
+            document.getElementById('editPopupForm').style.display = 'none';
+        });
+    }
+
+    // Lisätään tapahtumankuuntelijat kaikkiin kenttiin, jotka vaikuttavat esikatseluun
     const editFields = ['editPopupType','editWidth','editHeight','editPosition','editAnimation','editBackgroundColor','editTextColor','editContent','editDelay','editShowDuration','editStartDate','editEndDate'];
     editFields.forEach(field => {
         const element = document.getElementById(field);
@@ -57,12 +65,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Initialize only the edit preview
+    // Initialize edit preview
     updatePreview('edit');
 
     // Register update popup form submission
-    updatePopup();
+    setupUpdateForm();
 });
+
+// Setup update form
+function setupUpdateForm() {
+    const updateForm = document.getElementById('updatePopupForm');
+    if (updateForm) {
+        updateForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editPopupId').value;
+
+            const popupData = {
+                name: document.getElementById('editPopupName')?.value || 'Unnamed Popup',
+                popupType: document.getElementById('editPopupType')?.value || 'square',
+                width: document.getElementById('editWidth')?.value || 200,
+                height: document.getElementById('editHeight')?.value || 150,
+                position: document.getElementById('editPosition')?.value || 'center',
+                animation: document.getElementById('editAnimation')?.value || 'none',
+                backgroundColor: document.getElementById('editBackgroundColor')?.value || '#ffffff',
+                textColor: document.getElementById('editTextColor')?.value || '#000000',
+                content: document.getElementById('editContent')?.value || '',
+
+                // Ajastustiedot turvallisesti
+                delay: document.getElementById('editDelay')?.value || 0,
+                showDuration: document.getElementById('editShowDuration')?.value || 0,
+                startDate: document.getElementById('editStartDate')?.value || null,
+                endDate: document.getElementById('editEndDate')?.value || null
+            };
+
+            console.log("Sending popup data:", popupData); // Debug
+
+            try {
+                const response = await fetch(`/api/popups/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(popupData)
+                });
+
+                if (response.ok) {
+                    alert('Popup updated successfully!');
+                    document.getElementById('editPopupForm').style.display = 'none';
+                    window.location.reload();
+                } else {
+                    throw new Error('Failed to update popup');
+                }
+            } catch (error) {
+                console.error('Error updating popup:', error);
+                alert('Failed to update popup');
+            }
+        });
+    }
+}
 
 // Edit popup
 function editPopup(id, popupData) {
@@ -107,64 +165,19 @@ function editPopup(id, popupData) {
     updatePreview('edit');
 }
 
-async function updatePopup() {
-    // Handle popup update form submission
-    document.getElementById('updatePopupForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = document.getElementById('editPopupId').value;
-
-        const popupData = {
-            name: document.getElementById('editPopupName')?.value || 'Unnamed Popup',
-            popupType: document.getElementById('editPopupType')?.value || 'square',
-            width: document.getElementById('editWidth')?.value || 200,
-            height: document.getElementById('editHeight')?.value || 150,
-            position: document.getElementById('editPosition')?.value || 'center',
-            animation: document.getElementById('editAnimation')?.value || 'none',
-            backgroundColor: document.getElementById('editBackgroundColor')?.value || '#ffffff',
-            textColor: document.getElementById('editTextColor')?.value || '#000000',
-            content: document.getElementById('editContent')?.value || '',
-
-            // Ajastustiedot turvallisesti
-            delay: document.getElementById('editDelay')?.value || 0,
-            showDuration: document.getElementById('editShowDuration')?.value || 0,
-            startDate: document.getElementById('editStartDate')?.value || null,
-            endDate: document.getElementById('editEndDate')?.value || null
-        };
-
-        console.log("Sending popup data:", popupData); // Debug
-
-        try {
-            const response = await fetch(`/api/popups/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(popupData)
-            });
-
-            if (response.ok) {
-                alert('Popup updated successfully!');
-                document.getElementById('editPopupForm').style.display = 'none';
-                //fetchUserPopups();
-                window.location.reload();
-            } else {
-                throw new Error('Failed to update popup');
-            }
-        } catch (error) {
-            console.error('Error updating popup:', error);
-            alert('Failed to update popup');
-        }
-    });
-}
-
 async function deletePopup(id) {
     if (confirm('Are you sure you want to delete this popup?')) {
-        fetch(`/api/popups/${id}`, { method: 'DELETE' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    alert(data.message);
-                    window.location.reload();
-                }
-            });
+        try {
+            const response = await fetch(`/api/popups/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (data.message) {
+                alert(data.message);
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Error deleting popup:', error);
+            alert('Failed to delete popup');
+        }
     }
 }
 
@@ -248,6 +261,7 @@ function updatePreview(prefix = 'create') {
     if (animation !== 'none') {
         previewPopup.style.animation = animation === 'fade' ? 'fadeIn 0.5s' : 'slideIn 0.5s';
     }
+    
     // ajastus
     // Lisää ajastustiedot esikatseluun vain jos kaikki tarvittavat elementit löytyvät
     if (delayElement && durationElement) {
