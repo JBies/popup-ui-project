@@ -594,11 +594,34 @@ renderImageLibrary(images) {
         imageItem.className = 'image-library-item';
         imageItem.dataset.url = image.url;
         
+        // Luo kuvan container, jossa on kiinteä korkeus
+        const imgContainer = document.createElement('div');
+        imgContainer.style.width = '100%';
+        imgContainer.style.height = '100px';
+        imgContainer.style.overflow = 'hidden';
+        imgContainer.style.position = 'relative';
+        
         const img = document.createElement('img');
         img.src = image.url;
         img.alt = image.name || 'Image';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.objectPosition = 'center';
         
-        imageItem.appendChild(img);
+        imgContainer.appendChild(img);
+        imageItem.appendChild(imgContainer);
+        
+        // Lisää kuvan nimi/tiedot
+        const imgInfo = document.createElement('div');
+        imgInfo.style.padding = '5px';
+        imgInfo.style.fontSize = '11px';
+        imgInfo.style.textOverflow = 'ellipsis';
+        imgInfo.style.whiteSpace = 'nowrap';
+        imgInfo.style.overflow = 'hidden';
+        imgInfo.textContent = image.name || 'Image';
+        
+        imageItem.appendChild(imgInfo);
         grid.appendChild(imageItem);
         
         // Lisää klikkitapahtuma
