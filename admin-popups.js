@@ -1,4 +1,4 @@
-// admin-popups.js
+// admin-popups.js - korjattu versio käyttäen event delegation -mallia
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const response = await fetch('/api/admin/popups');
@@ -11,44 +11,78 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error('Expected an array of popups');
         }
 
-        const popupsTable = document.getElementById('popupsTable').getElementsByTagName('tbody')[0];
-
-        popups.forEach(popup => {
-            const row = popupsTable.insertRow();
-            row.insertCell().textContent = popup.name;
-            row.insertCell().textContent = popup.popupType;
-            row.insertCell().textContent = popup.content;
-
-            // Luodaan napit ilman inline-tapahtumankäsittelijöitä
-            const actionsCell = row.insertCell();
-            
-            // Edit-nappi
-            const editButton = document.createElement('button');
-            editButton.textContent = 'Edit';
-            editButton.dataset.popupId = popup._id;
-            editButton.dataset.popupData = JSON.stringify(popup);
-            editButton.addEventListener('click', function() {
-                editPopup(this.dataset.popupId, JSON.parse(this.dataset.popupData));
-            });
-            
-            // Delete-nappi
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Delete';
-            deleteButton.dataset.popupId = popup._id;
-            deleteButton.addEventListener('click', function() {
-                deletePopup(this.dataset.popupId);
-            });
-            
-            // Lisätään napit soluun
-            actionsCell.appendChild(editButton);
-            actionsCell.appendChild(document.createTextNode(' ')); // Välilyönti nappien väliin
-            actionsCell.appendChild(deleteButton);
-        });
+        // Renderöi popupit taulukkoon
+        renderPopupsTable(popups);
+        
+        // Konfiguroi lomakkeen kenttien tapahtumankuuntelijat
+        setupFormListeners();
+        
+        // Alusta esikatselu
+        updatePreview('edit');
+        
+        // Aseta lomakkeen lähetystä varten kuuntelija
+        setupFormSubmission();
+        
     } catch (error) {
         console.error('Error loading popups:', error);
     }
+});
 
-    // Lisätään tapahtumankuuntelija peruuta-napille
+// Renderöi popupit taulukkoon
+function renderPopupsTable(popups) {
+    const popupsTable = document.getElementById('popupsTable').getElementsByTagName('tbody')[0];
+    popupsTable.innerHTML = ''; // Tyhjennä ensin
+    
+    popups.forEach(popup => {
+        const row = popupsTable.insertRow();
+        row.insertCell().textContent = popup.name;
+        row.insertCell().textContent = popup.popupType;
+        row.insertCell().textContent = popup.content;
+
+        // Luodaan napit ilman inline-tapahtumankäsittelijöitä
+        const actionsCell = row.insertCell();
+        
+        // Edit-nappi
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.className = 'edit-button';
+        editButton.dataset.id = popup._id;
+        editButton.dataset.popup = JSON.stringify(popup);
+        
+        // Delete-nappi
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.className = 'delete-button';
+        deleteButton.dataset.id = popup._id;
+        
+        // Lisätään napit soluun
+        actionsCell.appendChild(editButton);
+        actionsCell.appendChild(document.createTextNode(' ')); // Välilyönti nappien väliin
+        actionsCell.appendChild(deleteButton);
+    });
+    
+    // Lisätään event delegation -mallin mukainen kuuntelija taulukolle
+    popupsTable.addEventListener('click', handleTableActions);
+}
+
+// Käsittelee kaikki taulukon toiminnot yhdellä kuuntelijalla
+function handleTableActions(event) {
+    // Tarkistetaan onko klikattuna edit-nappi
+    if (event.target.classList.contains('edit-button')) {
+        const id = event.target.dataset.id;
+        const popupData = JSON.parse(event.target.dataset.popup);
+        editPopup(id, popupData);
+    } 
+    // Tarkistetaan onko klikattuna delete-nappi
+    else if (event.target.classList.contains('delete-button')) {
+        const id = event.target.dataset.id;
+        deletePopup(id);
+    }
+}
+
+// Asettaa lomakkeen kenttien tapahtumankuuntelijat
+function setupFormListeners() {
+    // Lisää tapahtumankuuntelija peruuta-napille
     const cancelEditBtn = document.getElementById('cancelEditBtn');
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener('click', function() {
@@ -56,24 +90,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Lisätään tapahtumankuuntelijat kaikkiin kenttiin, jotka vaikuttavat esikatseluun
-    const editFields = ['editPopupType','editWidth','editHeight','editPosition','editAnimation','editBackgroundColor','editTextColor','editContent','editDelay','editShowDuration','editStartDate','editEndDate'];
+    // Lisää tapahtumankuuntelijat kenttiin, jotka vaikuttavat esikatseluun
+    const editFields = [
+        'editPopupType', 'editWidth', 'editHeight', 'editPosition', 
+        'editAnimation', 'editBackgroundColor', 'editTextColor', 
+        'editContent', 'editDelay', 'editShowDuration', 
+        'editStartDate', 'editEndDate'
+    ];
+    
     editFields.forEach(field => {
         const element = document.getElementById(field);
         if (element) {
             element.addEventListener('input', () => updatePreview('edit'));
         }
     });
+}
 
-    // Initialize edit preview
-    updatePreview('edit');
-
-    // Register update popup form submission
-    setupUpdateForm();
-});
-
-// Setup update form
-function setupUpdateForm() {
+// Asettaa lomakkeen lähetyksen käsittelijän
+function setupFormSubmission() {
     const updateForm = document.getElementById('updatePopupForm');
     if (updateForm) {
         updateForm.addEventListener('submit', async (e) => {
@@ -165,6 +199,7 @@ function editPopup(id, popupData) {
     updatePreview('edit');
 }
 
+// Poista popup
 async function deletePopup(id) {
     if (confirm('Are you sure you want to delete this popup?')) {
         try {
