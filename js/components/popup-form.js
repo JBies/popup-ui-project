@@ -230,75 +230,116 @@ class PopupForm {
     console.log("PopupForm: setupImageUpload called - ei tehdä mitään, käytetään vain ImageUploaderia");
   }
 
-  /**
-   * Muokkaa popupia - tämä metodi voidaan kutsua ulkopuolelta
-   * @param {string} id - Popupin ID
-   * @param {Object} popupData - Popupin tiedot
-   * @param {boolean} userTriggered - Onko käyttäjä käynnistänyt toiminnon (oletuksena false)
-   */
-  static editPopup(id, popupData) {
-    console.log('PopupForm.editPopup called with ID:', id);
-    console.log('Popup data received:', popupData);
-    
-    // Parsitaan popup-data, jos se on string
-    const popup = typeof popupData === 'string' ? JSON.parse(popupData) : popupData;
+  
+/**
+ * Muokkaa popupia - tämä metodi voidaan kutsua ulkopuolelta
+ * @param {string} id - Popupin ID
+ * @param {Object} popupData - Popupin tiedot
+ */
+static editPopup(id, popupData) {
+  console.log('PopupForm.editPopup called with ID:', id);
+  console.log('Popup data received:', popupData);
+  
+  // Parsitaan popup-data, jos se on string
+  const popup = typeof popupData === 'string' ? JSON.parse(popupData) : popupData;
 
-    // Aseta kaikki arvot lomakkeelle
-    document.getElementById('editPopupId').value = id;
-    document.getElementById('editPopupName').value = popup.name || 'Unnamed Popup';
-    document.getElementById('editPopupType').value = popup.popupType || 'square';
-    document.getElementById('editWidth').value = popup.width || 200;
-    document.getElementById('editHeight').value = popup.height || 150;
-    document.getElementById('editPosition').value = popup.position || 'center';
-    document.getElementById('editAnimation').value = popup.animation || 'none';
-    document.getElementById('editBackgroundColor').value = popup.backgroundColor || '#ffffff';
-    document.getElementById('editTextColor').value = popup.textColor || '#000000';
-    document.getElementById('editContent').value = popup.content || '';
-    
-    // Lisää linkki-URL
-    if (document.getElementById('editLinkUrl')) {
-      document.getElementById('editLinkUrl').value = popup.linkUrl || '';
-    }
-    
-    // Timing-asetukset
-    document.getElementById('editDelay').value = popup.timing?.delay || 0;
-    document.getElementById('editShowDuration').value = popup.timing?.showDuration || 0;
-    
-    // Kuvien käsittely
-    if (popup.imageUrl) {
-        document.getElementById('editImageUrl').value = popup.imageUrl;
-        if (document.getElementById('editImagePreview')) {
-            document.getElementById('editImagePreview').src = popup.imageUrl;
-            document.getElementById('editImagePreviewContainer').style.display = 'block';
-        }
-    } else {
-        document.getElementById('editImageUrl').value = '';
-        if (document.getElementById('editImagePreviewContainer')) {
-            document.getElementById('editImagePreviewContainer').style.display = 'none';
-        }
-    }
+  // Aseta kaikki arvot lomakkeelle
+  document.getElementById('editPopupId').value = id;
+  document.getElementById('editPopupName').value = popup.name || 'Unnamed Popup';
+  document.getElementById('editPopupType').value = popup.popupType || 'square';
+  document.getElementById('editWidth').value = popup.width || 200;
+  document.getElementById('editHeight').value = popup.height || 150;
+  document.getElementById('editPosition').value = popup.position || 'center';
+  document.getElementById('editAnimation').value = popup.animation || 'none';
+  document.getElementById('editBackgroundColor').value = popup.backgroundColor || '#ffffff';
+  document.getElementById('editTextColor').value = popup.textColor || '#000000';
+  document.getElementById('editContent').value = popup.content || '';
+  
+  // Timing-asetukset
+  document.getElementById('editDelay').value = popup.timing?.delay || 0;
+  document.getElementById('editShowDuration').value = popup.timing?.showDuration || 0;
+  
+  // Kuvien käsittely
+  if (popup.imageUrl) {
+      document.getElementById('editImageUrl').value = popup.imageUrl;
+      
+      // Jos on previewContainer, päivitä myös se
+      const previewContainer = document.getElementById('editImagePreviewContainer');
+      const previewImg = document.getElementById('editImagePreview');
+      
+      if (previewContainer && previewImg) {
+          previewImg.src = popup.imageUrl;
+          previewContainer.style.display = 'block';
+      }
+  } else {
+      document.getElementById('editImageUrl').value = '';
+      
+      // Piilota preview jos se on olemassa
+      const previewContainer = document.getElementById('editImagePreviewContainer');
+      if (previewContainer) {
+          previewContainer.style.display = 'none';
+      }
+  }
+  
+  // Aseta linkki-URL jos kenttä on olemassa
+  const linkUrlField = document.getElementById('editLinkUrl');
+  if (linkUrlField) {
+      linkUrlField.value = popup.linkUrl || '';
+  }
 
-    // Muotoile päivämäärät oikein datetime-local kenttää varten (YYYY-MM-DDThh:mm)
-    if (popup.timing?.startDate && popup.timing.startDate !== 'default') {
-        const startDate = new Date(popup.timing.startDate);
-        document.getElementById('editStartDate').value = startDate.toISOString().slice(0, 16);
-    } else {
-        document.getElementById('editStartDate').value = '';
-    }
-    
-    if (popup.timing?.endDate && popup.timing.endDate !== 'default') {
-        const endDate = new Date(popup.timing.endDate);
-        document.getElementById('editEndDate').value = endDate.toISOString().slice(0, 16);
-    } else {
-        document.getElementById('editEndDate').value = '';
-    }
+  // Muotoile päivämäärät oikein datetime-local kenttää varten (YYYY-MM-DDThh:mm)
+  if (popup.timing?.startDate && popup.timing.startDate !== 'default') {
+      const startDate = new Date(popup.timing.startDate);
+      document.getElementById('editStartDate').value = startDate.toISOString().slice(0, 16);
+  } else {
+      document.getElementById('editStartDate').value = '';
+  }
+  
+  if (popup.timing?.endDate && popup.timing.endDate !== 'default') {
+      const endDate = new Date(popup.timing.endDate);
+      document.getElementById('editEndDate').value = endDate.toISOString().slice(0, 16);
+  } else {
+      document.getElementById('editEndDate').value = '';
+  }
 
-    // Näytä lomake - TÄRKEÄÄ: Korjattu display tyyli
-    document.getElementById('editPopupForm').style.display = 'flex';
-    console.log('Edit popup form should now be visible with display: flex');
+  // Näytä modaali
+  const editForm = document.getElementById('editPopupForm');
+  if (editForm) {
+      // Käytä flex-näyttöä ja keskitä sisältö
+      editForm.style.display = 'flex';
+      editForm.style.alignItems = 'center';
+      editForm.style.justifyContent = 'center';
+      
+      // Varmista että modaali on oikean kokoinen mobiililaitteilla
+      const modal = editForm.querySelector('.modal');
+      if (modal) {
+          // Mobiililaitteilla varmista että modaali mahtuu näytölle
+          if (window.innerWidth < 768) {
+              modal.style.width = '95%';
+              modal.style.maxHeight = '95vh';
+          } else {
+              modal.style.width = '90%';
+              modal.style.maxWidth = '900px';
+              modal.style.maxHeight = '90vh';
+          }
+          
+          // Varmista että sisältö on vieritettävissä
+          const modalBody = modal.querySelector('.modal-body');
+          if (modalBody) {
+              modalBody.style.overflowY = 'auto';
+              modalBody.style.maxHeight = 'calc(90vh - 130px)';
+          }
+      }
+      
+      console.log('Edit form should now be visible with display: flex');
+  } else {
+      console.error('Edit form element not found!');
+  }
 
-    // Päivitä esikatselu
-    PopupPreview.updatePreview('edit');
+  // Päivitä esikatselu
+  if (typeof PopupPreview.updatePreview === 'function') {
+      PopupPreview.updatePreview('edit');
+  }
 }
 
   
