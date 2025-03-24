@@ -28,15 +28,7 @@ class PopupList {
     API.getUserPopups()
       .then(popups => {
         this.renderPopupList(popups);
-        
-        // Lisätään testikutsu ensimmäiselle popupille
-        if (popups && popups.length > 0) {
-          console.log("Testing direct call to editPopup with first popup");
-          setTimeout(() => {
-            PopupForm.editPopup(popups[0]._id, popups[0]);
-          }, 2000);
-        }
-      })
+              })
       .catch(error => {
         console.error('Error fetching popups:', error);
       });
@@ -176,14 +168,6 @@ addCardEventListeners(card, popup) {
           if (typeof PopupForm.editPopup === 'function') {
               PopupForm.editPopup(popup._id, popup);
               
-              // Varmista että modaali on näkyvissä
-              setTimeout(() => {
-                  const editForm = document.getElementById('editPopupForm');
-                  if (editForm) {
-                      console.log('Ensuring edit form is visible');
-                      editForm.style.display = 'flex';
-                  }
-              }, 50);
           } else {
               console.error('PopupForm.editPopup is not a function');
           }
