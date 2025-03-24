@@ -254,6 +254,7 @@ class PopupForm {
     if (nameField) {
       nameField.removeAttribute('required');
     }
+    document.getElementById('editPopupName').value = popup.name || 'Unnamed Popup';
     document.getElementById('editPopupId').value = id;
     document.getElementById('editPopupType').value = popup.popupType || 'square';
     document.getElementById('editWidth').value = popup.width || 200;
@@ -304,9 +305,6 @@ class PopupForm {
       }
     }
     
-    // Näytä lomake
-    document.getElementById('editPopupForm').style.display = 'block';
-  console.log("Edit form displayed");
     
     // Päivitä esikatselu
   PopupPreview.updatePreview('edit');
@@ -372,7 +370,7 @@ class PopupForm {
 
     if (popupType === 'image') {
       // Näytä koko ja piilota sisältö
-      if (sizeControls) sizeControls.style.display = 'block'; 
+      if (sizeControls) sizeControls.style.display = 'none'; 
       if (contentField) contentField.style.display = 'none'; 
     } else {
       // Näytä koko ja sisältö
