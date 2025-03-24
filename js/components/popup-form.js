@@ -444,9 +444,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Tallenna modaali submit-napista
   const updatePopupBtn = document.getElementById('updatePopup');
   if (updatePopupBtn) {
-      updatePopupBtn.addEventListener('click', function() {
+      updatePopupBtn.addEventListener('click', function(e) {
         e.preventDefault();
-          document.getElementById('updatePopupForm').dispatchEvent(new Event('submit'));
+        document.getElementById('updatePopupForm').dispatchEvent(new Event('submit'));
       });
       
   }
