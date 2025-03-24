@@ -148,12 +148,12 @@ class PopupForm {
         endDate: document.getElementById('editEndDate').value || null
       };
 
-      // Piilota muokkauslomake
-      document.getElementById('editPopupForm').style.display = 'none';
-
       try {
         await API.updatePopup(id, popupData);
         alert('Popup updated successfully!');
+        
+        // Piilota muokkauslomake
+        document.getElementById('editPopupForm').style.display = 'none';
         
         // Jos käytössä on popupien listauskomponentti, päivitä lista
         if (window.fetchUserPopups) {
@@ -234,19 +234,26 @@ class PopupForm {
    * Muokkaa popupia - tämä metodi voidaan kutsua ulkopuolelta
    * @param {string} id - Popupin ID
    * @param {Object} popupData - Popupin tiedot
+   * @param {boolean} userTriggered - Onko käyttäjä käynnistänyt toiminnon (oletuksena false)
    */
-  static editPopup(id, popupData) {
-    console.log("PopupForm.editPopup called with ID:", id);
-    console.log("Popup data received:", popupData);
-    try {
+  static editPopup(id, popupData, userTriggered = false) {
+    // Tarkista että kutsu tulee käyttäjän toiminnosta tai eksplisiittisesti halutaan näyttää lomake
+    if (!userTriggered && !window.forceShowEditForm) {
+      console.log("Auto-opening of edit form prevented");
+      return;
+    }
+
     // Parsitaan popup-data, jos se on string
     const popup = typeof popupData === 'string' ? JSON.parse(popupData) : popupData;
     
+    console.log("PopupForm.editPopup called with ID:", id);
+    console.log("Popup data received:", popup);
+
     // Aseta kaikki arvot lomakkeelle
     const nameField = document.getElementById('editPopupName');
-  if (nameField) {
-    nameField.removeAttribute('required');
-  }
+    if (nameField) {
+      nameField.removeAttribute('required');
+    }
     document.getElementById('editPopupId').value = id;
     document.getElementById('editPopupType').value = popup.popupType || 'square';
     document.getElementById('editWidth').value = popup.width || 200;
@@ -298,19 +305,15 @@ class PopupForm {
     }
     
     // Näytä lomake
-    const formElement = document.getElementById('editPopupForm');
-    if (formElement) {
-      formElement.style.display = 'block';
-      console.log("Edit form displayed");
-    } else {
-      console.error("Element not found: editPopupForm");
-    }
+    document.getElementById('editPopupForm').style.display = 'block';
+  console.log("Edit form displayed");
     
     // Päivitä esikatselu
-    PopupPreview.updatePreview('edit');
-  } catch (error) {
-    console.error("Error in editPopup method:", error);
-  }
+  PopupPreview.updatePreview('edit');
+  
+  // Päivitä näkyvyys
+  PopupForm.updateFormVisibility('edit');
+     
   }
   
 
