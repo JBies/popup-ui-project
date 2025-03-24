@@ -115,6 +115,7 @@ class PopupPreview {
     setTimeout(() => {
       this.updatePreview('create');
       this.updatePreview('edit');
+      
     }, 500);
     
     // Asetetaan suora päivitys formien näkyvyysmuutoksille
