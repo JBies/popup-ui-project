@@ -1,80 +1,525 @@
-<!-- admin-popups.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Manage Popups</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;  /* Sininen */
+            --primary-dark: #2563eb;
+            --secondary: #10b981; /* Vihreä */
+            --secondary-dark: #059669;
+            --danger: #ef4444;   /* Punainen */
+            --danger-dark: #dc2626;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--gray-100);
+            margin: 0;
+            padding: 0;
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: var(--primary-dark);
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        /* Taulukko */
+        .table-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: var(--gray-50);
+            text-align: left;
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+            vertical-align: top;
+        }
+
+        tbody tr:hover {
+            background-color: var(--gray-50);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Toimintonapit */
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-dark);
+        }
+
+        /* Lomake */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 0.5rem;
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            background-color: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--gray-500);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--gray-700);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group-full {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        input[type="color"] {
+            height: 38px;
+            padding: 0.25rem;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        small {
+            display: block;
+            margin-top: 0.25rem;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            background-color: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
+        }
+
+        /* Esikatselu */
+        .preview-container {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            border: 1px dashed var(--gray-300);
+            border-radius: 0.5rem;
+            background-color: var(--gray-50);
+        }
+
+        .preview-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .preview-window {
+            position: relative;
+            height: 300px;
+            background-color: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+
+        /* Loader */
+        .loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loader-spinner {
+            border: 3px solid var(--gray-200);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Ilmoitukset */
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            transform: translateX(110%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            background-color: #ecfdf5;
+            border-left: 4px solid var(--secondary);
+            color: var(--secondary-dark);
+        }
+
+        .notification-error {
+            background-color: #fef2f2;
+            border-left: 4px solid var(--danger);
+            color: var(--danger-dark);
+        }
+
+        /* Responsiivisuus */
+        @media (max-width: 768px) {
+            .form-grid {
+                display: block;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .modal-overlay {
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div style="margin-bottom: 20px;">
-        <a href="index.html" style="text-decoration: none; color: blue;">Back to Main Page</a>
+    <div class="container">
+        <div class="header">
+            <h1>Popup Manager</h1>
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Main Page
+            </a>
+        </div>
+
+        <div class="table-container">
+            <table id="popupsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 25%">Name</th>
+                        <th style="width: 15%">Type</th>
+                        <th style="width: 40%">Content</th>
+                        <th style="width: 20%">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="popupsTableBody">
+                    <!-- Popups will be added here by JavaScript -->
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading popups...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <h1>Manage Popups</h1>
-    <table id="popupsTable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Popup Type</th>
-                <th>Content</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Popups will be added here by JavaScript -->
-        </tbody>
-    </table>
-    
-    <!-- Edit popup form (hidden by default) -->
-    <div id="editPopupForm" style="display: none;">
-        <h3>Edit Popup</h3>
-        <form id="updatePopupForm">
-            <input type="hidden" id="editPopupId">
-            <label for="editPopupName">Popup Name:</label>
-            <input type="text" id="editPopupName" name="name" value="Unnamed Popup" required><br>
-            <small>Anna popupillesi selkeä nimi missä se sijaitsee</small><br>
-            <label for="editPopupType">Popup Type:</label>
-            <select id="editPopupType" name="popupType">
-                <option value="square">Square</option>
-                <option value="circle">Circle</option>
-                <option value="image">Image (Only image)</option>
-            </select><br>
-            <label for="editWidth">Width (px):</label>
-            <input type="number" id="editWidth" name="width" min="100" max="800" value="200"><br>
-            <label for="editHeight">Height (px):</label>
-            <input type="number" id="editHeight" name="height" min="100" max="600" value="150"><br>
-            <label for="editPosition">Position:</label>
-            <select id="editPosition" name="position">
-                <option value="center">Center</option>
-                <option value="top-left">Top Left</option>
-                <option value="top-right">Top Right</option>
-                <option value="bottom-left">Bottom Left</option>
-                <option value="bottom-right">Bottom Right</option>
-            </select><br>
-            <label for="editAnimation">Animation:</label>
-            <select id="editAnimation" name="animation">
-                <option value="none">None</option>
-                <option value="fade">Fade</option>
-                <option value="slide">Slide</option>
-            </select><br>
-            <label for="editBackgroundColor">Background Color:</label>
-            <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff"><br>
-            <label for="editTextColor">Text Color:</label>
-            <input type="color" id="editTextColor" name="textColor" value="#000000"><br>
-            <label for="editContent">Content:</label>
-            <textarea id="editContent" name="content" rows="4" cols="50"></textarea><br>
-            <label for="editDelay">Show Delay (seconds):</label>
-            <input type="number" id="editDelay" name="delay" min="0" value="0"><br>
-            <label for="editShowDuration">Show Duration (seconds, 0 = until closed):</label>
-            <input type="number" id="editShowDuration" name="showDuration" min="0" value="0"><br>
-            <label for="editStartDate">Start Date:</label>
-            <input type="datetime-local" id="editStartDate" name="startDate"><br>
-            <label for="editEndDate">End Date (optional):</label>
-            <input type="datetime-local" id="editEndDate" name="endDate"><br>
-            <button type="submit">Update Popup</button>
-            <button type="button" id="cancelEditBtn">Cancel</button>
-        </form>
-        <div class="preview" id="editPreview"></div>
+
+    <!-- Edit Popup Modal -->
+    <div id="editPopupModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Popup</h3>
+                <button type="button" class="modal-close" id="closeModal">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="updatePopupForm">
+                    <input type="hidden" id="editPopupId">
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="editPopupName">Popup Name:</label>
+                            <input type="text" id="editPopupName" name="name" required>
+                            <small>Give your popup a descriptive name</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editPopupType">Popup Type:</label>
+                            <select id="editPopupType" name="popupType" class="preview-input">
+                                <option value="square">Square</option>
+                                <option value="circle">Circle</option>
+                                <option value="image">Image Only</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editWidth">Width (px):</label>
+                            <input type="number" id="editWidth" name="width" min="100" max="800" value="200" class="preview-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editHeight">Height (px):</label>
+                            <input type="number" id="editHeight" name="height" min="100" max="600" value="150" class="preview-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editPosition">Position:</label>
+                            <select id="editPosition" name="position" class="preview-input">
+                                <option value="center">Center</option>
+                                <option value="top-left">Top Left</option>
+                                <option value="top-right">Top Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="bottom-right">Bottom Right</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editAnimation">Animation:</label>
+                            <select id="editAnimation" name="animation" class="preview-input">
+                                <option value="none">None</option>
+                                <option value="fade">Fade</option>
+                                <option value="slide">Slide</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editBackgroundColor">Background Color:</label>
+                            <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff" class="preview-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editTextColor">Text Color:</label>
+                            <input type="color" id="editTextColor" name="textColor" value="#000000" class="preview-input">
+                        </div>
+                        
+                        <div class="form-group form-group-full">
+                            <label for="editContent">Content:</label>
+                            <textarea id="editContent" name="content" rows="4" class="preview-input"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editDelay">Show Delay (seconds):</label>
+                            <input type="number" id="editDelay" name="delay" min="0" value="0" class="preview-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editShowDuration">Show Duration (seconds):</label>
+                            <input type="number" id="editShowDuration" name="showDuration" min="0" value="0" class="preview-input">
+                            <small>0 = until closed</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editStartDate">Start Date:</label>
+                            <input type="datetime-local" id="editStartDate" name="startDate" class="preview-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editEndDate">End Date (optional):</label>
+                            <input type="datetime-local" id="editEndDate" name="endDate" class="preview-input">
+                        </div>
+                    </div>
+                    
+                    <div class="preview-container">
+                        <h4 class="preview-title">Preview</h4>
+                        <div id="editPreview" class="preview-window"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" id="cancelButton">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveButton">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader" style="display: none;">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <div id="notificationMessage"></div>
     </div>
 
     <script src="admin-popups.js"></script>
