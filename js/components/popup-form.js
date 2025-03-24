@@ -152,8 +152,7 @@ class PopupForm {
         await API.updatePopup(id, popupData);
         alert('Popup updated successfully!');
         
-        // Piilota muokkauslomake
-        document.getElementById('editPopupForm').style.display = 'none';
+
         
         // Jos käytössä on popupien listauskomponentti, päivitä lista
         if (window.fetchUserPopups) {
@@ -163,6 +162,9 @@ class PopupForm {
         console.error('Error updating popup:', error);
         alert('Failed to update popup');
       }
+
+              // Piilota muokkauslomake
+              document.getElementById('editPopupForm').style.display = 'none';
     });
   }
 
@@ -448,6 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
       updatePopupBtn.addEventListener('click', function() {
           document.getElementById('updatePopupForm').dispatchEvent(new Event('submit'));
       });
+      
   }
 });
 
