@@ -238,10 +238,6 @@ class PopupForm {
    */
   static editPopup(id, popupData, userTriggered = false) {
     // Tarkista että kutsu tulee käyttäjän toiminnosta tai eksplisiittisesti halutaan näyttää lomake
-    if (!userTriggered && !window.forceShowEditForm) {
-      console.log("Auto-opening of edit form prevented");
-      return;
-    }
 
     // Parsitaan popup-data, jos se on string
     const popup = typeof popupData === 'string' ? JSON.parse(popupData) : popupData;
