@@ -77,6 +77,11 @@ app.use('/api/images', (req, res, next) => {
     next();
 });
 
+// Poista CSP admin-reiteiltä
+app.use('/admin-popups.html', (req, res, next) => {
+    res.setHeader('Content-Security-Policy', '');
+    next();
+  });
 
 // Tuotannon turvallisuusmekanismit
 if (isProduction) {
