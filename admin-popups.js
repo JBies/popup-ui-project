@@ -32,7 +32,25 @@ class PopupAdmin {
             // Muut
             loader: document.getElementById('loader'),
             notification: document.getElementById('notification'),
-            notificationMessage: document.getElementById('notificationMessage')
+            notificationMessage: document.getElementById('notificationMessage'),
+
+            // Kuvan muokkaus -elementit
+            editImageUrl: document.getElementById('editImageUrl'),
+            editImagePreview: document.getElementById('editImagePreview'),
+            editImagePreviewImg: document.getElementById('editImagePreviewImg'),
+            selectImageBtn: document.getElementById('selectImageBtn'),
+            removeImageBtn: document.getElementById('removeImageBtn'),
+            
+            // Kuvakirjasto
+            imageLibraryModal: document.getElementById('imageLibraryModal'),
+            closeImageLibrary: document.getElementById('closeImageLibrary'),
+            imageLibraryGrid: document.getElementById('imageLibraryGrid'),
+            uploadImageInput: document.getElementById('uploadImageInput'),
+            uploadImageBtn: document.getElementById('uploadImageBtn'),
+            selectImageFromLibraryBtn: document.getElementById('selectImageFromLibraryBtn'),
+            cancelImageSelectionBtn: document.getElementById('cancelImageSelectionBtn'),
+            selectedLibraryImageUrl: null,
+            selectedLibraryImageId: null
         };
         
         // Popup-data
@@ -66,6 +84,19 @@ class PopupAdmin {
         this.elements.previewInputs.forEach(input => {
             input.addEventListener('input', () => this.updatePreview());
         });
+
+        // Kuvan muokkaus -toiminnot
+        this.elements.selectImageBtn.addEventListener('click', () => this.openImageLibrary());
+        this.elements.removeImageBtn.addEventListener('click', () => this.removeImage());
+        this.elements.editImageUrl.addEventListener('input', () => this.updateImagePreview());
+
+        // Kuvakirjaston toiminnot
+        this.elements.closeImageLibrary.addEventListener('click', () => this.closeImageLibrary());
+        this.elements.cancelImageSelectionBtn.addEventListener('click', () => this.closeImageLibrary());
+        this.elements.uploadImageBtn.addEventListener('click', () => this.elements.uploadImageInput.click());
+        this.elements.uploadImageInput.addEventListener('change', (e) => this.handleImageUpload(e));
+        this.elements.selectImageFromLibraryBtn.addEventListener('click', () => this.selectImageFromLibrary());
+
     }
     
     /**
@@ -238,6 +269,15 @@ class PopupAdmin {
         } else {
             document.getElementById('editEndDate').value = '';
         }
+        // Näytä kuva, jos sellainen on
+        if (popup.imageUrl) {
+            this.elements.editImageUrl.value = popup.imageUrl;
+            this.elements.editImagePreviewImg.src = popup.imageUrl;
+            this.elements.editImagePreview.style.display = 'block';
+        } else {
+            this.elements.editImageUrl.value = '';
+            this.elements.editImagePreview.style.display = 'none';
+        }
     }
     
     /**
@@ -255,12 +295,11 @@ class PopupAdmin {
             backgroundColor: document.getElementById('editBackgroundColor').value,
             textColor: document.getElementById('editTextColor').value,
             content: document.getElementById('editContent').value,
-            
-            // Ajastustiedot
             delay: parseInt(document.getElementById('editDelay').value) || 0,
             showDuration: parseInt(document.getElementById('editShowDuration').value) || 0,
             startDate: document.getElementById('editStartDate').value || null,
-            endDate: document.getElementById('editEndDate').value || null
+            endDate: document.getElementById('editEndDate').value || null,
+            imageUrl: document.getElementById('editImageUrl').value || null
         };
     }
     
@@ -356,6 +395,27 @@ class PopupAdmin {
         const backgroundColor = document.getElementById('editBackgroundColor').value || '#ffffff';
         const textColor = document.getElementById('editTextColor').value || '#000000';
         const content = document.getElementById('editContent').value || '';
+
+        const imageUrl = document.getElementById('editImageUrl').value;
+if (imageUrl && popupType === 'image') {
+    // Jos popup on image-tyyppiä, näytä vain kuva
+    previewPopup.style.background = `url(${imageUrl}) no-repeat center center`;
+    previewPopup.style.backgroundSize = 'contain';
+    previewPopup.innerHTML = '';  // Tyhjennä sisältö, vain kuva näytetään
+} else if (imageUrl) {
+    // Muissa popup-tyypeissä näytä sekä teksti että kuva
+    const contentElement = document.createElement('div');
+    contentElement.innerHTML = content;
+    contentElement.style.marginBottom = '10px';
+    previewPopup.appendChild(contentElement);
+    
+    const imageElement = document.createElement('img');
+    imageElement.src = imageUrl;
+    imageElement.style.maxWidth = '100%';
+    imageElement.style.maxHeight = '50%';
+    imageElement.style.objectFit = 'contain';
+    previewPopup.appendChild(imageElement);
+}
         
         // Luo popup-elementti
         const previewPopup = document.createElement('div');
@@ -420,7 +480,204 @@ class PopupAdmin {
                 }, 10);
             }
         }
+        
     }
+
+    /**
+ * Päivittää kuvan esikatselun
+ */
+updateImagePreview() {
+    const imageUrl = this.elements.editImageUrl.value;
+    
+    if (imageUrl) {
+        this.elements.editImagePreviewImg.src = imageUrl;
+        this.elements.editImagePreview.style.display = 'block';
+    } else {
+        this.elements.editImagePreview.style.display = 'none';
+    }
+    
+    // Päivitä popup-esikatselu
+    this.updatePreview();
+}
+
+/**
+ * Poistaa kuvan
+ */
+removeImage() {
+    this.elements.editImageUrl.value = '';
+    this.elements.editImagePreview.style.display = 'none';
+    
+    // Päivitä popup-esikatselu
+    this.updatePreview();
+}
+
+/**
+ * Avaa kuvakirjaston
+ */
+async openImageLibrary() {
+    try {
+        this.showLoader();
+        
+        // Näytä kuvakirjasto-modaali
+        this.elements.imageLibraryModal.style.display = 'block';
+        
+        // Hae kuvat
+        await this.loadImageLibrary();
+    } catch (error) {
+        console.error('Error opening image library:', error);
+        this.showNotification('Error loading image library', 'error');
+    } finally {
+        this.hideLoader();
+    }
+}
+
+/**
+ * Sulkee kuvakirjaston
+ */
+closeImageLibrary() {
+    this.elements.imageLibraryModal.style.display = 'none';
+    this.selectedLibraryImageUrl = null;
+}
+
+/**
+ * Lataa kuvat kuvakirjastoon
+ */
+async loadImageLibrary() {
+    try {
+        const response = await fetch('/api/images');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const images = await response.json();
+        this.renderImageLibrary(images);
+    } catch (error) {
+        console.error('Error loading images:', error);
+        
+        // Näytä virheviesti kuvaruudukossa
+        this.elements.imageLibraryGrid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #ef4444;">
+                <i class="fas fa-exclamation-circle"></i> 
+                Error loading images
+            </div>
+        `;
+    }
+}
+
+/**
+ * Renderöi kuvakirjaston
+ * @param {Array} images - Lista kuvaobjekteista
+ */
+renderImageLibrary(images) {
+    const grid = this.elements.imageLibraryGrid;
+    
+    // Tyhjennä grid
+    grid.innerHTML = '';
+    
+    if (!images || images.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #6b7280;">
+                <i class="fas fa-info-circle"></i> 
+                No images found. Upload your first image!
+            </div>
+        `;
+        return;
+    }
+    
+    // Lisää kuvat ruudukkoon
+    images.forEach(image => {
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-library-item';
+        imageItem.dataset.url = image.url;
+        
+        const img = document.createElement('img');
+        img.src = image.url;
+        img.alt = image.name || 'Image';
+        
+        imageItem.appendChild(img);
+        grid.appendChild(imageItem);
+        
+        // Lisää klikkitapahtuma
+        imageItem.addEventListener('click', () => this.selectImageInLibrary(imageItem));
+    });
+}
+
+/**
+ * Valitsee kuvan kuvakirjastossa
+ * @param {HTMLElement} imageItem - Valittu kuvaelementti
+ */
+selectImageInLibrary(imageItem) {
+    // Poista aiempi valinta
+    const selectedItems = this.elements.imageLibraryGrid.querySelectorAll('.image-library-item.selected');
+    selectedItems.forEach(item => item.classList.remove('selected'));
+    
+    // Valitse uusi kuva
+    imageItem.classList.add('selected');
+    this.selectedLibraryImageUrl = imageItem.dataset.url;
+}
+
+/**
+ * Käsittelee kuvan latauksen
+ * @param {Event} event - Tiedoston lataustapahtuma
+ */
+async handleImageUpload(event) {
+    if (!event.target.files || !event.target.files[0]) return;
+    
+    try {
+        this.showLoader();
+        
+        const file = event.target.files[0];
+        
+        // Luo FormData
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        // Lähetä kuva palvelimelle
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to upload image');
+        }
+        
+        const data = await response.json();
+        
+        // Päivitä kuvakirjasto
+        await this.loadImageLibrary();
+        
+        // Näytä ilmoitus
+        this.showNotification('Image uploaded successfully', 'success');
+        
+        // Tyhjennä tiedostokenttä
+        this.elements.uploadImageInput.value = '';
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        this.showNotification('Error uploading image', 'error');
+    } finally {
+        this.hideLoader();
+    }
+}
+
+/**
+ * Valitsee kuvan kuvakirjastosta
+ */
+selectImageFromLibrary() {
+    if (!this.selectedLibraryImageUrl) {
+        this.showNotification('Please select an image first', 'error');
+        return;
+    }
+    
+    // Aseta kuvan URL lomakkeelle
+    this.elements.editImageUrl.value = this.selectedLibraryImageUrl;
+    
+    // Päivitä esikatselu
+    this.updateImagePreview();
+    
+    // Sulje kuvakirjasto
+    this.closeImageLibrary();
+}
     
     /**
      * Sulkee modaalin
