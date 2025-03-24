@@ -376,112 +376,116 @@ class PopupAdmin {
         }
     }
     
-    /**
-     * Päivittää esikatselun
-     */
-    updatePreview() {
-        const previewContainer = this.elements.editPreview;
-        if (!previewContainer) return;
-        
-        // Tyhjennä aiempi sisältö
-        previewContainer.innerHTML = '';
-        
-        // Hae lomakkeen tiedot
-        const popupType = document.getElementById('editPopupType').value || 'square';
-        const width = parseInt(document.getElementById('editWidth').value) || 200;
-        const height = parseInt(document.getElementById('editHeight').value) || 150;
-        const position = document.getElementById('editPosition').value || 'center';
-        const animation = document.getElementById('editAnimation').value || 'none';
-        const backgroundColor = document.getElementById('editBackgroundColor').value || '#ffffff';
-        const textColor = document.getElementById('editTextColor').value || '#000000';
-        const content = document.getElementById('editContent').value || '';
 
-        const imageUrl = document.getElementById('editImageUrl').value;
-if (imageUrl && popupType === 'image') {
-    // Jos popup on image-tyyppiä, näytä vain kuva
-    previewPopup.style.background = `url(${imageUrl}) no-repeat center center`;
-    previewPopup.style.backgroundSize = 'contain';
-    previewPopup.innerHTML = '';  // Tyhjennä sisältö, vain kuva näytetään
-} else if (imageUrl) {
-    // Muissa popup-tyypeissä näytä sekä teksti että kuva
-    const contentElement = document.createElement('div');
-    contentElement.innerHTML = content;
-    contentElement.style.marginBottom = '10px';
-    previewPopup.appendChild(contentElement);
+/**
+ * Päivittää esikatselun
+ */
+updatePreview() {
+    const previewContainer = this.elements.editPreview;
+    if (!previewContainer) return;
     
-    const imageElement = document.createElement('img');
-    imageElement.src = imageUrl;
-    imageElement.style.maxWidth = '100%';
-    imageElement.style.maxHeight = '50%';
-    imageElement.style.objectFit = 'contain';
-    previewPopup.appendChild(imageElement);
-}
+    // Tyhjennä aiempi sisältö
+    previewContainer.innerHTML = '';
+    
+    // Hae lomakkeen tiedot
+    const popupType = document.getElementById('editPopupType').value || 'square';
+    const width = parseInt(document.getElementById('editWidth').value) || 200;
+    const height = parseInt(document.getElementById('editHeight').value) || 150;
+    const position = document.getElementById('editPosition').value || 'center';
+    const animation = document.getElementById('editAnimation').value || 'none';
+    const backgroundColor = document.getElementById('editBackgroundColor').value || '#ffffff';
+    const textColor = document.getElementById('editTextColor').value || '#000000';
+    const content = document.getElementById('editContent').value || '';
+    
+    // Luo popup-elementti
+    const previewPopup = document.createElement('div');
+    previewPopup.style.width = `${width}px`;
+    previewPopup.style.height = `${height}px`;
+    previewPopup.style.backgroundColor = backgroundColor;
+    previewPopup.style.color = textColor;
+    previewPopup.style.borderRadius = popupType === 'circle' ? '50%' : '4px';
+    previewPopup.style.padding = '10px';
+    previewPopup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+    previewPopup.style.position = 'absolute';
+    previewPopup.style.overflow = 'auto';
+    previewPopup.style.display = 'flex';
+    previewPopup.style.alignItems = 'center';
+    previewPopup.style.justifyContent = 'center';
+    previewPopup.style.textAlign = 'center';
+    
+    // Lisää kuva, jos sellainen on määritetty
+    const imageUrl = document.getElementById('editImageUrl').value;
+    if (imageUrl && popupType === 'image') {
+        // Jos popup on image-tyyppiä, näytä vain kuva
+        previewPopup.style.background = `url(${imageUrl}) no-repeat center center`;
+        previewPopup.style.backgroundSize = 'contain';
+        previewPopup.innerHTML = '';  // Tyhjennä sisältö, vain kuva näytetään
+    } else if (imageUrl) {
+        // Muissa popup-tyypeissä näytä sekä teksti että kuva
+        const contentElement = document.createElement('div');
+        contentElement.innerHTML = content;
+        contentElement.style.marginBottom = '10px';
+        previewPopup.appendChild(contentElement);
         
-        // Luo popup-elementti
-        const previewPopup = document.createElement('div');
-        previewPopup.style.width = `${width}px`;
-        previewPopup.style.height = `${height}px`;
-        previewPopup.style.backgroundColor = backgroundColor;
-        previewPopup.style.color = textColor;
-        previewPopup.style.borderRadius = popupType === 'circle' ? '50%' : '4px';
-        previewPopup.style.padding = '10px';
-        previewPopup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-        previewPopup.style.position = 'absolute';
-        previewPopup.style.overflow = 'auto';
-        previewPopup.style.display = 'flex';
-        previewPopup.style.alignItems = 'center';
-        previewPopup.style.justifyContent = 'center';
-        previewPopup.style.textAlign = 'center';
+        const imageElement = document.createElement('img');
+        imageElement.src = imageUrl;
+        imageElement.style.maxWidth = '100%';
+        imageElement.style.maxHeight = '50%';
+        imageElement.style.objectFit = 'contain';
+        previewPopup.appendChild(imageElement);
+    } else {
+        // Jos kuvaa ei ole, näytä vain teksti
         previewPopup.innerHTML = content;
-        
-        // Aseta sijainti esikatselussa
-        switch (position) {
-            case 'top-left':
-                previewPopup.style.top = '10px';
-                previewPopup.style.left = '10px';
-                break;
-            case 'top-right':
-                previewPopup.style.top = '10px';
-                previewPopup.style.right = '10px';
-                break;
-            case 'bottom-left':
-                previewPopup.style.bottom = '10px';
-                previewPopup.style.left = '10px';
-                break;
-            case 'bottom-right':
-                previewPopup.style.bottom = '10px';
-                previewPopup.style.right = '10px';
-                break;
-            default: // center
-                previewPopup.style.top = '50%';
-                previewPopup.style.left = '50%';
-                previewPopup.style.transform = 'translate(-50%, -50%)';
-        }
-        
-        // Lisää popup esikatseluun
-        previewContainer.appendChild(previewPopup);
-        
-        // Animoi popup, jos animaatio on valittu
-        if (animation !== 'none') {
-            if (animation === 'fade') {
-                previewPopup.style.opacity = '0';
-                previewPopup.style.transition = 'opacity 0.5s ease-in-out';
-                setTimeout(() => {
-                    previewPopup.style.opacity = '1';
-                }, 10);
-            } else if (animation === 'slide') {
-                const originalTransform = previewPopup.style.transform;
-                previewPopup.style.transform = originalTransform + ' translateY(-20px)';
-                previewPopup.style.opacity = '0';
-                previewPopup.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
-                setTimeout(() => {
-                    previewPopup.style.transform = originalTransform;
-                    previewPopup.style.opacity = '1';
-                }, 10);
-            }
-        }
-        
     }
+    
+    // Aseta sijainti esikatselussa
+    switch (position) {
+        case 'top-left':
+            previewPopup.style.top = '10px';
+            previewPopup.style.left = '10px';
+            break;
+        case 'top-right':
+            previewPopup.style.top = '10px';
+            previewPopup.style.right = '10px';
+            break;
+        case 'bottom-left':
+            previewPopup.style.bottom = '10px';
+            previewPopup.style.left = '10px';
+            break;
+        case 'bottom-right':
+            previewPopup.style.bottom = '10px';
+            previewPopup.style.right = '10px';
+            break;
+        default: // center
+            previewPopup.style.top = '50%';
+            previewPopup.style.left = '50%';
+            previewPopup.style.transform = 'translate(-50%, -50%)';
+    }
+    
+    // Lisää popup esikatseluun
+    previewContainer.appendChild(previewPopup);
+    
+    // Animoi popup, jos animaatio on valittu
+    if (animation !== 'none') {
+        if (animation === 'fade') {
+            previewPopup.style.opacity = '0';
+            previewPopup.style.transition = 'opacity 0.5s ease-in-out';
+            setTimeout(() => {
+                previewPopup.style.opacity = '1';
+            }, 10);
+        } else if (animation === 'slide') {
+            const originalTransform = previewPopup.style.transform || '';
+            const slideTransform = originalTransform + (originalTransform ? ' ' : '') + 'translateY(-20px)';
+            previewPopup.style.transform = slideTransform;
+            previewPopup.style.opacity = '0';
+            previewPopup.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
+            setTimeout(() => {
+                previewPopup.style.transform = originalTransform;
+                previewPopup.style.opacity = '1';
+            }, 10);
+        }
+    }
+}
 
     /**
  * Päivittää kuvan esikatselun
