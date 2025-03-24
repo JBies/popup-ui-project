@@ -10,7 +10,90 @@
     <link href="styles.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 
-    
+    <style>
+      /* Modaalityylit */
+      .modal-overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 1000;
+          overflow-y: auto;
+          padding: 2rem;
+      }
+  
+      .modal {
+          background-color: white;
+          border-radius: 0.5rem;
+          max-width: 700px;
+          margin: 0 auto;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+      }
+  
+      .dark .modal {
+          background-color: #1f2937; /* Dark mode bg */
+          color: white;
+      }
+  
+      .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.25rem 1.5rem;
+          background-color: #f9fafb;
+          border-bottom: 1px solid #e5e7eb;
+      }
+  
+      .dark .modal-header {
+          background-color: #111827;
+          border-bottom: 1px solid #374151;
+      }
+  
+      .modal-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin: 0;
+      }
+  
+      .modal-close {
+          background: none;
+          border: none;
+          font-size: 1.25rem;
+          color: #6b7280;
+          cursor: pointer;
+          transition: all 0.3s ease;
+      }
+  
+      .modal-close:hover {
+          color: #111827;
+      }
+  
+      .dark .modal-close:hover {
+          color: #e5e7eb;
+      }
+  
+      .modal-body {
+          padding: 1.5rem;
+      }
+  
+      .modal-footer {
+          display: flex;
+          justify-content: flex-end;
+          gap: 1rem;
+          padding: 1.25rem 1.5rem;
+          background-color: #f9fafb;
+          border-top: 1px solid #e5e7eb;
+      }
+  
+      .dark .modal-footer {
+          background-color: #111827;
+          border-top: 1px solid #374151;
+      }
+  </style>
     <script>
         tailwind.config = {
           darkMode: 'class', // Tämä mahdollistaa dark/light -teeman vaihtamisen
@@ -289,113 +372,125 @@
     
 
     <!-- Edit popup form (hidden by default) -->
-    <div id="editPopupForm" class="popup-form hidden p-4 bg-gray-50 dark:text-white dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600" style="display: none;" >
-        <h3 >Editoi Popup</h3>
-        <form id="updatePopupForm" class="space-y-6 p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-            <input type="hidden" id="editPopupId">
-            <div class="form-group p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                <label for="editPopupName">Popup Name:</label>
-                <input type="text" id="editPopupName" name="popupName" placeholder="Anna selkeä nimi tähän" class="dark bg-dark-700 text-white">
-                <small>Anna popupillesi selkeä nimi missä se sijaitsee</small>
-            </div>
-            <div class="form-group p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                <label for="editPopupType">Popupin Tyyppi:</label>
-                <select id="editPopupType" name="popupType" class="dark bg-dark-700 text-white">
-                    <option value="square">Neliö</option>
-                    <option value="circle">Ympyrä</option>
-                    <option value="image">Pelkkä kuvatiedosto</option>
-                </select>
-            </div>
+<div id="editPopupForm" class="modal-overlay">
+  <div class="modal dark:bg-gray-800">
+      <div class="modal-header dark:bg-gray-900 dark:border-gray-700">
+          <h3 class="modal-title dark:text-white">Editoi Popup</h3>
+          <button type="button" class="modal-close dark:text-gray-400 dark:hover:text-white" id="closeEditModal">×</button>
+      </div>
+      <div class="modal-body dark:bg-gray-800">
+          <form id="updatePopupForm" class="space-y-6">
+              <input type="hidden" id="editPopupId">
+              
+              <div class="form-group p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <label for="editPopupName" class="dark:text-white">Popup Name:</label>
+                  <input type="text" id="editPopupName" name="name" placeholder="Anna selkeä nimi tähän" class="dark:bg-gray-700 dark:text-white">
+                  <small class="dark:text-gray-400">Anna popupillesi selkeä nimi missä se sijaitsee</small>
+              </div>
+              
+              <div class="form-group p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <label for="editPopupType" class="dark:text-white">Popupin Tyyppi:</label>
+                  <select id="editPopupType" name="popupType" class="dark:bg-gray-700 dark:text-white">
+                      <option value="square">Neliö</option>
+                      <option value="circle">Ympyrä</option>
+                      <option value="image">Pelkkä kuvatiedosto</option>
+                  </select>
+              </div>
 
-            <div class="size-controls p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                <label for="editWidth">Leveys (px):</label>
-                <input type="number" id="editWidth" name="width" min="100" max="800" value="200" class="dark bg-dark-700 text-white">
-                
-                <label for="editHeight">Korkeus (px):</label>
-                <input type="number" id="editHeight" name="height" min="100" max="600" value="150" class="dark bg-dark-700 text-white">
-            </div>
+              <div class="size-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <label for="editWidth" class="dark:text-white">Leveys (px):</label>
+                  <input type="number" id="editWidth" name="width" min="100" max="800" value="200" class="dark:bg-gray-700 dark:text-white">
+                  
+                  <label for="editHeight" class="dark:text-white">Korkeus (px):</label>
+                  <input type="number" id="editHeight" name="height" min="100" max="600" value="150" class="dark:bg-gray-700 dark:text-white">
+              </div>
 
-            <div class="position-controls p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600 ">
-                <label for="editPosition">Sijainti nettisivulla:</label>
-                <select id="editPosition" name="position" class="dark bg-dark-700 text-white">
-                    <option value="center">Keskellä</option>
-                    <option value="top-left">vasen yläkulma</option>
-                    <option value="top-right">Oikea yläkulma</option>
-                    <option value="bottom-left">vasen alareuna</option>
-                    <option value="bottom-right">Oikea alareuna</option>
-                </select>
-            </div>
+              <div class="position-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <label for="editPosition" class="dark:text-white">Sijainti nettisivulla:</label>
+                  <select id="editPosition" name="position" class="dark:bg-gray-700 dark:text-white">
+                      <option value="center">Keskellä</option>
+                      <option value="top-left">vasen yläkulma</option>
+                      <option value="top-right">Oikea yläkulma</option>
+                      <option value="bottom-left">vasen alareuna</option>
+                      <option value="bottom-right">Oikea alareuna</option>
+                  </select>
+              </div>
 
-            <div class="animation-controls">
-                <label for="editAnimation">Animaatio:</label>
-                <select id="editAnimation" name="animation" class="dark bg-dark-700 text-white">
-                    <option value="none">Ei mitään</option>
-                    <option value="fade">Haalistuva</option>
-                    <option value="slide">Liuku</option>
-                </select>
-            </div>
+              <div class="animation-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <label for="editAnimation" class="dark:text-white">Animaatio:</label>
+                  <select id="editAnimation" name="animation" class="dark:bg-gray-700 dark:text-white">
+                      <option value="none">Ei mitään</option>
+                      <option value="fade">Haalistuva</option>
+                      <option value="slide">Liuku</option>
+                  </select>
+              </div>
 
-            <div class="color-controls">
-                <label for="editBackgroundColor">Taustaväri:</label>
-                <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff">
-                
-                <label for="editTextColor">Tekstin väri:</label>
-                <input type="color" id="editTextColor" name="textColor" value="#000000">
-            </div>
+              <div class="color-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <label for="editBackgroundColor" class="dark:text-white">Taustaväri:</label>
+                  <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff">
+                  
+                  <label for="editTextColor" class="dark:text-white">Tekstin väri:</label>
+                  <input type="color" id="editTextColor" name="textColor" value="#000000">
+              </div>
 
-            <div class="content-controls">
-                <label for="editContent">Sisältö popupissa (vapaaehtoinen):</label>
-                <textarea class= "dark bg-dark-700 text-white" id="editContent" name="content" rows="4" cols="50"></textarea>
-            </div>
-            <div class="image-controls">
-                <label for="editImage">Kuva:</label>
-                <div class="image-input-controls">
-                    <input type="file" id="editImage" name="image" accept="image/*">
-                    <button type="button" id="editSelectImageBtn" class="select-image-btn">Valitse kirjastosta</button>
-                </div>
-                <div class="image-preview-container" id="editImagePreviewContainer" style="display: none;">
-                    <img id="editImagePreview" src="" alt="Kuvan esikatselu" style="max-width: 100%; max-height: 200px;">
-                    <button type="button" id="editRemoveImage" class="remove-image-btn">Poista kuva</button>
-                </div>
-                <input type="hidden" id="editImageUrl" name="imageUrl">
-            </div>
-            <!-- Linkki eteenpäin -->
-            <div class="form-group">
-                <label for="editLinkUrl">Link URL (Valinnainen):</label>
-                <input type="url" id="editLinkUrl" class="dark bg-dark-700 text-white" name="linkUrl" placeholder="https://example.com">
-                <small>Kun popupia klikataan niin se vie eteenpäin tähän osoitteeseen.</small>
-            </div>
-            <div class="timing-controls p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                <h4>Ajastus asetukset</h4>
-                
-                <div class="form-group">
-                    <label for="editDelay">Minkä ajan kuluttua popup tulee esiin (sekuntteina):</label>
-                    <input type="number" id="editDelay" name="delay" min="0" value="0" class="dark bg-dark-700 text-white">
-                </div>
-            
-                <div class="form-group">
-                    <label for="editShowDuration">Kuinka pitkään popup näkyy (sekuntteina, 0 = kunnes suljetaan):</label>
-                    <input type="number" id="editShowDuration" name="showDuration" min="0" value="0" class="dark bg-dark-700 text-white">
-                </div>
-            
-                <div class="form-group">
-                    <label for="editStartDate">Aloitus päivämäärä:</label>
-                    <input type="datetime-local" id="editStartDate" name="startDate" class="dark bg-dark-700 text-white">
-                </div>
-            
-                <div class="form-group">
-                    <label for="editEndDate">Lopetus päivämäärä (optional):</label>
-                    <input type="datetime-local" id="editEndDate" name="endDate" class="dark bg-dark-700 text-white">
-                </div>
-            </div>
-            <div class="preview" id="editPreview"></div>
-
-            <div class="button-group">
-                <button type="submit" id="updatePopup" class="primary-button">Päivitä popup!</button>
-                <button type="button" id="cancelEdit" class="primary-button">Kumoa muutokset</button>
-            </div>
-        </form>
-    </div>
+              <div class="content-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <label for="editContent" class="dark:text-white">Sisältö popupissa (vapaaehtoinen):</label>
+                  <textarea class="dark:bg-gray-700 dark:text-white" id="editContent" name="content" rows="4" cols="50"></textarea>
+              </div>
+              
+              <div class="image-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <label for="editImage" class="dark:text-white">Kuva:</label>
+                  <div class="image-input-controls">
+                      <input type="file" id="editImage" name="image" accept="image/*" class="dark:bg-gray-700 dark:text-white">
+                      <button type="button" id="editSelectImageBtn" class="select-image-btn dark:bg-gray-700 dark:text-white">Valitse kirjastosta</button>
+                  </div>
+                  <div class="image-preview-container" id="editImagePreviewContainer" style="display: none;">
+                      <img id="editImagePreview" src="" alt="Kuvan esikatselu" style="max-width: 100%; max-height: 200px;">
+                      <button type="button" id="editRemoveImage" class="remove-image-btn">Poista kuva</button>
+                  </div>
+                  <input type="hidden" id="editImageUrl" name="imageUrl">
+              </div>
+              
+              <!-- Linkki eteenpäin -->
+              <div class="form-group p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <label for="editLinkUrl" class="dark:text-white">Link URL (Valinnainen):</label>
+                  <input type="url" id="editLinkUrl" class="dark:bg-gray-700 dark:text-white" name="linkUrl" placeholder="https://example.com">
+                  <small class="dark:text-gray-400">Kun popupia klikataan niin se vie eteenpäin tähän osoitteeseen.</small>
+              </div>
+              
+              <div class="timing-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <h4 class="dark:text-white">Ajastus asetukset</h4>
+                  
+                  <div class="form-group">
+                      <label for="editDelay" class="dark:text-white">Minkä ajan kuluttua popup tulee esiin (sekuntteina):</label>
+                      <input type="number" id="editDelay" name="delay" min="0" value="0" class="dark:bg-gray-700 dark:text-white">
+                  </div>
+              
+                  <div class="form-group">
+                      <label for="editShowDuration" class="dark:text-white">Kuinka pitkään popup näkyy (sekuntteina, 0 = kunnes suljetaan):</label>
+                      <input type="number" id="editShowDuration" name="showDuration" min="0" value="0" class="dark:bg-gray-700 dark:text-white">
+                  </div>
+              
+                  <div class="form-group">
+                      <label for="editStartDate" class="dark:text-white">Aloitus päivämäärä:</label>
+                      <input type="datetime-local" id="editStartDate" name="startDate" class="dark:bg-gray-700 dark:text-white">
+                  </div>
+              
+                  <div class="form-group">
+                      <label for="editEndDate" class="dark:text-white">Lopetus päivämäärä (optional):</label>
+                      <input type="datetime-local" id="editEndDate" name="endDate" class="dark:bg-gray-700 dark:text-white">
+                  </div>
+              </div>
+              
+              <div class="preview p-4 bg-gray-50 dark:bg-gray-900 rounded-md" id="editPreview"></div>
+          </form>
+      </div>
+      <div class="modal-footer dark:bg-gray-900 dark:border-gray-700">
+          <button type="button" id="cancelEdit" class="primary-button">Kumoa muutokset</button>
+          <button type="submit" id="updatePopup" class="primary-button">Päivitä popup!</button>
+      </div>
+  </div>
+</div>
 
 
 

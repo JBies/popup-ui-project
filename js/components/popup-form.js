@@ -377,6 +377,45 @@ class PopupForm {
     // Päivitä esikatselu
     PopupPreview.updatePreview(prefix);
   }
+
+  
 }
+
+// Sulje modaali nappien toiminnot
+document.addEventListener('DOMContentLoaded', function() {
+  // Popup-modaalin sulkeminen
+  const closeEditModalBtn = document.getElementById('closeEditModal');
+  if (closeEditModalBtn) {
+      closeEditModalBtn.addEventListener('click', function() {
+          document.getElementById('editPopupForm').style.display = 'none';
+      });
+  }
+  
+  // Sulje modaali myös napista
+  const cancelEditBtn = document.getElementById('cancelEdit');
+  if (cancelEditBtn) {
+      cancelEditBtn.addEventListener('click', function() {
+          document.getElementById('editPopupForm').style.display = 'none';
+      });
+  }
+  
+  // Jos käyttäjä klikkaa modaalin ulkopuolelle, sulje se
+  const editPopupModal = document.getElementById('editPopupForm');
+  if (editPopupModal) {
+      editPopupModal.addEventListener('click', function(event) {
+          if (event.target === this) {
+              this.style.display = 'none';
+          }
+      });
+  }
+  
+  // Tallenna modaali submit-napista
+  const updatePopupBtn = document.getElementById('updatePopup');
+  if (updatePopupBtn) {
+      updatePopupBtn.addEventListener('click', function() {
+          document.getElementById('updatePopupForm').dispatchEvent(new Event('submit'));
+      });
+  }
+});
 
 export default PopupForm;
