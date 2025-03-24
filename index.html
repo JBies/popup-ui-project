@@ -492,7 +492,35 @@
   </div>
 </div>
 
-
+<script>
+  // Debug-koodi - lisää tämä index.html loppuun
+  document.addEventListener('DOMContentLoaded', () => {
+      // Varmista, että modaali sulkeutuu ja avautuu oikein
+      const editPopupForm = document.getElementById('editPopupForm');
+      if (editPopupForm) {
+          console.log("Edit popup form found, current display:", getComputedStyle(editPopupForm).display);
+          
+          // Testaa että napit toimivat
+          const cancelEdit = document.getElementById('cancelEdit');
+          if (cancelEdit) {
+              cancelEdit.addEventListener('click', () => {
+                  console.log("Cancel edit clicked, hiding form");
+                  editPopupForm.style.display = 'none';
+              });
+          }
+          
+          // Varmista että modaalin ulkopuoli sulkee modaalin
+          editPopupForm.addEventListener('click', (e) => {
+              if (e.target === editPopupForm) {
+                  console.log("Clicked outside modal, hiding form");
+                  editPopupForm.style.display = 'none';
+              }
+          });
+      } else {
+          console.error("Edit popup form element not found!");
+      }
+  });
+  </script>
 
     <!-- Lataa JavaScript ES moduulit -->
     <script type="module" src="js/main.js"></script>

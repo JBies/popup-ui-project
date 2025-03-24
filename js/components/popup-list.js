@@ -142,51 +142,63 @@ class PopupList {
   }
 
   /**
-   * Lisää kortille tapahtumakuuntelijat
-   * @param {HTMLElement} card - Popup-kortin elementti
-   * @param {Object} popup - Popupin tiedot
-   */
-  addCardEventListeners(card, popup) {
-    const detailsBtn = card.querySelector('.details-btn');
-    if (detailsBtn) {
+ * Lisää kortille tapahtumankuuntelijat
+ * @param {HTMLElement} card - Popup-kortin elementti
+ * @param {Object} popup - Popupin tiedot
+ */
+addCardEventListeners(card, popup) {
+  const detailsBtn = card.querySelector('.details-btn');
+  if (detailsBtn) {
       detailsBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        PopupDetails.showPopupDetails(popup);
+          event.preventDefault();
+          event.stopPropagation();
+          PopupDetails.showPopupDetails(popup);
       });
-    }
-
-    const previewBtn = card.querySelector('.preview-btn');
-    if (previewBtn) {
-      previewBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        PopupPreviewModal.previewPopup(popup);
-      });
-    }
-    
-    const editBtn = card.querySelector('.edit-btn');
-    console.log("Searching for edit button in card:", card);
-    console.log("Edit button found:", editBtn);
-    if (editBtn) {
-      editBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        console.log("Edit button clicked for popup:", popup._id);
-        console.log("Popup data:", popup);
-        PopupForm.editPopup(popup._id, popup);
-      });
-    }
-
-    const deleteBtn = card.querySelector('.delete-btn');
-    if (deleteBtn) {
-      deleteBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        this.deletePopup(popup._id);
-      });
-    }
   }
+
+  const previewBtn = card.querySelector('.preview-btn');
+  if (previewBtn) {
+      previewBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          PopupPreviewModal.previewPopup(popup);
+      });
+  }
+  
+  const editBtn = card.querySelector('.edit-btn');
+  if (editBtn) {
+      editBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          console.log('Edit button clicked for popup:', popup._id);
+          
+          // Käytetään PopupForm.editPopup
+          if (typeof PopupForm.editPopup === 'function') {
+              PopupForm.editPopup(popup._id, popup);
+              
+              // Varmista että modaali on näkyvissä
+              setTimeout(() => {
+                  const editForm = document.getElementById('editPopupForm');
+                  if (editForm) {
+                      console.log('Ensuring edit form is visible');
+                      editForm.style.display = 'flex';
+                  }
+              }, 50);
+          } else {
+              console.error('PopupForm.editPopup is not a function');
+          }
+      });
+  }
+
+  const deleteBtn = card.querySelector('.delete-btn');
+  if (deleteBtn) {
+      deleteBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          this.deletePopup(popup._id);
+      });
+  }
+}
 
   /**
    * Poistaa popupin
