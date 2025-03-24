@@ -19,11 +19,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.insertCell().textContent = popup.popupType;
             row.insertCell().textContent = popup.content;
 
+            // Luodaan napit ilman inline-tapahtumankäsittelijöitä
             const actionsCell = row.insertCell();
-            actionsCell.innerHTML = `
-                <button onclick="editPopup('${popup._id}', ${JSON.stringify(popup).replace(/"/g, '&quot;')})">Edit</button>
-                <button onclick="deletePopup('${popup._id}')">Delete</button>
-            `;
+            
+            // Edit-nappi
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.dataset.popupId = popup._id;
+            editButton.dataset.popupData = JSON.stringify(popup);
+            editButton.addEventListener('click', function() {
+                editPopup(this.dataset.popupId, JSON.parse(this.dataset.popupData));
+            });
+            
+            // Delete-nappi
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.dataset.popupId = popup._id;
+            deleteButton.addEventListener('click', function() {
+                deletePopup(this.dataset.popupId);
+            });
+            
+            // Lisätään napit soluun
+            actionsCell.appendChild(editButton);
+            actionsCell.appendChild(document.createTextNode(' ')); // Välilyönti nappien väliin
+            actionsCell.appendChild(deleteButton);
         });
     } catch (error) {
         console.error('Error loading popups:', error);
@@ -250,4 +269,3 @@ function updatePreview(prefix = 'create') {
     previewWrapper.appendChild(previewPopup);
     previewContainer.appendChild(previewWrapper);
 }
-
