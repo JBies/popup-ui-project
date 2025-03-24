@@ -148,12 +148,12 @@ class PopupForm {
         endDate: document.getElementById('editEndDate').value || null
       };
 
+      // Piilota muokkauslomake
+      document.getElementById('editPopupForm').style.display = 'none';
+
       try {
         await API.updatePopup(id, popupData);
         alert('Popup updated successfully!');
-        
-        // Piilota muokkauslomake
-        document.getElementById('editPopupForm').style.display = 'none';
         
         // Jos käytössä on popupien listauskomponentti, päivitä lista
         if (window.fetchUserPopups) {
