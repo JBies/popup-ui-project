@@ -162,9 +162,6 @@ class PopupForm {
         console.error('Error updating popup:', error);
         alert('Failed to update popup');
       }
-
-              // Piilota muokkauslomake
-              document.getElementById('editPopupForm').style.display = 'none';
     });
   }
 
@@ -448,6 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const updatePopupBtn = document.getElementById('updatePopup');
   if (updatePopupBtn) {
       updatePopupBtn.addEventListener('click', function() {
+        e.preventDefault();
           document.getElementById('updatePopupForm').dispatchEvent(new Event('submit'));
       });
       
