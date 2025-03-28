@@ -83,11 +83,6 @@
     function createAndShowPopup(popup) {
         // Hae ja loki timing-tiedot
         const timing = popup.timing || {};
-        // Lisää version numero kuvan URL:iin välimuistin kiertämiseksi
-        const imageUrl = popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');
-        popupElement.style.background = `url("${imageUrl}") no-repeat center center`;
-        popupElement.style.backgroundSize = 'contain';
-        popupElement.style.padding = '0';
         
         // Varmista että delay ja duration ovat numeroita
         let delay = 0;
@@ -139,7 +134,8 @@
         
         // Käsittele "image"-popup-tyyppi erikseen
         if (popup.popupType === 'image' && popup.imageUrl) {
-            popupElement.style.background = `url("${popup.imageUrl}") no-repeat center center`;
+            const imageUrl = popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');
+            popupElement.style.background = `url("${imageUrl}") no-repeat center center`;
             popupElement.style.backgroundSize = 'contain';
             popupElement.style.padding = '0';
             
