@@ -38,6 +38,7 @@ const popupSchema = new mongoose.Schema({
         lastViewed: { type: Date },
         lastClicked: { type: Date }
     },
+    version: { type: Number, default: Date.now },
     createdAt: { type: Date, default: Date.now }
 });
 

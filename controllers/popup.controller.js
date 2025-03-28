@@ -158,6 +158,33 @@ class PopupController {
       }
       
       const oldImageUrl = oldPopup.imageUrl;
+
+      // Tarkista onko kuva vaihtunut
+      const imageChanged = oldPopup.imageUrl !== imageUrl;
+
+      // Päivitä popup
+      const updateData = {
+        name,
+        popupType,
+        content,
+        width,
+        height,
+        position,
+        animation,
+        backgroundColor,
+        textColor,
+        imageUrl,
+        linkUrl,
+        delay,
+        showDuration,
+        startDate,
+        endDate,
+      };
+      
+      // Jos kuva on vaihtunut, päivitä myös versionumero
+      if (imageChanged) {
+        updateData.version = Date.now();
+      }
       
       // Käsittele päivämäärät oikein
       const timingData = {
@@ -189,7 +216,7 @@ class PopupController {
           textColor,
           imageUrl,
           linkUrl,
-          timing: timingData
+          timing: timingData,
         },
         { new: true }
       );
@@ -283,6 +310,11 @@ class PopupController {
           delete cleanPopup.timing.endDate;
         }
       }
+
+      // Add no-cache headers
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
 
       res.json(cleanPopup);
     } catch (err) {

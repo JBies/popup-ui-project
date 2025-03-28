@@ -83,6 +83,11 @@
     function createAndShowPopup(popup) {
         // Hae ja loki timing-tiedot
         const timing = popup.timing || {};
+        // Lisää version numero kuvan URL:iin välimuistin kiertämiseksi
+        const imageUrl = popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');
+        popupElement.style.background = `url("${imageUrl}") no-repeat center center`;
+        popupElement.style.backgroundSize = 'contain';
+        popupElement.style.padding = '0';
         
         // Varmista että delay ja duration ovat numeroita
         let delay = 0;
@@ -269,6 +274,8 @@
                 imageElement.style.maxHeight = '70%';
                 imageElement.style.objectFit = 'contain';
                 contentContainer.appendChild(imageElement);
+                const imageUrl = popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');
+                imageElement.src = imageUrl;
             }
     
             // Lisää sulkunappi
