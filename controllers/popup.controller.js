@@ -407,6 +407,42 @@ class PopupController {
   }
 
   /**
+ * (Admin) Hae popupin tilastot millä tahansa ID:llä
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+static async getAdminPopupStats(req, res) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+
+  try {
+    const popup = await Popup.findById(req.params.id);
+    
+    if (!popup) {
+      return res.status(404).json({ message: 'Popup not found' });
+    }
+    
+    // Laske klikkiprosentti (CTR)
+    let clickThroughRate = 0;
+    if (popup.statistics.views > 0) {
+      clickThroughRate = (popup.statistics.clicks / popup.statistics.views) * 100;
+    }
+    
+    res.json({
+      views: popup.statistics.views || 0,
+      clicks: popup.statistics.clicks || 0,
+      clickThroughRate: clickThroughRate.toFixed(2),
+      lastViewed: popup.statistics.lastViewed || null,
+      lastClicked: popup.statistics.lastClicked || null
+    });
+  } catch (err) {
+    console.error('Error fetching popup statistics:', err);
+    res.status(500).json({ message: 'Error fetching popup statistics', error: err.toString() });
+  }
+}
+
+  /**
    * (Admin) Hae kaikki popupit
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object

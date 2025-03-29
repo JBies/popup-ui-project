@@ -210,7 +210,7 @@ class PopupAdmin {
         });
     }
 
-    /**
+/**
  * Näyttää popupin tilastot modaalissa
  * @param {string} popupId - Popupin ID
  */
@@ -218,8 +218,8 @@ async showPopupStats(popupId) {
     try {
         this.showLoader();
         
-        // Hae popup tilastot
-        const response = await fetch(`/api/popups/stats/${popupId}`);
+        // Käytä admin-reittiä tilastojen hakuun (tämä toimii kaikille popupeille)
+        const response = await fetch(`/api/admin/popups/stats/${popupId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -230,6 +230,17 @@ async showPopupStats(popupId) {
         const popup = this.popups.find(p => p._id === popupId);
         if (!popup) {
             throw new Error(`Popup not found with ID: ${popupId}`);
+        }
+        
+        // Hae käyttäjän tiedot popupista (id ja nimi)
+        let userInfoHtml = '';
+        if (popup.userId) {
+            userInfoHtml = `
+                <tr>
+                    <td class="py-1 pr-4 font-medium">User ID:</td>
+                    <td class="py-1">${popup.userId}</td>
+                </tr>
+            `;
         }
         
         // Muotoile päivämäärät
@@ -268,6 +279,7 @@ async showPopupStats(popupId) {
                         <td class="py-1 pr-4 font-medium">ID:</td>
                         <td class="py-1">${popup._id}</td>
                     </tr>
+                    ${userInfoHtml}
                     <tr>
                         <td class="py-1 pr-4 font-medium">Type:</td>
                         <td class="py-1">${popup.popupType}</td>
