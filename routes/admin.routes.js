@@ -57,4 +57,11 @@ router.put('/popups/:id', isAdmin, PopupController.adminUpdatePopup);
  */
 router.post('/users/update-limit/:id', isAdmin, UserController.updateUserPopupLimit);
 
+/**
+ * @route   GET /api/admin/popups/stats/:id
+ * @desc    Hakee popupin tilastot (vain admin)
+ * @access  Admin
+ */
+router.get('/popups/stats/:id', isAdmin, PopupController.getAdminPopupStats);
+
 module.exports = router;
