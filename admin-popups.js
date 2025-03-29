@@ -181,22 +181,21 @@ class PopupAdmin {
             const actionsCell = document.createElement('td');
             actionsCell.className = 'actions';
 
-            // Info/tilastot-nappi
-            const infoButton = document.createElement('button');
-            infoButton.className = 'btn btn-sm';
-            infoButton.innerHTML = '<i class="fas fa-chart-bar"></i> Stats'; // Muokattu ikoniksi ja tekstiksi
-            infoButton.addEventListener('click', () => this.showPopupStats(popup._id));
-            actionsCell.appendChild(infoButton);
-            
-            // Pieni väli nappien väliin
-            actionsCell.appendChild(document.createTextNode(' '));
-            
+
+                        
             // Muokkausnappi
             const editButton = document.createElement('button');
             editButton.className = 'btn btn-primary btn-sm';
             editButton.innerHTML = '<i class="fas fa-edit"></i> Edit';
             editButton.addEventListener('click', () => this.editPopup(popup._id));
             actionsCell.appendChild(editButton);
+
+            // Info/tilastot-nappi
+            const infoButton = document.createElement('button');
+            infoButton.className = 'btn btn-sm';
+            infoButton.innerHTML = '<i class="fas fa-chart-bar"></i> Stats'; // Muokattu ikoniksi ja tekstiksi
+            infoButton.addEventListener('click', () => this.showPopupStats(popup._id));
+            actionsCell.appendChild(infoButton);
             
             // Poistonappi
             const deleteButton = document.createElement('button');
