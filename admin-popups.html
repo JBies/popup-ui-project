@@ -453,6 +453,104 @@
                 display: flex;
                 gap: 0.5rem;
             }
+            /* Tilastonäkymän tyylit */
+    .stats-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .stats-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .stats-section h4 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.375rem;
+        border-bottom: 1px solid var(--gray-200);
+        color: var(--gray-800);
+    }
+    
+    .stats-section table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .stats-section td {
+        padding: 0.5rem 0;
+    }
+    
+    .stats-section td:first-child {
+        font-weight: 500;
+        color: var(--gray-700);
+        width: 40%;
+    }
+    
+    /* Embed koodi */
+    .stats-section pre {
+        background-color: var(--gray-100);
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        font-family: monospace;
+        font-size: 0.875rem;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: var(--gray-800);
+    }
+    
+    /* Dark mode tuki */
+    .dark .stats-section h4 {
+        border-bottom-color: var(--gray-700);
+        color: var(--gray-200);
+    }
+    
+    .dark .stats-section td:first-child {
+        color: var(--gray-300);
+    }
+    
+    .dark .stats-section pre {
+        background-color: var(--gray-800);
+        color: var(--gray-200);
+    }
+    
+    .mb-4 {
+        margin-bottom: 1rem;
+    }
+    
+    .w-full {
+        width: 100%;
+    }
+    
+    .py-1 {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+    
+    .pr-4 {
+        padding-right: 1rem;
+    }
+    
+    .font-medium {
+        font-weight: 500;
+    }
+    
+    .mb-2 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .text-lg {
+        font-size: 1.125rem;
+    }
+    
+    /* Stats-napin tyylit */
+    .btn-stats {
+        background-color: #6366f1; /* Indigo */
+        color: white;
+    }
+    
+    .btn-stats:hover {
+        background-color: #4f46e5;
+    }
         }
     </style>
 </head>

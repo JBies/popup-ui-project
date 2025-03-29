@@ -180,6 +180,16 @@ class PopupAdmin {
             // Toiminnot
             const actionsCell = document.createElement('td');
             actionsCell.className = 'actions';
+
+            // Info/tilastot-nappi
+            const infoButton = document.createElement('button');
+            infoButton.className = 'btn btn-sm';
+            infoButton.innerHTML = '<i class="fas fa-chart-bar"></i> Stats'; // Muokattu ikoniksi ja tekstiksi
+            infoButton.addEventListener('click', () => this.showPopupStats(popup._id));
+            actionsCell.appendChild(infoButton);
+            
+            // Pieni väli nappien väliin
+            actionsCell.appendChild(document.createTextNode(' '));
             
             // Muokkausnappi
             const editButton = document.createElement('button');
@@ -200,6 +210,152 @@ class PopupAdmin {
             this.elements.popupsTableBody.appendChild(row);
         });
     }
+
+    /**
+ * Näyttää popupin tilastot modaalissa
+ * @param {string} popupId - Popupin ID
+ */
+async showPopupStats(popupId) {
+    try {
+        this.showLoader();
+        
+        // Hae popup tilastot
+        const response = await fetch(`/api/popups/stats/${popupId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const stats = await response.json();
+        
+        // Hae popup tiedot
+        const popup = this.popups.find(p => p._id === popupId);
+        if (!popup) {
+            throw new Error(`Popup not found with ID: ${popupId}`);
+        }
+        
+        // Muotoile päivämäärät
+        const formatDate = (dateStr) => {
+            if (!dateStr) return 'Ei koskaan';
+            return new Date(dateStr).toLocaleString();
+        };
+        
+        // Luo modaali
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'modal-overlay';
+        modalOverlay.style.display = 'flex';
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.maxWidth = '600px';
+        
+        // Otsikko
+        const modalHeader = document.createElement('div');
+        modalHeader.className = 'modal-header';
+        modalHeader.innerHTML = `
+            <h3 class="modal-title">Popup Statistics - ${popup.name || 'Unnamed Popup'}</h3>
+            <button type="button" class="modal-close">×</button>
+        `;
+        
+        // Sisältö
+        const modalBody = document.createElement('div');
+        modalBody.className = 'modal-body';
+        
+        // Perusinfot
+        modalBody.innerHTML = `
+            <div class="stats-section mb-4">
+                <h4 class="text-lg font-medium mb-2">Popup Details</h4>
+                <table class="w-full border-collapse">
+                    <tr>
+                        <td class="py-1 pr-4 font-medium">ID:</td>
+                        <td class="py-1">${popup._id}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 pr-4 font-medium">Type:</td>
+                        <td class="py-1">${popup.popupType}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 pr-4 font-medium">Created:</td>
+                        <td class="py-1">${formatDate(popup.createdAt)}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="stats-section mb-4">
+                <h4 class="text-lg font-medium mb-2">Performance</h4>
+                <table class="w-full border-collapse">
+                    <tr>
+                        <td class="py-1 pr-4 font-medium">Views:</td>
+                        <td class="py-1">${stats.views || 0}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 pr-4 font-medium">Clicks:</td>
+                        <td class="py-1">${stats.clicks || 0}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 pr-4 font-medium">Click Rate:</td>
+                        <td class="py-1">${stats.clickThroughRate || 0}%</td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 pr-4 font-medium">Last Viewed:</td>
+                        <td class="py-1">${formatDate(stats.lastViewed)}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 pr-4 font-medium">Last Clicked:</td>
+                        <td class="py-1">${formatDate(stats.lastClicked)}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="stats-section">
+                <h4 class="text-lg font-medium mb-2">Embed Code</h4>
+                <div class="p-3 bg-gray-100 rounded">
+                    <pre style="white-space: pre-wrap; word-break: break-all; font-size: 12px; font-family: monospace;"><code>&lt;script src="https://popupmanager.net/popup-embed.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.addEventListener('load', function() {
+    ShowPopup('${popup._id}');
+  });
+&lt;/script&gt;</code></pre>
+                </div>
+            </div>
+        `;
+        
+        // Footer
+        const modalFooter = document.createElement('div');
+        modalFooter.className = 'modal-footer';
+        modalFooter.innerHTML = `
+            <button type="button" class="btn">Close</button>
+        `;
+        
+        // Kokoa modaali
+        modal.appendChild(modalHeader);
+        modal.appendChild(modalBody);
+        modal.appendChild(modalFooter);
+        modalOverlay.appendChild(modal);
+        
+        // Lisää modaali DOMiin
+        document.body.appendChild(modalOverlay);
+        
+        // Lisää tapahtumankuuntelijat
+        const closeButton = modalHeader.querySelector('.modal-close');
+        const closeBtn = modalFooter.querySelector('.btn');
+        const closeModal = () => {
+            document.body.removeChild(modalOverlay);
+        };
+        
+        closeButton.addEventListener('click', closeModal);
+        closeBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+    } catch (error) {
+        console.error('Error loading popup stats:', error);
+        this.showNotification('Error loading popup statistics', 'error');
+    } finally {
+        this.hideLoader();
+    }
+}
     
     /**
      * Avaa muokkausmodaalin
