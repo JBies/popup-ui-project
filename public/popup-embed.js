@@ -2,13 +2,14 @@
 (function() {
     // API-palvelimen URL
     const API_BASE_URL = 'https://popupmanager.net';
-    // Popup Manager
+    // Näytetään popup vain kerran per istunto
     window.ShowPopup = async function(popupId) {
         try {
-            console.log("ShowPopup called with ID:", popupId);
+            console.log("ShowPopup called with ID:", popupId); // Debug
             
             // Hae popup data API:sta
-            const url = `${API_BASE_URL}/api/popups/embed/${popupId}`;
+            const baseUrl = window.location.origin;
+            const url = `${baseUrl}/api/popups/embed/${popupId}`;
             console.log("Fetching popup data from:", url);
             
             const response = await fetch(url);
@@ -19,20 +20,23 @@
             
             console.log("Received popup data:", popup); // Debug
             
-            // Rekisteröi näyttökerta
+            // Tarkista ajastusasetukset (päivämäärät)
+            if (!shouldShowPopup(popup)) {
+                console.log("Popup not shown due to timing settings");
+                return; // Popup ei näytetä ajastuksen takia, joten lopetetaan tähän
+            }
+            
+            // Rekisteröi näyttökerta - VAIN jos popup todella näytetään
             try {
-                await fetch(`${API_BASE_URL}/api/popups/view/${popupId}`, { method: 'POST' });
+                await fetch(`${baseUrl}/api/popups/view/${popupId}`, { method: 'POST' });
                 console.log("View registered for popup:", popupId);
             } catch (statsError) {
                 console.error("Failed to register view:", statsError);
                 // Jatketaan silti, tilastojen epäonnistuminen ei estä popupia näkymästä
             }
-
-            // Tarkista vain ajastusasetukset (päivämäärät)
-            if (!shouldShowPopup(popup)) return;
-
+    
             // Luo popup elementti
-            createAndShowPopup(popup, popupId);
+            createAndShowPopup(popup);
         } catch (error) {
             console.error('Error showing popup:', error);
         }
