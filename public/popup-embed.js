@@ -147,8 +147,9 @@
             const closeButton = document.createElement('div');
             closeButton.innerHTML = "×";
             closeButton.style.position = 'absolute';
-            closeButton.style.top = '10px';
-            closeButton.style.right = '10px';
+            closeButton.style.top = '-30px';
+            closeButton.style.left = '50%';
+            closeButton.style.transform = 'translateX(-50%)';
             closeButton.style.cursor = 'pointer';
             closeButton.style.fontSize = '24px';
             closeButton.style.fontWeight = 'bold';
