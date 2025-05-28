@@ -8,26 +8,26 @@
 
 /**
  * @swagger
- * /auth/login:
- *   post:
- *     summary: Kirjaa käyttäjän sisään sähköpostilla ja salasanalla
+ * /auth/google:
+ *   get:
+ *     summary: Aloittaa Google-autentikaation
  *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
+ *     description: Ohjaa käyttäjän Google-kirjautumissivulle
  *     responses:
- *       200:
- *         description: Kirjautuminen onnistui
- *       401:
- *         description: Virheellinen sähköposti tai salasana
+ *       302:
+ *         description: Uudelleenohjaus Google OAuth -palveluun
+ */
+
+/**
+ * @swagger
+ * /auth/google/callback:
+ *   get:
+ *     summary: Google-autentikaation callback
+ *     tags: [Auth]
+ *     description: Käsittelee Google-autentikaation vastauksen
+ *     responses:
+ *       302:
+ *         description: Uudelleenohjaus sovelluksen etusivulle kirjautumisen jälkeen
  */
 
 /**
