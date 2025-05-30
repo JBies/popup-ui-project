@@ -151,10 +151,18 @@
             closeButton.style.left = '50%';
             closeButton.style.transform = 'translateX(-50%)';
             closeButton.style.cursor = 'pointer';
-            closeButton.style.fontSize = '24px';
+            closeButton.style.fontSize = '26px';
+            closeButton.style.width = '30px';
+            closeButton.style.height = '30px';
+            closeButton.style.display = 'flex';
+            closeButton.style.alignItems = 'center';
+            closeButton.style.justifyContent = 'center';
             closeButton.style.fontWeight = 'bold';
-            closeButton.style.color = '#ffffff'; // Valkoinen sulkunappi näkyy paremmin kuvan päällä
-            closeButton.style.textShadow = '0 0 3px rgba(0,0,0,0.5)'; // Varjo näkyvyyden parantamiseksi
+            closeButton.style.color = '#ffffff';
+            closeButton.style.backgroundColor = '#000000';
+            closeButton.style.borderRadius = '50%';
+            closeButton.style.border = '2px solid #000000';
+            closeButton.style.textShadow = '0 0 3px rgba(0,0,0,0.5)';
             closeButton.onclick = function(e) {
                 e.stopPropagation(); // Estä klikkauksen leviäminen popupiin
                 closePopup(popup._id);
