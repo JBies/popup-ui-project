@@ -70,18 +70,51 @@ class PopupPreviewModal {
       
       // Lisää sulkupainike
       const closeBtn = document.createElement('button');
-      closeBtn.className = 'absolute -top-10 right-0 bg-white dark:bg-dark-800 text-dark-800 dark:text-white px-4 py-2 rounded-md shadow-md hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors';
-      closeBtn.textContent = 'Sulje esikatselu';
+      closeBtn.className = 'absolute -top-10 right-0 bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg hover:bg-red-600 transition-colors';
+      closeBtn.textContent = '×';
       
-      // Lisää INFO-teksti
-      const infoText = document.createElement('div');
-      infoText.className = 'absolute -top-10 left-0 text-white text-sm';
-      infoText.textContent = 'Esikatselutila';
+      // Lisää INFO-teksti ja tilastot
+      const infoContainer = document.createElement('div');
+      infoContainer.className = 'absolute -top-10 left-0 flex items-center gap-4';
+      
+      const statsText = document.createElement('div');
+      statsText.className = 'text-white text-sm';
+      statsText.innerHTML = `
+        Esikatselutila<br>
+        Näyttökerrat: ${popup.views || 0}<br>
+        Klikkaukset: ${popup.clicks || 0}<br>
+        Klikkausprosentti: ${popup.clickRate ? (popup.clickRate * 100).toFixed(1) + '%' : '0%'}
+      `;
+      
+      const resetBtn = document.createElement('button');
+      resetBtn.className = 'bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors';
+      resetBtn.textContent = 'Nollaa tilastot';
+      
+      resetBtn.addEventListener('click', async () => {
+        const confirmed = confirm('Haluatko varmasti nollata tilastot?');
+        if (confirmed) {
+          try {
+            // Tähän tulee API-kutsu tilastojen nollaamiseen
+            alert('Tilastot nollattu');
+            // Päivitä näytettävät tilastot
+            statsText.innerHTML = statsText.innerHTML.replace(
+              /Näyttökerrat: \d+<br>Klikkaukset: \d+<br>Klikkausprosentti: [\d.]+%/,
+              `Näyttökerrat: 0<br>Klikkaukset: 0<br>Klikkausprosentti: 0%`
+            );
+          } catch (error) {
+            console.error('Tilastojen nollaaminen epäonnistui:', error);
+            alert('Tilastojen nollaaminen epäonnistui');
+          }
+        }
+      });
+      
+      infoContainer.appendChild(statsText);
+      infoContainer.appendChild(resetBtn);
       
       // Kokoa kaikki elementit
       previewContainer.appendChild(previewPopup);
       previewContainer.appendChild(closeBtn);
-      previewContainer.appendChild(infoText);
+      previewContainer.appendChild(infoContainer);
       overlay.appendChild(previewContainer);
       document.body.appendChild(overlay);
       
