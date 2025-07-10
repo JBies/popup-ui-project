@@ -198,6 +198,7 @@ class PopupDetails {
             try {
               await API.resetPopupStats(popupId);
               this.loadPopupStats(popupId); // Päivitä tilastot
+              alert('Tilastot nollattu onnistuneesti');
             } catch (error) {
               console.error('Tilastojen nollaaminen epäonnistui:', error);
               alert('Tilastojen nollaaminen epäonnistui');

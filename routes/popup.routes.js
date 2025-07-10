@@ -35,6 +35,13 @@ router.get('/embed/:id', PopupController.getEmbedPopup);
 router.get('/stats/:id', PopupController.getPopupStats);
 
 /**
+ * @route   POST /api/popups/stats/:id/reset
+ * @desc    Nollaa popupin tilastot
+ * @access  Private
+ */
+router.post('/stats/:id/reset', PopupController.resetStats);
+
+/**
  * @route   POST /api/popups/view/:id
  * @desc    Rekisteröi popupin näyttökerran
  * @access  Public
