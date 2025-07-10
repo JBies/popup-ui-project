@@ -170,7 +170,7 @@ class PopupDetails {
       const statsContainer = document.getElementById(`details-stats-${popupId}`);
       if (statsContainer) {
         statsContainer.innerHTML = `
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-2 gap-2 mb-4">
             <div class="text-gray-600 dark:text-gray-400">Näyttökerrat:</div>
             <div class="text-gray-900 dark:text-white">${stats.views}</div>
             
@@ -186,7 +186,24 @@ class PopupDetails {
             <div class="text-gray-600 dark:text-gray-400">Viimeksi klikattu:</div>
             <div class="text-gray-900 dark:text-white">${lastClicked}</div>
           </div>
+          <button id="reset-stats-btn" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded transition-colors">
+            Nollaa tilastot
+          </button>
         `;
+
+        // Lisää reset-napin toiminnallisuus
+        document.getElementById('reset-stats-btn').addEventListener('click', async () => {
+          const confirmed = confirm('Haluatko varmasti nollata tilastot?');
+          if (confirmed) {
+            try {
+              await API.resetPopupStats(popupId);
+              this.loadPopupStats(popupId); // Päivitä tilastot
+            } catch (error) {
+              console.error('Tilastojen nollaaminen epäonnistui:', error);
+              alert('Tilastojen nollaaminen epäonnistui');
+            }
+          }
+        });
       }
     } catch (error) {
       console.error(`Error loading stats for popup ${popupId}:`, error);
