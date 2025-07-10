@@ -188,6 +188,30 @@ class API {
       
       return await response.json();
     }
+
+    /**
+     * Nollaa popupin tilastot
+     * @param {string} popupId - Popupin ID
+     * @returns {Promise<Object>} Vastaus palvelimelta
+     */
+    static async resetPopupStats(popupId) {
+      const response = await fetch(`/api/popups/stats/${popupId}/reset`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Et ole kirjautunut sisään tai sessiosi on vanhentunut');
+        }
+        throw new Error(`Virhe tilastojen nollaamisessa: ${response.status}`);
+      }
+
+      return await response.json();
+    }
   
     /**
      * Kirjautuu ulos sovelluksesta
