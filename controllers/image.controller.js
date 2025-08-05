@@ -101,22 +101,26 @@ class ImageController {
         }
       });
   
-      // Tee tiedosto julkisesti saatavaksi ja hae URL
-      await bucket.file(firebasePath).makePublic();
-      const imageUrl = `https://storage.googleapis.com/${bucket.name}/${firebasePath}`;
-  
-      console.log("File uploaded successfully, URL:", imageUrl);
-  
+      // Generoi allekirjoitettu URL joka vanhenee 24 tunnissa
+      const [signedUrl] = await bucket.file(firebasePath).getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+        version: 'v4'
+      });
+
+      console.log("File uploaded successfully, signed URL:", signedUrl);
+
       // Poista väliaikainen tiedosto
       fs.unlinkSync(filePath);
-  
+
       // Tallenna kuvan tiedot tietokantaan
       const newImage = new Image({
         userId: req.user._id,
         name: req.file.originalname,
-        url: imageUrl,
+        url: signedUrl,
         size: req.file.size,
-        mimeType: req.file.mimetype
+        mimeType: req.file.mimetype,
+        firebasePath: firebasePath // Store path for future URL regeneration
       });
   
       await newImage.save();
@@ -168,9 +172,22 @@ class ImageController {
     try {
       const images = await Image.find({ userId: req.user._id })
         .sort({ createdAt: -1 }) // Uusimmat ensin
-        .select('name url size createdAt'); // Valitse vain tarvittavat kentät
+        .select('name url size createdAt firebasePath'); // Valitse vain tarvittavat kentät
+
+      // Regenerate signed URLs for each image
+      const imagesWithUrls = await Promise.all(images.map(async (image) => {
+        const [signedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
+          action: 'read',
+          expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+          version: 'v4'
+        });
+        return {
+          ...image.toObject(),
+          url: signedUrl
+        };
+      }));
       
-      res.json(images);
+      res.json(imagesWithUrls);
     } catch (error) {
       console.error('Virhe kuvien haussa:', error);
       res.status(500).json({ message: 'Virhe kuvien haussa', error: error.message });
@@ -206,8 +223,18 @@ class ImageController {
         }).select('_id popupType content createdAt');
       }
   
+      // Generate new signed URL for the image
+      const [signedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+        version: 'v4'
+      });
+
       res.json({
-        image,
+        image: {
+          ...image.toObject(),
+          url: signedUrl
+        },
         popups
       });
     } catch (error) {
@@ -246,9 +273,7 @@ class ImageController {
       }
   
       // Poista kuva Firebasesta
-      const urlParts = image.url.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const firebasePath = `popupImages/${fileName}`;
+      const firebasePath = image.firebasePath;
       
       try {
         await bucket.file(firebasePath).delete();
