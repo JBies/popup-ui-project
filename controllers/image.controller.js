@@ -176,15 +176,27 @@ class ImageController {
 
       // Regenerate signed URLs for each image
       const imagesWithUrls = await Promise.all(images.map(async (image) => {
-        const [signedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
-          action: 'read',
-          expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-          version: 'v4'
-        });
-        return {
-          ...image.toObject(),
-          url: signedUrl
-        };
+        // Jos firebasePath on määritelty, generoi uusi allekirjoitettu URL
+        if (image.firebasePath) {
+          try {
+            const [signedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
+              action: 'read',
+              expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+              version: 'v4'
+            });
+            return {
+              ...image.toObject(),
+              url: signedUrl
+            };
+          } catch (firebaseError) {
+            console.error('Firebase signed URL generation error:', firebaseError);
+            // Palauta vanha URL jos uuden generointi epäonnistuu
+            return image.toObject();
+          }
+        } else {
+          // Vanhoille kuville ilman firebasePath:tä, käytä olemassa olevaa URL:ia
+          return image.toObject();
+        }
       }));
       
       res.json(imagesWithUrls);
