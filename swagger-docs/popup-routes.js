@@ -50,8 +50,8 @@
  *                 example: Etusivun tervehdys
  *               popupType:
  *                 type: string
- *                 enum: [square, circle, image]
- *                 description: Popupin tyyppi
+ *                 enum: [square, circle, image, stats_only]
+ *                 description: Popupin tyyppi (square, circle, image, stats_only)
  *                 example: square
  *               content:
  *                 type: string
@@ -286,7 +286,7 @@
  *                 type: string
  *               popupType:
  *                 type: string
- *                 enum: [square, circle, image]
+ *                 enum: [square, circle, image, stats_only]
  *               content:
  *                 type: string
  *               width:
