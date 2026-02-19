@@ -235,12 +235,21 @@ class ImageController {
         }).select('_id popupType content createdAt');
       }
   
-      // Generate new signed URL for the image
-      const [signedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
-        action: 'read',
-        expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-        version: 'v4'
-      });
+      // Generate new signed URL for the image if firebasePath exists
+      let signedUrl = image.url; // Use existing URL as fallback
+      if (image.firebasePath) {
+        try {
+          const [newSignedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
+            action: 'read',
+            expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+            version: 'v4'
+          });
+          signedUrl = newSignedUrl;
+        } catch (firebaseError) {
+          console.error('Firebase signed URL generation error:', firebaseError);
+          // Keep existing URL if generation fails
+        }
+      }
 
       res.json({
         image: {
