@@ -170,10 +170,10 @@
             closeButton.style.borderRadius = '50%';
             closeButton.style.border = '2px solid #000000';
             closeButton.style.textShadow = '0 0 3px rgba(0,0,0,0.5)';
-            closeButton.onclick = function(e) {
+            closeButton.addEventListener('click', function(e) {
                 e.stopPropagation(); // Estä klikkauksen leviäminen popupiin
                 closePopup(popup._id);
-            };
+            });
             popupElement.appendChild(closeButton);
         } else {
             // Muussa tapauksessa käytetään normaalia popupia
@@ -304,10 +304,10 @@
             closeButton.style.fontSize = '24px';
             closeButton.style.fontWeight = 'bold';
             closeButton.style.color = popup.textColor;
-            closeButton.onclick = function(e) {
+            closeButton.addEventListener('click', function(e) {
                 e.stopPropagation(); // Estä klikkauksen leviäminen popupiin
                 closePopup(popup._id);
-            };
+            });
             contentContainer.appendChild(closeButton);
     
             // Lisää sisältökontaineri popupiin
