@@ -127,7 +127,7 @@ class ImageController {
       
       // Tallenna tulos väliaikaismuistiin
       const result = { 
-        imageUrl,
+        imageUrl: signedUrl,
         imageId: newImage._id,
         name: newImage.name,
         size: newImage.size
