@@ -83,7 +83,7 @@ app.use('/admin-popups.html', (req, res, next) => {
     next();
   });
 
-// Tuotannon turvallisuusmekanismit
+    // Tuotannon turvallisuusmekanismit
 if (isProduction) {
     // Helmetin perusasetus, mutta sallitaan tarvittavat ulkoiset resurssit
     app.use(
@@ -92,6 +92,7 @@ if (isProduction) {
           directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com"],
+            scriptSrcAttr: ["'unsafe-inline'"], // Salli inline event handlerit
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
             imgSrc: ["'self'", "data:", "blob:", "https://storage.googleapis.com", "https://lh3.googleusercontent.com"],
