@@ -14,17 +14,22 @@ class FormValidation {
       const errors = [];
       let isValid = true;
       
-      // Tarkista, että vähintään content tai imageUrl on annettu
-      if ((!formData.content || formData.content.trim() === '') && 
-          (!formData.imageUrl || formData.imageUrl.trim() === '')) {
-        errors.push('Popupissa on oltava joko sisältöä tai kuva');
-        isValid = false;
-      }
-      
-      // Jos tyyppi on "image", kuva on pakollinen
-      if (formData.popupType === 'image' && (!formData.imageUrl || formData.imageUrl.trim() === '')) {
-        errors.push('Kuva on pakollinen, kun popupin tyyppi on "Image"');
-        isValid = false;
+      // Tilastojenkerääjä-tyyppi ei tarvitse sisältöä eikä kuvaa
+      if (formData.popupType === 'stats_only') {
+        // Ei validointia sisällölle tai kuville
+      } else {
+        // Tarkista, että vähintään content tai imageUrl on annettu
+        if ((!formData.content || formData.content.trim() === '') && 
+            (!formData.imageUrl || formData.imageUrl.trim() === '')) {
+          errors.push('Popupissa on oltava joko sisältöä tai kuva');
+          isValid = false;
+        }
+        
+        // Jos tyyppi on "image", kuva on pakollinen
+        if (formData.popupType === 'image' && (!formData.imageUrl || formData.imageUrl.trim() === '')) {
+          errors.push('Kuva on pakollinen, kun popupin tyyppi on "Image"');
+          isValid = false;
+        }
       }
       
       // Tarkista, että leveys ja korkeus ovat sallituissa rajoissa

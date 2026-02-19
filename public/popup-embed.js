@@ -35,6 +35,13 @@
                 // Jatketaan silti, tilastojen epäonnistuminen ei estä popupia näkymästä
             }
     
+            // Tarkista popup-tyyppi
+            if (popup.popupType === 'stats_only') {
+                console.log("Stats-only popup detected, not showing visual popup");
+                // Tilastojenkerääjä-popup ei näytä visuaalista popuppia
+                return;
+            }
+    
             // Luo popup elementti
             createAndShowPopup(popup);
         } catch (error) {
