@@ -176,8 +176,8 @@ class ImageController {
 
       // Regenerate signed URLs for each image
       const imagesWithUrls = await Promise.all(images.map(async (image) => {
-        // Jos firebasePath on määritelty, generoi uusi allekirjoitettu URL
-        if (image.firebasePath) {
+        // Jos firebasePath on määritelty ja ei tyhjä, generoi uusi allekirjoitettu URL
+        if (image.firebasePath && image.firebasePath.trim() !== '') {
           try {
             const [signedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
               action: 'read',
@@ -235,9 +235,9 @@ class ImageController {
         }).select('_id popupType content createdAt');
       }
   
-      // Generate new signed URL for the image if firebasePath exists
+      // Generate new signed URL for the image if firebasePath exists and is not empty
       let signedUrl = image.url; // Use existing URL as fallback
-      if (image.firebasePath) {
+      if (image.firebasePath && image.firebasePath.trim() !== '') {
         try {
           const [newSignedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
             action: 'read',
