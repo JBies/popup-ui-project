@@ -123,7 +123,8 @@ class PopupForm {
         return;
       }
       
-      if (!content && !imageUrl) {
+      // Tilastojenkerääjä-tyyppi ei tarvitse sisältöä eikä kuvaa
+      if (popupType !== 'stats_only' && !content && !imageUrl) {
         alert('Joko sisältö tai kuva on pakollinen');
         return;
       }

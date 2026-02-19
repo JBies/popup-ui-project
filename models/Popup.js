@@ -52,6 +52,13 @@ popupSchema.pre('save', function(next) {
         linkUrl: this.linkUrl
     });
     
+    // Tilastojenkerääjä-tyyppi ei tarvitse sisältöä eikä kuvaa
+    if (this.popupType === 'stats_only') {
+        console.log("Stats-only popup validation passed");
+        next();
+        return;
+    }
+    
     // Tarkista että vähintään joko content tai imageUrl on annettu
     if ((!this.content || this.content.trim() === '') && 
         (!this.imageUrl || this.imageUrl.trim() === '')) {
