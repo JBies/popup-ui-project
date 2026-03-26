@@ -398,7 +398,8 @@ class PopupController {
         clicks: popup.statistics.clicks || 0,
         clickThroughRate: clickThroughRate.toFixed(2),
         lastViewed: popup.statistics.lastViewed || null,
-        lastClicked: popup.statistics.lastClicked || null
+        lastClicked: popup.statistics.lastClicked || null,
+        statsResetAt: popup.statistics.statsResetAt || null
       });
     } catch (err) {
       console.error('Error fetching popup statistics:', err);
@@ -434,7 +435,8 @@ class PopupController {
         clicks: popup.statistics.clicks || 0,
         clickThroughRate: clickThroughRate.toFixed(2),
         lastViewed: popup.statistics.lastViewed || null,
-        lastClicked: popup.statistics.lastClicked || null
+        lastClicked: popup.statistics.lastClicked || null,
+        statsResetAt: popup.statistics.statsResetAt || null
       });
     } catch (err) {
       console.error('Error fetching popup statistics:', err);
@@ -463,7 +465,8 @@ class PopupController {
             'statistics.views': 0,
             'statistics.clicks': 0,
             'statistics.lastViewed': null,
-            'statistics.lastClicked': null
+            'statistics.lastClicked': null,
+            'statistics.statsResetAt': new Date()
           }
         },
         { new: true }

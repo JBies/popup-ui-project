@@ -36,7 +36,8 @@ const popupSchema = new mongoose.Schema({
         views: { type: Number, default: 0 },
         clicks: { type: Number, default: 0 },
         lastViewed: { type: Date },
-        lastClicked: { type: Date }
+        lastClicked: { type: Date },
+        statsResetAt: { type: Date }
     },
     version: { type: Number, default: Date.now },
     createdAt: { type: Date, default: Date.now }
