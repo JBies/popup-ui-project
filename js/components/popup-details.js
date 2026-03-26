@@ -37,19 +37,26 @@ class PopupDetails {
     content.className = 'p-4';
     
     // Perustiedot
+    const createdAt = popup.createdAt
+      ? new Date(popup.createdAt).toLocaleString()
+      : 'Ei tiedossa';
+
     let detailsHtml = `
       <div class="mb-4">
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Perustiedot</h3>
         <div class="grid grid-cols-2 gap-2">
+          <div class="text-gray-600 dark:text-gray-400">Luotu:</div>
+          <div class="text-gray-900 dark:text-white">${createdAt}</div>
+
           <div class="text-gray-600 dark:text-gray-400">Tyyppi:</div>
           <div class="text-gray-900 dark:text-white">${popup.popupType}</div>
-          
+
           <div class="text-gray-600 dark:text-gray-400">Koko:</div>
           <div class="text-gray-900 dark:text-white">${popup.width || 200}x${popup.height || 150}px</div>
-          
+
           <div class="text-gray-600 dark:text-gray-400">Sijainti:</div>
           <div class="text-gray-900 dark:text-white">${popup.position}</div>
-          
+
           <div class="text-gray-600 dark:text-gray-400">Animaatio:</div>
           <div class="text-gray-900 dark:text-white">${popup.animation || 'Ei animaatiota'}</div>
         </div>
@@ -159,13 +166,16 @@ class PopupDetails {
       const stats = await API.getPopupStats(popupId);
       
       // Muotoile päivämäärät
-      const lastViewed = stats.lastViewed 
-        ? new Date(stats.lastViewed).toLocaleString() 
+      const lastViewed = stats.lastViewed
+        ? new Date(stats.lastViewed).toLocaleString()
         : 'Ei koskaan';
-      const lastClicked = stats.lastClicked 
-        ? new Date(stats.lastClicked).toLocaleString() 
+      const lastClicked = stats.lastClicked
+        ? new Date(stats.lastClicked).toLocaleString()
         : 'Ei koskaan';
-      
+      const statsResetAt = stats.statsResetAt
+        ? new Date(stats.statsResetAt).toLocaleString()
+        : null;
+
       // Päivitä tilastot modaalissa
       const statsContainer = document.getElementById(`details-stats-${popupId}`);
       if (statsContainer) {
@@ -173,19 +183,20 @@ class PopupDetails {
           <div class="grid grid-cols-2 gap-2 mb-4">
             <div class="text-gray-600 dark:text-gray-400">Näyttökerrat:</div>
             <div class="text-gray-900 dark:text-white">${stats.views}</div>
-            
+
             <div class="text-gray-600 dark:text-gray-400">Klikkaukset:</div>
             <div class="text-gray-900 dark:text-white">${stats.clicks}</div>
-            
+
             <div class="text-gray-600 dark:text-gray-400">Klikkausprosentti:</div>
             <div class="text-gray-900 dark:text-white">${stats.clickThroughRate}%</div>
-            
+
             <div class="text-gray-600 dark:text-gray-400">Viimeksi näytetty:</div>
             <div class="text-gray-900 dark:text-white">${lastViewed}</div>
-            
+
             <div class="text-gray-600 dark:text-gray-400">Viimeksi klikattu:</div>
             <div class="text-gray-900 dark:text-white">${lastClicked}</div>
           </div>
+          ${statsResetAt ? `<p class="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Tilastot nollattu: ${statsResetAt}</p>` : ''}
           <button id="reset-stats-btn" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded transition-colors">
             Nollaa tilastot
           </button>
