@@ -34,9 +34,23 @@ export function openEditor(data = {}) {
   const fieldsContainer = document.getElementById('type-fields');
   renderTypeFields(fieldsContainer, currentType, data);
 
-  // Targeting
+  // Targeting – tarkista oikeus
   const targetingSection = document.getElementById('targeting-section');
-  if (targetingSection) renderTargetingFields(targetingSection, data.targeting || {});
+  if (targetingSection) {
+    const user = window.__currentUser__;
+    const canTarget = !user || user.role === 'admin' || user.limits?.canUseTargeting;
+    if (!canTarget) {
+      const contact = `mailto:tuki@uimanager.fi?subject=Pro-tili%20päivitys`;
+      targetingSection.innerHTML = `
+        <div style="padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;display:flex;align-items:center;gap:12px;margin-top:8px">
+          <span style="font-size:20px">🔒</span>
+          <div style="flex:1;font-size:13px;color:#92400e"><strong>Targeting</strong> on Pro-ominaisuus.</div>
+          <a href="${contact}" style="background:#f59e0b;color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap">Päivitä →</a>
+        </div>`;
+    } else {
+      renderTargetingFields(targetingSection, data.targeting || {});
+    }
+  }
 
   // A/B test
   const abSection = document.getElementById('ab-test-section');
@@ -134,14 +148,35 @@ function buildEditorHTML(type, data = {}) {
     </div>`;
 }
 
+function proLockHTML(feature) {
+  const contact = `mailto:tuki@uimanager.fi?subject=Pro-tili%20päivitys&body=Haluaisin%20käyttää%20ominaisuutta%3A%20${encodeURIComponent(feature)}`;
+  return `
+    <div style="text-align:center;padding:32px 20px;background:#f8fafc;border:2px dashed #cbd5e1;border-radius:12px">
+      <div style="font-size:32px;margin-bottom:10px">🔒</div>
+      <div style="font-weight:600;color:#1e293b;margin-bottom:6px">${feature} on Pro-ominaisuus</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:16px">Ota yhteyttä päivittääksesi tilisi ja saat käyttöön kaikki ominaisuudet.</div>
+      <a href="${contact}" style="background:#3b82f6;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">Ota yhteyttä →</a>
+    </div>`;
+}
+
 function renderTypeFields(container, type, data) {
   const cfg = data.elementConfig || {};
+  const user = window.__currentUser__;
+  // Lead Form – tarkista onko sallittu
+  if (type === 'lead_form') {
+    const leadLimit = user?.limits?.lead_form ?? 0;
+    if (user && user.role !== 'admin' && leadLimit === 0) {
+      container.innerHTML = proLockHTML('Lead Form');
+      return;
+    }
+    renderLeadFormFields(container, cfg);
+    return;
+  }
   if (type === 'sticky_bar')     renderStickyBarFields(container, cfg);
   else if (type === 'fab')       renderFabFields(container, cfg);
   else if (type === 'slide_in')  renderSlideInFields(container, cfg, data);
   else if (type === 'social_proof')    renderSocialProofFields(container, cfg);
   else if (type === 'scroll_progress') renderScrollProgressFields(container, cfg);
-  else if (type === 'lead_form') renderLeadFormFields(container, cfg);
   else renderPopupFields(container, cfg, data);
 }
 

@@ -5,6 +5,7 @@ import { initTemplateLibrary } from './template-library.js';
 import { openEditor } from './element-editor.js';
 import { initAnalyticsPage }  from './analytics-page.js';
 import { initCampaignsPanel } from './campaigns-panel.js';
+import { initHelpPanel }      from './help-panel.js';
 
 let currentView = 'elements';
 
@@ -44,11 +45,13 @@ async function init() {
     navigator.clipboard.writeText(code).then(() => showToast('Koodi kopioitu!'));
   };
 
+  window.__currentUser__ = user;  // tarvitaan editor + list komponenteissa
   initSidebar(user);
-  initElementList();
+  initElementList(user);
   initTemplateLibrary();
   initAnalyticsPage();
   initCampaignsPanel();
+  initHelpPanel();
   setupWebhooks();
   setupCreateDropdown();
   setupNavigation();
@@ -80,7 +83,7 @@ export function showView(name) {
     a.classList.toggle('active', a.dataset.view === name || a.getAttribute('href') === '#' + name);
   });
 
-  const titles = { elements: 'Omat elementit', analytics: 'Tilastot', settings: 'Asennuskoodi', campaigns: 'Kampanjat', webhooks: 'Webhooks' };
+  const titles = { elements: 'Omat elementit', analytics: 'Tilastot', settings: 'Asennuskoodi', campaigns: 'Kampanjat', webhooks: 'Webhooks', help: 'Ohjeet' };
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = titles[name] || 'UI Manager';
 }

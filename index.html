@@ -1,558 +1,206 @@
-<!--index.html-->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Popuppeja!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <style>
-      /* Modaalityylit - korvaa aiemmat tyylit näillä */
-      .modal-overlay {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
-          z-index: 1000;
-          overflow-y: auto;
-          padding: 2rem;
-          align-items: center;
-          justify-content: center;
-      }
-  
-      .modal {
-          background-color: white;
-          border-radius: 0.5rem;
-          width: 90%;
-          max-width: 900px; /* Kasvatettu kokoa */
-          max-height: 90vh; /* Rajoitettu korkeus */
-          margin: 0 auto;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-      }
-  
-      .dark .modal {
-          background-color: #1f2937; /* Dark mode bg */
-          color: white;
-      }
-  
-      .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1.25rem 1.5rem;
-          background-color: #f9fafb;
-          border-bottom: 1px solid #e5e7eb;
-      }
-  
-      .dark .modal-header {
-          background-color: #111827;
-          border-bottom: 1px solid #374151;
-      }
-  
-      .modal-title {
-          font-size: 1.25rem;
-          font-weight: 600;
-          margin: 0;
-      }
-  
-      .modal-close {
-          background: none;
-          border: none;
-          font-size: 1.25rem;
-          color: #6b7280;
-          cursor: pointer;
-          transition: all 0.3s ease;
-      }
-  
-      .modal-close:hover {
-          color: #111827;
-      }
-  
-      .dark .modal-close:hover {
-          color: #e5e7eb;
-      }
-  
-      .modal-body {
-          padding: 1.5rem;
-          overflow-y: auto; /* Tärkeä muutos - mahdollistaa vierityksen */
-          max-height: calc(90vh - 130px); /* Rajoitettu korkeus otsikon ja alatunnisteen kanssa */
-      }
-  
-      .modal-footer {
-          display: flex;
-          justify-content: flex-end;
-          gap: 1rem;
-          padding: 1.25rem 1.5rem;
-          background-color: #f9fafb;
-          border-top: 1px solid #e5e7eb;
-      }
-  
-      .dark .modal-footer {
-          background-color: #111827;
-          border-top: 1px solid #374151;
-      }
-      
-      /* Parannuksia lomakkeen elementteihin */
-      .form-group {
-          margin-bottom: 1.5rem;
-      }
-      
-      .form-group p-4 {
-          padding: 1rem;
-      }
-      
-      .timing-controls, .form-group, .content-controls, .color-controls,
-      .animation-controls, .position-controls, .size-controls {
-          margin-bottom: 1.5rem;
-      }
-      
-      /* Lisää väljyyttä lomakkeen osioiden väliin */
-      .space-y-6 > * + * {
-          margin-top: 1.5rem;
-      }
-  </style>
-    <script>
-        tailwind.config = {
-          darkMode: 'class', // Tämä mahdollistaa dark/light -teeman vaihtamisen
-          theme: {
-            extend: {
-              colors: {
-                // Vihreä väripaletti
-                'primary': {
-                  100: '#dcfce7',
-                  200: '#bbf7d0',
-                  300: '#86efac',
-                  400: '#4ade80',
-                  500: '#22c55e', // Pääväri
-                  600: '#16a34a',
-                  700: '#15803d',
-                  800: '#166534',
-                  900: '#14532d'
-                },
-                // Tumma väripaletti
-                'dark': {
-                  100: '#f3f4f6',
-                  200: '#e5e7eb',
-                  300: '#d1d5db',
-                  400: '#9ca3af',
-                  500: '#6b7280',
-                  600: '#4b5563',
-                  700: '#374151',
-                  800: '#1f2937',
-                  900: '#111827'
-                }
-              }
-            }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website UI & Conversion Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { 50:'#eff6ff', 100:'#dbeafe', 500:'#3b82f6', 600:'#2563eb', 700:'#1d4ed8' }
           }
         }
-      </script>
-</head>
-<body>
-
-    <header class="bg-white dark:bg-dark-800 shadow-md transition-colors">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div class="flex items-center space-x-2">
-            <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-500">Popup Manageri</h1>
-          </div>
-          
-          <div class="flex items-center space-x-4">
-            <!-- Kirjautumispainike (näytetään kun käyttäjä ei ole kirjautunut) -->
-            <div id="loginSection">
-                <a href="/auth/google" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors">
-                  <i class="fab fa-google mr-2"></i> Login with Google
-                </a>
-              </div>
-            
-            <!-- Käyttäjätiedot (näytetään kirjautuneelle käyttäjälle) -->
-            <div id="userInfo" class="hidden items-center space-x-3">
-              <span id="userName" class="text-dark-800 dark:text-white"></span>
-              <button id="logoutButton" class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors">
-                Kirjaudu ulos
-              </button>
-            </div>
-            
-            <!-- Teemavaihtopainike -->
-            <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-dark-700 text-dark-700 dark:text-white transition-colors" aria-label="Toggle dark mode">
-              <i class="fas fa-moon"></i>
-            </button>
-          </div>
-        </div>
-      </header>
-    
-    <!-- Popup creation form -->
-    <div id="popupForm" class="container mx-auto px-4 py-6 w-full max-w-7xl bg-white dark:bg-dark-800 rounded-lg shadow-md transition-colors mt-8" style="display: none;">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-bold text-dark-800 dark:text-white">Tee uusi Popup</h3>
-          <a href="/" class="text-primary-600 dark:text-primary-400 hover:underline">Koti</a>
-        </div>
-        <form id="createPopupForm" class="space-y-6">
-            <!-- Popup Name field -->
-            <div class="form-group">
-              <label for="popupName" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Popupin nimi:</label>
-              <input type="text" id="popupName" name="popupName" placeholder="Anna popupillesi kuvaileva nimi"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white">
-              <small class="text-xs text-dark-500 dark:text-dark-400 mt-1 block">Anna popupillesi kuvaileva nimi.</small>
-            </div>
-            <!-- Popup Type field -->
-            <div class="form-group">
-                <label for="popupType" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Popupin Tyyppi:</label>
-                <select id="popupType" name="popupType" 
-                class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white">
-                <option value="image">Pelkkä kuvatiedosto (.jpg)</option>
-                <option value="square">Neliö</option>
-                <option value="circle">Ympyrä</option>
-                <option value="stats_only">Tilastojenkerääjä</option>
-                </select>
-            </div><br>
-            <!-- Size controls - wrap in a nice card -->
-            <div class="size-controls p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                <h4 class="text-md font-medium text-dark-700 dark:text-dark-300 mb-3">Popupin koko</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label for="width" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Leveys (px):</label>
-                    <input type="number" id="width" name="width" min="100" max="800" value="200"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white">
-                </div>
-                <div>
-                    <label for="height" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Korkeus (px):</label>
-                    <input type="number" id="height" name="height" min="100" max="600" value="200"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white">
-                </div>
-                </div>
-            </div>
-            <br>
-            <!-- Position and Animation controls -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div class="position-controls">
-          <label for="position" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Sijainti nettisivulla:</label>
-          <select id="position" name="position"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white">
-            <option value="center">Keskellä sivua</option>
-            <option value="top-left">Vasen yläkulma</option>
-            <option value="top-right">Oikea yläkulma</option>
-            <option value="bottom-left">Vasen alakulma</option>
-            <option value="bottom-right">Oikea alakulma</option>
-          </select>
-        </div>
-        
-        <div class="animation-controls">
-          <label for="animation" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Animaatiot:</label>
-          <select id="animation" name="animation"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white">
-            <option value="none">Ei mitään</option>
-            <option value="fade">Haalistuva</option>
-            <option value="slide">Liuku</option>
-          </select>
-        </div>
-      </div>
-            <!-- Content field -->
-    <div class="content-controls">
-        <label for="content" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Popupin sisältö teksti:</label>
-        <textarea id="content" name="content" rows="4" 
-          class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white"></textarea>
-      </div>
-            <div class="image-controls">
-                <label for="image" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Kuva:</label>
-                <div class="image-input-controls">
-                    <input type="file" id="image" name="image" accept="image/*">
-                    <button type="button" id="selectImageBtn" class="select-image-btn block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1 " >Valitse kirjastosta</button>
-                </div>
-            </div>
-                <!-- Color controls -->
-                <div class="color-controls p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                    <h4 class="text-md font-medium text-dark-700 dark:text-dark-300 mb-3">Väriasetukset</h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="backgroundColor" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Taustan väri:</label>
-                        <input type="color" id="backgroundColor" name="backgroundColor" value="#ffffff"
-                        class="w-full h-10 px-1 py-1 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm">
-                    </div>
-                    <div>
-                        <label for="textColor" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Tekstin väri:</label>
-                        <input type="color" id="textColor" name="textColor" value="#000000"
-                        class="w-full h-10 px-1 py-1 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm">
-                    </div>
-                    </div>
-                </div>
-                <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
-                    <img id="imagePreview" src="" alt="Kuvan esikatselu" style="max-width: 100%; max-height: 200px;">
-                    <button type="button" id="removeImage" class="remove-image-btn">Poista kuva</button>
-                </div>
-                <input type="hidden" id="imageUrl" name="imageUrl">
-            <!-- Mahdollinen linkki eteenpäin -->
-            <div class="form-group p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                <label for="linkUrl" class="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1">Link URL (Valinnainen):</label>
-                <input type="url" id="linkUrl" name="linkUrl" placeholder="https://example.com" 
-                class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white">
-                <small class="text-s text-dark-500 dark:text-dark-400 mt-1 block">Kun popupia klikataan niin se vie eteenpäin tähän osoitteeseen.</small>
-                </div>
-            <div class="timing-controls p-4 bg-gray-50 dark:text-white dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                <h4 class="text-md font-medium text-dark-700 dark:text-dark-300 mb-3">Ajastus asetukset</h4>            
-                <div class="form-group p-4 bg-gray-50 dark:text-white dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                    <label for="delay">Milloin popup tulee esiin (sekuntteina):</label>
-                    <input type="number" id="delay" name="delay" min="0" value="0" class="dark bg-dark-700 text-white">
-                </div>
-
-                <div class="form-group p-4 bg-gray-50 dark:bg-dark-900 rounded-md border-gray-200 dark:border-dark-600">
-                    <label for="showDuration">Minkä aikaa popup tulee näkymään (sekuntteina, 0 = kunnes suljetaan):</label>
-                    <input type="number" id="showDuration" name="showDuration" min="0" value="0" class="dark bg-dark-700 text-white">
-                </div>
-
-                <div class="form-group p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                    <label for="startDate">Aloitus päivämäärä:</label>
-                    <input type="datetime-local" id="startDate" name="startDate" class="dark bg-dark-700 text-white">
-                </div>
-
-                <div class="form-group p-4 bg-gray-50 dark:bg-dark-900 rounded-md border border-gray-200 dark:border-dark-600">
-                    <label for="endDate">Lopetus päivämäärä (optional):</label>
-                    <input type="datetime-local" id="endDate" name="endDate" class="dark bg-dark-700 text-white">
-                </div>
-            </div>
-            <!-- Esikatselu -->
-            <div class="preview p-4 bg-gray-50 dark:bg-dark-900 rounded-md" id="createPreview"></div>
-            <button type="submit" id="createPopup" class="primary-button" style="padding: 12px 24px; font-size: 1.2em;">Luo popup !</button>
-            <br>
-                <!-- Lista Popupeista -->
-    <div id="popupList" class="container mx-auto px-4 py-8 max-w-7xl" style="display: none;">
-        <h3 class="text-2xl font-bold mb-6 text-dark-800 dark:text-white">Sinun popupit</h3>
-        <ul id="popups" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></ul>
-      </div>
-
-    <!-- kuvakirjasto -->
-    <div id="imageLibrary" class="image-library p-4 bg-gray-50 dark:bg-dark-900 rounded-md shadow-md mt-6 dark:text-white" style="display: none;">
-        <h3>Kuvakirjasto</h3>
-        <div class="image-library-actions">
-          <button type="button" id="uploadMoreImagesBtn" class="primary-button">
-            <i class="fas fa-upload"></i> Lataa lisää kuvia
-          </button>
-        </div>
-        <div class="image-grid" id="imageGrid">
-          <!-- Kuvat ladataan tänne JavaScriptillä -->
-        </div>
-        </div>
-        <div id="adminMenu" style="display: none;" class="bg-dark-800 text-white p-6 rounded-lg shadow-md mt-6">
-            <h3 class="text-lg font-semibold mb-4">Admin Menu</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <a href="api/admin/users" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center gap-2">
-                    <i class="fas fa-users"></i> Käyttäjät Database
-                </a>
-                <a href="api/admin/popups" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center gap-2">
-                    <i class="fas fa-window-restore"></i> Popup Database
-                </a>
-                <a href="admin-users.html" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center gap-2">
-                    <i class="fas fa-user-cog"></i> Hallinnoi Käyttäjiä
-                </a>
-                <a href="admin-popups.html" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center gap-2">
-                    <i class="fas fa-th-large"></i> Hallinnoi Popuppeja
-                </a>
-            </div>
-    </div>
-        </form>
-    </div>
-
-    
-
-      
-    <!-- Lisää kuvavalitsin-dialogi -->
-    <div id="imagePickerDialog" class="modal" style="display: none;">
-        <div class="modal-content">
-          <span class="close-button" id="closeImagePicker">&times;</span>
-          <h3>Valitse kuva</h3>
-          <div class="image-picker-grid" id="imagePickerGrid">
-            <!-- Kuvat ladataan tänne JavaScriptillä -->
-          </div>
-        </div>
-    </div>
-    
-    <!-- Kuvan tiedot -dialogi -->
-    <div id="imageDetailsDialog" class="modal" style="display: none;">
-        <div class="modal-content">
-          <span class="close-button" id="closeImageDetails">&times;</span>
-          <h3>Kuvan tiedot</h3>
-          <div class="image-details-content">
-            <div class="image-details-preview">
-              <img id="detailsImage" src="" alt="Kuvan esikatselu">
-            </div>
-            <div class="image-details-info">
-              <p><strong>Nimi:</strong> <span id="detailsName"></span></p>
-              <p><strong>Koko:</strong> <span id="detailsSize"></span></p>
-              <p><strong>Ladattu:</strong> <span id="detailsDate"></span></p>
-            </div>
-          </div>
-          <div class="image-details-usage">
-            <h4>Käytetään seuraavissa popupeissa:</h4>
-            <ul id="detailsPopupList"></ul>
-          </div>
-        </div>
-        
-    </div>
-
-    
-
-    <!-- Edit popup form (hidden by default) -->
-<div id="editPopupForm" class="modal-overlay" display: none;>
-  <div class="modal dark:bg-gray-800">
-      <div class="modal-header dark:bg-gray-900 dark:border-gray-700">
-          <h3 class="modal-title dark:text-white">Editoi Popup</h3>
-          <button type="button" class="modal-close dark:text-gray-400 dark:hover:text-white" id="closeEditModal">×</button>
-      </div>
-      <div class="modal-body dark:bg-gray-800">
-          <form id="updatePopupForm" class="space-y-6">
-              <input type="hidden" id="editPopupId">
-              
-              <div class="form-group p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <label for="editPopupName" class="dark:text-white">Popup Name:</label>
-                  <input type="text" id="editPopupName" name="name" placeholder="Anna selkeä nimi tähän" class="dark:bg-gray-700 dark:text-white">
-                  <small class="dark:text-gray-400">Anna popupillesi selkeä nimi missä se sijaitsee</small>
-              </div>
-              
-              <div class="form-group p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <label for="editPopupType" class="dark:text-white">Popupin Tyyppi:</label>
-                  <select id="editPopupType" name="popupType" class="dark:bg-gray-700 dark:text-white">
-                      <option value="square">Neliö</option>
-                      <option value="circle">Ympyrä</option>
-                      <option value="image">Pelkkä kuvatiedosto</option>
-                      <option value="stats_only">Tilastojenkerääjä</option>
-                  </select>
-              </div>
-
-              <div class="size-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <label for="editWidth" class="dark:text-white">Leveys (px):</label>
-                  <input type="number" id="editWidth" name="width" min="100" max="800" value="200" class="dark:bg-gray-700 dark:text-white">
-                  
-                  <label for="editHeight" class="dark:text-white">Korkeus (px):</label>
-                  <input type="number" id="editHeight" name="height" min="100" max="600" value="150" class="dark:bg-gray-700 dark:text-white">
-              </div>
-
-              <div class="position-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <label for="editPosition" class="dark:text-white">Sijainti nettisivulla:</label>
-                  <select id="editPosition" name="position" class="dark:bg-gray-700 dark:text-white">
-                      <option value="center">Keskellä</option>
-                      <option value="top-left">vasen yläkulma</option>
-                      <option value="top-right">Oikea yläkulma</option>
-                      <option value="bottom-left">vasen alareuna</option>
-                      <option value="bottom-right">Oikea alareuna</option>
-                  </select>
-              </div>
-
-              <div class="animation-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <label for="editAnimation" class="dark:text-white">Animaatio:</label>
-                  <select id="editAnimation" name="animation" class="dark:bg-gray-700 dark:text-white">
-                      <option value="none">Ei mitään</option>
-                      <option value="fade">Haalistuva</option>
-                      <option value="slide">Liuku</option>
-                  </select>
-              </div>
-
-              <div class="color-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <label for="editBackgroundColor" class="dark:text-white">Taustaväri:</label>
-                  <input type="color" id="editBackgroundColor" name="backgroundColor" value="#ffffff">
-                  
-                  <label for="editTextColor" class="dark:text-white">Tekstin väri:</label>
-                  <input type="color" id="editTextColor" name="textColor" value="#000000">
-              </div>
-
-              <div class="content-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <label for="editContent" class="dark:text-white">Sisältö popupissa (vapaaehtoinen):</label>
-                  <textarea class="dark:bg-gray-700 dark:text-white" id="editContent" name="content" rows="4" cols="50"></textarea>
-              </div>
-              
-              <div class="image-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <label for="editImage" class="dark:text-white">Kuva:</label>
-                  <div class="image-input-controls">
-                      <input type="file" id="editImage" name="image" accept="image/*" class="dark:bg-gray-700 dark:text-white">
-                      <button type="button" id="editSelectImageBtn" class="select-image-btn dark:bg-gray-700 dark:text-white">Valitse kirjastosta</button>
-                  </div>
-                  <div class="image-preview-container" id="editImagePreviewContainer" style="display: none;">
-                      <img id="editImagePreview" src="" alt="Kuvan esikatselu" style="max-width: 100%; max-height: 200px;">
-                      <button type="button" id="editRemoveImage" class="remove-image-btn">Poista kuva</button>
-                  </div>
-                  <input type="hidden" id="editImageUrl" name="imageUrl">
-              </div>
-              
-              <!-- Linkki eteenpäin -->
-              <div class="form-group p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <label for="editLinkUrl" class="dark:text-white">Link URL (Valinnainen):</label>
-                  <input type="url" id="editLinkUrl" class="dark:bg-gray-700 dark:text-white" name="linkUrl" placeholder="https://example.com">
-                  <small class="dark:text-gray-400">Kun popupia klikataan niin se vie eteenpäin tähän osoitteeseen.</small>
-              </div>
-              
-              <div class="timing-controls p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                  <h4 class="dark:text-white">Ajastus asetukset</h4>
-                  
-                  <div class="form-group">
-                      <label for="editDelay" class="dark:text-white">Minkä ajan kuluttua popup tulee esiin (sekuntteina):</label>
-                      <input type="number" id="editDelay" name="delay" min="0" value="0" class="dark:bg-gray-700 dark:text-white">
-                  </div>
-              
-                  <div class="form-group">
-                      <label for="editShowDuration" class="dark:text-white">Kuinka pitkään popup näkyy (sekuntteina, 0 = kunnes suljetaan):</label>
-                      <input type="number" id="editShowDuration" name="showDuration" min="0" value="0" class="dark:bg-gray-700 dark:text-white">
-                  </div>
-              
-                  <div class="form-group">
-                      <label for="editStartDate" class="dark:text-white">Aloitus päivämäärä:</label>
-                      <input type="datetime-local" id="editStartDate" name="startDate" class="dark:bg-gray-700 dark:text-white">
-                  </div>
-              
-                  <div class="form-group">
-                      <label for="editEndDate" class="dark:text-white">Lopetus päivämäärä (optional):</label>
-                      <input type="datetime-local" id="editEndDate" name="endDate" class="dark:bg-gray-700 dark:text-white">
-                  </div>
-              </div>
-              
-              <div class="preview p-4 bg-gray-50 dark:bg-gray-900 rounded-md" id="editPreview"></div>
-          </form>
-      </div>
-      <div class="modal-footer dark:bg-gray-900 dark:border-gray-700">
-          <button type="button" id="cancelEdit" class="primary-button">Kumoa muutokset</button>
-          <button type="submit" id="updatePopup" class="primary-button">Päivitä popup!</button>
-      </div>
-  </div>
-</div>
-
-<script>
-  // Debug-koodi - lisää tämä index.html loppuun
-  document.addEventListener('DOMContentLoaded', () => {
-      // Varmista, että modaali sulkeutuu ja avautuu oikein
-      const editPopupForm = document.getElementById('editPopupForm');
-      if (editPopupForm) {
-          console.log("Edit popup form found, current display:", getComputedStyle(editPopupForm).display);
-          
-          // Testaa että napit toimivat
-          const cancelEdit = document.getElementById('cancelEdit');
-          if (cancelEdit) {
-              cancelEdit.addEventListener('click', () => {
-                  console.log("Cancel edit clicked, hiding form");
-                  editPopupForm.style.display = 'none';
-              });
-          }
-          
-          // Varmista että modaalin ulkopuoli sulkee modaalin
-          editPopupForm.addEventListener('click', (e) => {
-              if (e.target === editPopupForm) {
-                  console.log("Clicked outside modal, hiding form");
-                  editPopupForm.style.display = 'none';
-              }
-          });
-      } else {
-          console.error("Edit popup form element not found!");
       }
-  });
+    }
   </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .hero-gradient { background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 50%, #2563eb 100%); }
+    .feature-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.10); }
+    .feature-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .step-line::after { content:''; position:absolute; top:24px; left:calc(50% + 28px); width:calc(100% - 56px); height:2px; background:#e2e8f0; }
+    @media (max-width:768px) { .step-line::after { display:none; } }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
 
-    <!-- Lataa JavaScript ES moduulit -->
-    <script type="module" src="js/main.js"></script>
-    <script src="themes.js"></script>
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
+          <i class="fa fa-layer-group text-white text-sm"></i>
+        </div>
+        <span class="font-bold text-lg text-gray-900">UI Manager</span>
+      </div>
+      <div id="header-cta">
+        <a href="/auth/google" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm">
+          <i class="fab fa-google"></i> Kirjaudu Google-tilillä
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero-gradient text-white py-24 px-6">
+    <div class="max-w-4xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur rounded-full px-4 py-1.5 text-sm font-medium mb-6">
+        <i class="fa fa-bolt text-yellow-300"></i> Nosta konversiot uudelle tasolle
+      </div>
+      <h1 class="text-5xl font-extrabold leading-tight mb-6">
+        Website UI &amp;<br>Conversion Manager
+      </h1>
+      <p class="text-xl text-blue-100 max-w-2xl mx-auto mb-10">
+        Luo sticky bareja, ponnahdusviestejä, liidilomakkeita ja muita konversioelementtejä – ilman koodausta. Liitä yksi skriptirivi sivullesi ja olet valmis.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/auth/google" class="inline-flex items-center justify-center gap-3 bg-white text-brand-700 font-bold px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors text-lg shadow-lg">
+          <i class="fab fa-google text-red-500"></i> Aloita ilmaiseksi Google-tilillä
+        </a>
+      </div>
+      <p class="text-blue-200 text-sm mt-5">Ei luottokorttia. Ei asennusta. Vain yksi koodirivi.</p>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="py-20 px-6 bg-white">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold text-gray-900 mb-3">Kaikki konversiotyökalut yhdessä paikassa</h2>
+        <p class="text-gray-500 text-lg">7 elementtityyppiä – valitse ja mukauta dashboardista</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
+          <div class="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fa fa-minus text-blue-600 text-lg"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Sticky Bar</h3>
+          <p class="text-gray-500 text-sm">Kiinteä ilmoituspalkki sivun ylä- tai alareunassa. Kampanjat, tarjoukset, GDPR-banner.</p>
+        </div>
+
+        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
+          <div class="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fa fa-circle text-purple-600 text-lg"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Floating Button</h3>
+          <p class="text-gray-500 text-sm">Kelluva toimintanappi sivun kulmassa. Chat-linkki, soittopyyntö, takaisin ylös.</p>
+        </div>
+
+        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
+          <div class="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fa fa-comment-dots text-green-600 text-lg"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Slide-in</h3>
+          <p class="text-gray-500 text-sm">Animoitu boksi ilmestyy sivun kulmasta. Triggeröi scrollin, ajastimen tai poistumisaikeen perusteella.</p>
+        </div>
+
+        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
+          <div class="w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fa fa-square text-orange-600 text-lg"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Popup</h3>
+          <p class="text-gray-500 text-sm">Perinteinen ponnahdusviesti. Ilmoitus, tarjous, kuva tai exit intent.</p>
+        </div>
+
+        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
+          <div class="w-11 h-11 bg-pink-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fa fa-users text-pink-600 text-lg"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Social Proof</h3>
+          <p class="text-gray-500 text-sm">"5 henkilöä katsoo nyt" -ponnahdusviesti. Lisää luottamusta ja kiireellisyyttä.</p>
+        </div>
+
+        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
+          <div class="w-11 h-11 bg-teal-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fa fa-arrows-alt-v text-teal-600 text-lg"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Scroll Progress</h3>
+          <p class="text-gray-500 text-sm">Ohut edistymispalkki sivun reunassa. Pitää lukijat engaged pidempään.</p>
+        </div>
+
+        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
+          <div class="w-11 h-11 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
+            <i class="fa fa-envelope text-emerald-600 text-lg"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Lead Form</h3>
+          <p class="text-gray-500 text-sm">Kerää yhteystiedot suoraan – konfiguroi kentät, tallentuu automaattisesti tietokantaan.</p>
+        </div>
+
+        <div class="feature-card bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl p-6 border border-brand-600 text-white">
+          <div class="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center mb-4">
+            <i class="fa fa-sliders-h text-white text-lg"></i>
+          </div>
+          <h3 class="font-semibold mb-2">+ Targeting, A/B-testaus, Analytiikka, Webhooks</h3>
+          <p class="text-blue-100 text-sm">Kohdennus 8 säännöllä, automaattiset Zapier/Make-integraatiot ja kampanjointi.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="py-20 px-6 bg-gray-50">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold text-gray-900 mb-3">Kolme askelta käyttöönottoon</h2>
+        <p class="text-gray-500 text-lg">Ensimmäinen elementti on käytössä alle 5 minuutissa</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <div class="relative text-center step-line">
+          <div class="w-12 h-12 bg-brand-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-5">1</div>
+          <h3 class="font-semibold text-gray-900 mb-2">Kirjaudu sisään</h3>
+          <p class="text-gray-500 text-sm">Google-tili riittää. Ei lomakkeita, ei sähköpostivahvistuksia.</p>
+        </div>
+
+        <div class="relative text-center step-line">
+          <div class="w-12 h-12 bg-brand-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-5">2</div>
+          <h3 class="font-semibold text-gray-900 mb-2">Luo elementti</h3>
+          <p class="text-gray-500 text-sm">Valitse tyyppi, mukauta templatella tai tyhjästä, esikatsele reaaliajassa.</p>
+        </div>
+
+        <div class="relative text-center">
+          <div class="w-12 h-12 bg-brand-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-5">3</div>
+          <h3 class="font-semibold text-gray-900 mb-2">Liitä koodi sivulle</h3>
+          <p class="text-gray-500 text-sm">Yksi <code class="bg-gray-200 px-1 rounded text-xs">&lt;script&gt;</code>-rivi sivustollesi – elementti ilmestyy heti.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA bottom -->
+  <section class="hero-gradient py-20 px-6 text-white text-center">
+    <div class="max-w-2xl mx-auto">
+      <h2 class="text-3xl font-bold mb-4">Valmis nostamaan konversiot?</h2>
+      <p class="text-blue-100 mb-8 text-lg">Ilmainen käyttöönotto. Ei koodausta.</p>
+      <a href="/auth/google" class="inline-flex items-center gap-3 bg-white text-brand-700 font-bold px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors text-lg shadow-lg">
+        <i class="fab fa-google text-red-500"></i> Aloita Google-tilillä
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-gray-400 py-8 px-6 text-center text-sm">
+    <p>&copy; 2026 Website UI &amp; Conversion Manager · <a href="mailto:tuki@uimanager.fi" class="hover:text-white">tuki@uimanager.fi</a></p>
+  </footer>
+
+  <script>
+    // Kirjautunut käyttäjä → ohjaa suoraan dashboardiin
+    fetch('/api/user').then(r => {
+      if (r.ok) r.json().then(u => {
+        if (u && u.role !== 'pending') window.location.href = '/dashboard';
+        else if (u && u.role === 'pending') window.location.href = '/pending';
+      });
+    }).catch(() => {});
+  </script>
 </body>
 </html>
