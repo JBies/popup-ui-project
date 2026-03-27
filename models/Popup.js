@@ -39,37 +39,80 @@ const popupSchema = new mongoose.Schema({
         lastClicked: { type: Date },
         statsResetAt: { type: Date }
     },
+    // Uusi elementtityyppi (Phase 1+)
+    elementType: {
+        type: String,
+        enum: ['popup', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress'],
+        default: 'popup'
+    },
+    // Targeting Engine v2
+    targeting: {
+        enabled:   { type: Boolean, default: false },
+        matchType: { type: String, default: 'all' }, // 'all' = AND, 'any' = OR
+        rules: [{
+            type:     { type: String }, // url|device|scroll_depth|time_on_site|referrer|new_vs_returning|day_of_week|hour_of_day
+            operator: { type: String }, // contains|equals|starts_with|is|greater_than|less_than
+            value:    { type: String }
+        }]
+    },
+    // Elementtikohtainen konfiguraatio
+    elementConfig: {
+        // Sticky Bar
+        barPosition:        { type: String, default: 'bottom' },
+        barText:            { type: String, default: '' },
+        ctaButtons:         { type: Array, default: [] },
+        showDismiss:        { type: Boolean, default: true },
+        dismissCookieDays:  { type: Number, default: 0 },
+        // FAB
+        fabPosition:        { type: String, default: 'bottom-right' },
+        fabIcon:            { type: String, default: 'fa-comment' },
+        fabColor:           { type: String, default: '#1a56db' },
+        fabSize:            { type: String, default: 'md' },
+        fabAction:          { type: String, default: 'link' },
+        fabUrl:             { type: String, default: '' },
+        fabModalContent:    { type: String, default: '' },
+        pulseAnimation:     { type: Boolean, default: false },
+        // Slide-in
+        slideInPosition:    { type: String, default: 'bottom-right' },
+        slideInWidth:       { type: Number, default: 320 },
+        slideInTrigger:     { type: String, default: 'time' },
+        slideInTriggerValue:{ type: Number, default: 5 },
+        showCloseButton:    { type: Boolean, default: true },
+        // Popup v2 alatyypit
+        popupSubtype:       { type: String, default: 'announcement' },
+        // Social Proof
+        proofText:          { type: String, default: '{count} henkilöä katsoo nyt tätä sivua' },
+        proofCount:         { type: Number, default: 0 }, // 0 = käytä oikeita tilastoja
+        proofIcon:          { type: String, default: '👥' },
+        proofDuration:      { type: Number, default: 5 }, // sekuntia
+        proofPosition:      { type: String, default: 'bottom-left' },
+        proofInterval:      { type: Number, default: 8 }, // sekuntia näyttöjen välillä
+        // Scroll Progress Bar
+        progressColor:      { type: String, default: '#2563eb' },
+        progressHeight:     { type: Number, default: 4 },
+        progressPosition:   { type: String, default: 'top' }
+    },
     version: { type: Number, default: Date.now },
     createdAt: { type: Date, default: Date.now }
 });
 
-//  pre-save hook -validaatiota ja lokitus
+// pre-save hook
 popupSchema.pre('save', function(next) {
-    console.log("Pre-save hook running with data:", {
-        name: this.name,
-        popupType: this.popupType,
-        content: this.content,
-        imageUrl: this.imageUrl,
-        linkUrl: this.linkUrl
-    });
-    
-    // Tilastojenkerääjä-tyyppi ei tarvitse sisältöä eikä kuvaa
-    if (this.popupType === 'stats_only') {
-        console.log("Stats-only popup validation passed");
+    // Uudet elementtityypit ja stats_only eivät tarvitse content/image -validaatiota
+    const skipValidation = ['stats_only', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress'].includes(this.elementType)
+        || this.popupType === 'stats_only';
+
+    if (skipValidation) {
         next();
         return;
     }
-    
-    // Tarkista että vähintään joko content tai imageUrl on annettu
-    if ((!this.content || this.content.trim() === '') && 
+
+    if ((!this.content || this.content.trim() === '') &&
         (!this.imageUrl || this.imageUrl.trim() === '')) {
-        console.log("Validation failed: No content or image");
         next(new Error('Popupissa on oltava joko sisältöä tai kuva'));
     } else if (this.popupType === 'image' && (!this.imageUrl || this.imageUrl.trim() === '')) {
-        console.log("Validation failed: Image type requires image URL");
         next(new Error('Kuva on pakollinen, kun popupin tyyppi on "Image"'));
     } else {
-        console.log("Validation passed");
         next();
     }
 });

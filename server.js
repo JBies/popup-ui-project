@@ -43,6 +43,11 @@ connectDB();
 
 // Tärkeä: Määritellään popup-embed.js reitti ENNEN mitään muita middleware-määrityksiä
 // Tämä varmistaa, että se käsitellään ennen CORS ja muita middlewareja
+// ui-embed.js – uusi embed-skripti kaikille elementtityypeille
+app.get('/ui-embed.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/ui-embed.js'));
+});
+
 app.get('/popup-embed.js', (req, res) => {
     /* CORS-otsikot tarkasti tälle tiedostolle
     res.header('Access-Control-Allow-Origin', '*');
@@ -177,9 +182,9 @@ app.get('/', (req, res) => {
 });
 
 
-// Lisää suora reitti hallintapaneeliin kirjautuneille käyttäjille
+// Uusi dashboard
 app.get('/dashboard', authMiddleware.isUser, (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
 

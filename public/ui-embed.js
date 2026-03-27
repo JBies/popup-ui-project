@@ -1,0 +1,491 @@
+(function () {
+  'use strict';
+
+  var API_BASE = 'https://popupmanager.net';
+
+  // ─── Julkinen API ────────────────────────────────────────────────────────────
+
+  window.ShowElement = function (elementId) {
+    fetch(API_BASE + '/api/popups/embed/' + elementId)
+      .then(function (r) { return r.json(); })
+      .then(function (el) {
+        if (!shouldShow(el)) return;
+        if (!matchesTargeting(el)) return;
+        trackView(elementId);
+        var type = el.elementType || 'popup';
+        if (type === 'sticky_bar')     renderStickyBar(el);
+        else if (type === 'fab')       renderFAB(el);
+        else if (type === 'slide_in')  setupSlideIn(el);
+        else if (type === 'social_proof')    setupSocialProof(el);
+        else if (type === 'scroll_progress') renderScrollProgress(el);
+        else renderLegacyPopup(el);
+      })
+      .catch(function (e) { console.warn('[ui-embed] Elementtiä ei löydy:', e); });
+  };
+
+  // ─── Näyttölogiikka ─────────────────────────────────────────────────────────
+
+  function shouldShow(el) {
+    var now = new Date();
+    var t = el.timing || {};
+    if (t.startDate && t.startDate !== 'default' && new Date(t.startDate) > now) return false;
+    if (t.endDate && t.endDate !== 'default' && new Date(t.endDate) < now) return false;
+    var cfg = el.elementConfig || {};
+    var dismissKey = 'ue_dismiss_' + el._id;
+    if (sessionStorage.getItem(dismissKey)) return false;
+    if (cfg.dismissCookieDays > 0) {
+      var cookie = getCookie(dismissKey);
+      if (cookie) return false;
+    }
+    return true;
+  }
+
+  function dismiss(elementId, cookieDays) {
+    var key = 'ue_dismiss_' + elementId;
+    sessionStorage.setItem(key, '1');
+    if (cookieDays > 0) setCookie(key, '1', cookieDays);
+  }
+
+  // ─── Sticky Bar ─────────────────────────────────────────────────────────────
+
+  function renderStickyBar(el) {
+    var cfg = el.elementConfig || {};
+    var delay = (el.timing && el.timing.delay) ? el.timing.delay * 1000 : 0;
+    setTimeout(function () {
+      var bar = document.createElement('div');
+      bar.id = 'ue-sticky-' + el._id;
+      var isTop = cfg.barPosition === 'top';
+      Object.assign(bar.style, {
+        position: 'fixed',
+        left: '0', right: '0', zIndex: '999999',
+        top: isTop ? '0' : 'auto',
+        bottom: isTop ? 'auto' : '0',
+        backgroundColor: el.backgroundColor || '#1a56db',
+        color: el.textColor || '#ffffff',
+        padding: '12px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '12px',
+        flexWrap: 'wrap',
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '14px',
+        boxShadow: isTop ? '0 2px 8px rgba(0,0,0,0.2)' : '0 -2px 8px rgba(0,0,0,0.2)'
+      });
+
+      // Teksti
+      if (cfg.barText) {
+        var txt = document.createElement('span');
+        txt.textContent = cfg.barText;
+        txt.style.flex = '1';
+        txt.style.textAlign = 'center';
+        bar.appendChild(txt);
+      }
+
+      // CTA-napit
+      var buttons = Array.isArray(cfg.ctaButtons) ? cfg.ctaButtons : [];
+      buttons.slice(0, 3).forEach(function (btn) {
+        if (!btn.label) return;
+        var b = document.createElement('a');
+        b.textContent = btn.label;
+        b.href = btn.url || '#';
+        if (btn.url) b.target = '_blank';
+        Object.assign(b.style, {
+          padding: '6px 14px', borderRadius: '6px', textDecoration: 'none',
+          fontWeight: '600', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap'
+        });
+        if (btn.style === 'outline') {
+          b.style.border = '2px solid ' + (el.textColor || '#fff');
+          b.style.color = el.textColor || '#fff';
+          b.style.background = 'transparent';
+        } else {
+          b.style.background = el.textColor || '#fff';
+          b.style.color = el.backgroundColor || '#1a56db';
+          b.style.border = 'none';
+        }
+        b.addEventListener('click', function () { trackClick(el._id); });
+        bar.appendChild(b);
+      });
+
+      // Sulje-nappi
+      if (cfg.showDismiss !== false) {
+        var x = document.createElement('button');
+        x.textContent = '✕';
+        Object.assign(x.style, {
+          background: 'none', border: 'none', color: el.textColor || '#fff',
+          fontSize: '16px', cursor: 'pointer', padding: '0 4px', opacity: '0.7',
+          position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)'
+        });
+        x.addEventListener('click', function () {
+          bar.remove();
+          adjustBodyPadding(isTop ? 'top' : 'bottom', 0);
+          dismiss(el._id, cfg.dismissCookieDays || 0);
+        });
+        bar.style.position = 'fixed';
+        bar.appendChild(x);
+      }
+
+      document.body.appendChild(bar);
+      var h = bar.offsetHeight;
+      adjustBodyPadding(isTop ? 'top' : 'bottom', h);
+    }, delay);
+  }
+
+  function adjustBodyPadding(side, px) {
+    var prop = 'padding' + (side === 'top' ? 'Top' : 'Bottom');
+    var cur = parseInt(document.body.style[prop]) || 0;
+    document.body.style[prop] = (px > 0 ? px : Math.max(0, cur - px)) + 'px';
+  }
+
+  // ─── FAB ────────────────────────────────────────────────────────────────────
+
+  function renderFAB(el) {
+    var cfg = el.elementConfig || {};
+    var delay = (el.timing && el.timing.delay) ? el.timing.delay * 1000 : 0;
+    setTimeout(function () {
+      var sizes = { sm: '44px', md: '56px', lg: '68px' };
+      var sz = sizes[cfg.fabSize] || '56px';
+      var pos = cfg.fabPosition || 'bottom-right';
+      var posMap = {
+        'bottom-right': { bottom: '24px', right: '24px' },
+        'bottom-left':  { bottom: '24px', left: '24px' },
+        'top-right':    { top: '24px', right: '24px' },
+        'top-left':     { top: '24px', left: '24px' }
+      };
+
+      var btn = document.createElement('button');
+      btn.id = 'ue-fab-' + el._id;
+      Object.assign(btn.style, Object.assign({
+        position: 'fixed', zIndex: '999998',
+        width: sz, height: sz, borderRadius: '50%',
+        background: cfg.fabColor || '#1a56db',
+        border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+        transition: 'transform 0.2s'
+      }, posMap[pos] || posMap['bottom-right']));
+
+      var icon = document.createElement('i');
+      icon.className = 'fa ' + (cfg.fabIcon || 'fa-comment');
+      icon.style.color = '#fff';
+      icon.style.fontSize = '22px';
+      btn.appendChild(icon);
+
+      // Pulse-animaatio
+      if (cfg.pulseAnimation) {
+        var style = document.createElement('style');
+        style.textContent = '@keyframes ue-pulse{0%,100%{box-shadow:0 0 0 0 ' + (cfg.fabColor || '#1a56db') + '88}50%{box-shadow:0 0 0 12px transparent}}';
+        document.head.appendChild(style);
+        btn.style.animation = 'ue-pulse 2s infinite';
+      }
+
+      btn.addEventListener('mouseenter', function () { btn.style.transform = 'scale(1.1)'; });
+      btn.addEventListener('mouseleave', function () { btn.style.transform = 'scale(1)'; });
+
+      btn.addEventListener('click', function () {
+        trackClick(el._id);
+        if (cfg.fabAction === 'modal') {
+          openModal(cfg.fabModalContent || '', el.backgroundColor, el.textColor);
+        } else if (cfg.fabUrl) {
+          window.open(cfg.fabUrl, '_blank');
+        }
+      });
+
+      // Font Awesome lataus jos ei jo ladattu
+      if (!document.querySelector('link[href*="font-awesome"]')) {
+        var fa = document.createElement('link');
+        fa.rel = 'stylesheet';
+        fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css';
+        document.head.appendChild(fa);
+      }
+
+      document.body.appendChild(btn);
+    }, delay);
+  }
+
+  // ─── Slide-in ────────────────────────────────────────────────────────────────
+
+  function setupSlideIn(el) {
+    var cfg = el.elementConfig || {};
+    var trigger = cfg.slideInTrigger || 'time';
+    var value = cfg.slideInTriggerValue || 5;
+
+    if (trigger === 'time') {
+      setTimeout(function () { renderSlideIn(el); }, value * 1000);
+    } else if (trigger === 'scroll') {
+      var shown = false;
+      window.addEventListener('scroll', function onScroll() {
+        if (shown) return;
+        var pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+        if (pct >= value) { shown = true; renderSlideIn(el); window.removeEventListener('scroll', onScroll); }
+      });
+    } else if (trigger === 'exit_intent') {
+      var isTouch = !window.matchMedia('(hover: hover)').matches;
+      if (isTouch) {
+        setTimeout(function () { renderSlideIn(el); }, 15000);
+      } else {
+        var fired = false;
+        document.addEventListener('mouseleave', function (e) {
+          if (!fired && e.clientY <= 0) { fired = true; renderSlideIn(el); }
+        });
+      }
+    }
+  }
+
+  function renderSlideIn(el) {
+    var cfg = el.elementConfig || {};
+    var pos = cfg.slideInPosition || 'bottom-right';
+    var w = cfg.slideInWidth || 320;
+    var box = document.createElement('div');
+    box.id = 'ue-slidein-' + el._id;
+    var posStyle = pos === 'bottom-left'
+      ? { bottom: '24px', left: '24px' }
+      : { bottom: '24px', right: '24px' };
+    Object.assign(box.style, Object.assign({
+      position: 'fixed', zIndex: '999997',
+      width: w + 'px', padding: '20px',
+      backgroundColor: el.backgroundColor || '#fff',
+      color: el.textColor || '#1f2937',
+      borderRadius: '12px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+      fontFamily: 'system-ui, sans-serif',
+      transform: 'translateY(120%)',
+      transition: 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)'
+    }, posStyle));
+
+    if (el.content) box.innerHTML = el.content;
+
+    if (cfg.showCloseButton !== false) {
+      var x = document.createElement('button');
+      x.textContent = '✕';
+      Object.assign(x.style, {
+        position: 'absolute', top: '10px', right: '12px',
+        background: 'none', border: 'none', fontSize: '16px',
+        cursor: 'pointer', opacity: '0.5', color: el.textColor || '#1f2937'
+      });
+      x.addEventListener('click', function () {
+        box.style.transform = 'translateY(120%)';
+        setTimeout(function () { box.remove(); }, 400);
+        dismiss(el._id, 0);
+      });
+      box.style.position = 'relative';
+      box.appendChild(x);
+    }
+
+    document.body.appendChild(box);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { box.style.transform = 'translateY(0)'; });
+    });
+    trackView(el._id);
+  }
+
+  // ─── Legacy popup (vanha popup-embed.js -logiikka) ──────────────────────────
+
+  function renderLegacyPopup(el) {
+    var delay = (el.timing && el.timing.delay) ? el.timing.delay * 1000 : 0;
+    setTimeout(function () {
+      var overlay = document.createElement('div');
+      Object.assign(overlay.style, {
+        position: 'fixed', inset: '0', zIndex: '999996',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(0,0,0,0.4)'
+      });
+      var box = document.createElement('div');
+      Object.assign(box.style, {
+        position: 'relative', backgroundColor: el.backgroundColor || '#fff',
+        color: el.textColor || '#000', borderRadius: '12px',
+        padding: '24px', maxWidth: '90vw', width: (el.width || 400) + 'px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.2)', fontFamily: 'system-ui, sans-serif'
+      });
+      if (el.content) box.innerHTML = el.content;
+      var x = document.createElement('button');
+      x.textContent = '✕';
+      Object.assign(x.style, {
+        position: 'absolute', top: '10px', right: '12px',
+        background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer'
+      });
+      x.addEventListener('click', function () { overlay.remove(); });
+      box.appendChild(x);
+      overlay.appendChild(box);
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+    }, delay);
+  }
+
+  // ─── Targeting ───────────────────────────────────────────────────────────────
+
+  function matchesTargeting(el) {
+    var t = el.targeting;
+    if (!t || !t.enabled || !t.rules || t.rules.length === 0) return true;
+    var results = t.rules.map(function (rule) { return evalRule(rule); });
+    return t.matchType === 'any' ? results.some(Boolean) : results.every(Boolean);
+  }
+
+  function evalRule(rule) {
+    var val = (rule.value || '').toLowerCase();
+    var op = rule.operator;
+    switch (rule.type) {
+      case 'url':
+        var url = window.location.href.toLowerCase();
+        if (op === 'contains') return url.indexOf(val) !== -1;
+        if (op === 'equals') return url === val;
+        if (op === 'starts_with') return url.indexOf(val) === 0;
+        return false;
+      case 'device':
+        var ua = navigator.userAgent.toLowerCase();
+        var isMobile = /mobi|android|iphone|ipad/.test(ua);
+        var isTablet = /ipad|tablet/.test(ua);
+        if (val === 'mobile') return isMobile && !isTablet;
+        if (val === 'tablet') return isTablet;
+        if (val === 'desktop') return !isMobile;
+        return false;
+      case 'referrer':
+        var ref = document.referrer.toLowerCase();
+        if (op === 'contains') return ref.indexOf(val) !== -1;
+        if (op === 'equals') return ref === val;
+        return false;
+      case 'scroll_depth':
+        var pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight || 1)) * 100;
+        if (op === 'greater_than') return pct > parseFloat(val);
+        if (op === 'less_than') return pct < parseFloat(val);
+        return false;
+      case 'new_vs_returning':
+        var isReturning = !!localStorage.getItem('ue_visited');
+        localStorage.setItem('ue_visited', '1');
+        if (val === 'new') return !isReturning;
+        if (val === 'returning') return isReturning;
+        return false;
+      case 'day_of_week':
+        var days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+        return days[new Date().getDay()] === val;
+      case 'hour_of_day':
+        var hour = new Date().getHours();
+        if (op === 'greater_than') return hour > parseInt(val);
+        if (op === 'less_than') return hour < parseInt(val);
+        return false;
+      default: return true;
+    }
+  }
+
+  // ─── Social Proof ────────────────────────────────────────────────────────────
+
+  function setupSocialProof(el) {
+    var cfg = el.elementConfig || {};
+    var duration = (cfg.proofDuration || 5) * 1000;
+    var interval = (cfg.proofInterval || 8) * 1000;
+    var delay = (el.timing && el.timing.delay) ? el.timing.delay * 1000 : 0;
+
+    function showNotif() {
+      var count = cfg.proofCount > 0 ? cfg.proofCount : Math.floor(Math.random() * 15) + 2;
+      var text = (cfg.proofText || '{count} henkilöä katsoo nyt').replace('{count}', count);
+      var pos = cfg.proofPosition || 'bottom-left';
+      var notif = document.createElement('div');
+      notif.id = 'ue-proof-' + el._id;
+      var posStyle = pos === 'bottom-right' ? { bottom: '24px', right: '24px' } : { bottom: '24px', left: '24px' };
+      Object.assign(notif.style, Object.assign({
+        position: 'fixed', zIndex: '999995',
+        padding: '10px 16px', borderRadius: '10px',
+        background: cfg.backgroundColor || '#1f2937',
+        color: cfg.textColor || '#fff',
+        fontFamily: 'system-ui, sans-serif', fontSize: '14px',
+        display: 'flex', alignItems: 'center', gap: '8px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+        opacity: '0', transform: 'translateY(10px)',
+        transition: 'opacity 0.3s, transform 0.3s'
+      }, posStyle));
+      notif.innerHTML = '<span style="font-size:20px">' + (cfg.proofIcon || '👥') + '</span><span>' + text + '</span>';
+      document.body.appendChild(notif);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { notif.style.opacity = '1'; notif.style.transform = 'translateY(0)'; });
+      });
+      setTimeout(function () {
+        notif.style.opacity = '0'; notif.style.transform = 'translateY(10px)';
+        setTimeout(function () { notif.remove(); }, 300);
+      }, duration);
+      trackView(el._id);
+    }
+
+    setTimeout(function () {
+      showNotif();
+      setInterval(showNotif, interval + duration);
+    }, delay);
+  }
+
+  // ─── Scroll Progress ─────────────────────────────────────────────────────────
+
+  function renderScrollProgress(el) {
+    var cfg = el.elementConfig || {};
+    var isTop = (cfg.progressPosition || 'top') === 'top';
+    var bar = document.createElement('div');
+    bar.id = 'ue-progress-' + el._id;
+    Object.assign(bar.style, {
+      position: 'fixed', left: '0', right: '0', zIndex: '999994',
+      top: isTop ? '0' : 'auto', bottom: isTop ? 'auto' : '0',
+      height: (cfg.progressHeight || 4) + 'px',
+      background: cfg.backgroundColor || '#e2e8f0',
+      pointerEvents: 'none'
+    });
+    var fill = document.createElement('div');
+    Object.assign(fill.style, {
+      height: '100%', width: '0%',
+      background: cfg.progressColor || '#2563eb',
+      transition: 'width 0.1s linear'
+    });
+    bar.appendChild(fill);
+    document.body.appendChild(bar);
+    window.addEventListener('scroll', function () {
+      var pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight || 1)) * 100;
+      fill.style.width = Math.min(100, pct) + '%';
+    });
+  }
+
+  // ─── Modal ──────────────────────────────────────────────────────────────────
+
+  function openModal(html, bg, color) {
+    var overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: 'fixed', inset: '0', zIndex: '9999999',
+      background: 'rgba(0,0,0,0.5)', display: 'flex',
+      alignItems: 'center', justifyContent: 'center'
+    });
+    var box = document.createElement('div');
+    Object.assign(box.style, {
+      background: bg || '#fff', color: color || '#111',
+      borderRadius: '12px', padding: '28px', maxWidth: '440px',
+      width: '90vw', position: 'relative', fontFamily: 'system-ui, sans-serif'
+    });
+    box.innerHTML = html;
+    var x = document.createElement('button');
+    x.textContent = '✕';
+    Object.assign(x.style, { position: 'absolute', top: '12px', right: '16px', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' });
+    x.addEventListener('click', function () { overlay.remove(); });
+    box.appendChild(x);
+    overlay.appendChild(box);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+  }
+
+  // ─── Tilastot ────────────────────────────────────────────────────────────────
+
+  function trackView(id) {
+    fetch(API_BASE + '/api/popups/view/' + id, { method: 'POST' }).catch(function () {});
+  }
+
+  function trackClick(id) {
+    fetch(API_BASE + '/api/popups/click/' + id, { method: 'POST' }).catch(function () {});
+  }
+
+  // ─── Apufunktiot ─────────────────────────────────────────────────────────────
+
+  function setCookie(name, value, days) {
+    var d = new Date();
+    d.setTime(d.getTime() + days * 864e5);
+    document.cookie = name + '=' + value + ';expires=' + d.toUTCString() + ';path=/';
+  }
+
+  function getCookie(name) {
+    var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+  }
+
+})();

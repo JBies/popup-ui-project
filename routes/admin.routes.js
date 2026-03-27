@@ -64,4 +64,11 @@ router.post('/users/update-limit/:id', isAdmin, UserController.updateUserPopupLi
  */
 router.get('/popups/stats/:id', isAdmin, PopupController.getAdminPopupStats);
 
+/**
+ * @route   PUT /api/admin/users/limits/:id
+ * @desc    Päivittää käyttäjän per-tyyppi-rajoitukset
+ * @access  Admin
+ */
+router.put('/users/limits/:id', isAdmin, UserController.updateUserLimits);
+
 module.exports = router;

@@ -34,20 +34,23 @@ class PopupController {
     }
     
 
-    const { 
+    const {
       name,
-      popupType, 
-      content, 
-      width, 
-      height, 
-      position, 
-      animation, 
-      backgroundColor, 
+      popupType,
+      elementType,
+      elementConfig,
+      targeting,
+      content,
+      width,
+      height,
+      position,
+      animation,
+      backgroundColor,
       textColor,
       imageUrl,
       linkUrl,
-      delay,        
-      showDuration,  
+      delay,
+      showDuration,
       startDate,
       endDate
     } = req.body;
@@ -72,7 +75,10 @@ class PopupController {
       const newPopup = new Popup({
         userId: req.user._id,
         name: name || 'Unnamed Popup',
-        popupType,
+        elementType: elementType || 'popup',
+        elementConfig: elementConfig || {},
+        targeting: targeting || { enabled: false, matchType: 'all', rules: [] },
+        popupType: popupType || 'rectangle',
         content,
         width: parseInt(width) || 200,
         height: parseInt(height) || 150,
@@ -131,6 +137,9 @@ class PopupController {
     const {
       name,
       popupType,
+      elementType,
+      elementConfig,
+      targeting,
       content,
       width,
       height,
@@ -206,7 +215,10 @@ class PopupController {
         { _id: req.params.id, userId: req.user._id },
         {
           name: name || 'Unnamed Popup',
-          popupType,
+          ...(elementType && { elementType }),
+          ...(elementConfig && { elementConfig }),
+          ...(targeting !== undefined && { targeting }),
+          popupType: popupType || 'rectangle',
           content,
           width: parseInt(width) || 200,
           height: parseInt(height) || 150,
@@ -628,6 +640,94 @@ class PopupController {
    * @param {string} imageUrl - Kuvan URL
    * @param {string} popupId - Popupin ID
    */
+  /**
+   * Palauttaa valmiit template-presetit (ei tietokantakyselyä)
+   */
+  static getTemplates(req, res) {
+    const templates = [
+      {
+        id: 'sticky-announcement', name: 'Announcement Banner', category: 'Sticky Bars',
+        elementType: 'sticky_bar', popupType: 'rectangle',
+        elementConfig: { barPosition: 'top', barText: '🎉 Uusi palvelu on nyt saatavilla!', ctaButtons: [{ label: 'Lue lisää', url: '', style: 'primary' }], showDismiss: true, dismissCookieDays: 1 },
+        backgroundColor: '#1a56db', textColor: '#ffffff'
+      },
+      {
+        id: 'sticky-cookie', name: 'Cookie-ilmoitus', category: 'Sticky Bars',
+        elementType: 'sticky_bar', popupType: 'rectangle',
+        elementConfig: { barPosition: 'bottom', barText: 'Käytämme evästeitä parantaaksemme käyttökokemustasi.', ctaButtons: [{ label: 'Hyväksy', url: '', style: 'primary' }, { label: 'Tietosuoja', url: '/privacy', style: 'outline' }], showDismiss: false, dismissCookieDays: 365 },
+        backgroundColor: '#1f2937', textColor: '#ffffff'
+      },
+      {
+        id: 'sticky-offer', name: 'Tarjousilmoitus', category: 'Sticky Bars',
+        elementType: 'sticky_bar', popupType: 'rectangle',
+        elementConfig: { barPosition: 'top', barText: '🔥 -20% kaikesta tänään! Käytä koodia SAVE20', ctaButtons: [{ label: 'Tilaa nyt', url: '', style: 'primary' }], showDismiss: true, dismissCookieDays: 0 },
+        backgroundColor: '#dc2626', textColor: '#ffffff'
+      },
+      {
+        id: 'fab-chat', name: 'Chat-nappi', category: 'Floating Buttons',
+        elementType: 'fab', popupType: 'rectangle',
+        elementConfig: { fabPosition: 'bottom-right', fabIcon: 'fa-comment', fabColor: '#1a56db', fabSize: 'md', fabAction: 'link', pulseAnimation: true }
+      },
+      {
+        id: 'fab-phone', name: 'Soittopyyntö', category: 'Floating Buttons',
+        elementType: 'fab', popupType: 'rectangle',
+        elementConfig: { fabPosition: 'bottom-right', fabIcon: 'fa-phone', fabColor: '#16a34a', fabSize: 'md', fabAction: 'link', pulseAnimation: false }
+      },
+      {
+        id: 'fab-top', name: 'Takaisin ylös', category: 'Floating Buttons',
+        elementType: 'fab', popupType: 'rectangle',
+        elementConfig: { fabPosition: 'bottom-right', fabIcon: 'fa-arrow-up', fabColor: '#6b7280', fabSize: 'sm', fabAction: 'link', fabUrl: '#top', pulseAnimation: false }
+      },
+      {
+        id: 'slide-newsletter', name: 'Uutiskirje', category: 'Slide-ins',
+        elementType: 'slide_in', popupType: 'rectangle',
+        elementConfig: { slideInPosition: 'bottom-right', slideInWidth: 340, slideInTrigger: 'scroll', slideInTriggerValue: 50, showCloseButton: true },
+        content: '<h3 style="margin:0 0 8px">Pysytään yhteydessä!</h3><p style="margin:0 0 12px;font-size:14px">Tilaa uutiskirje ja saat parhaat tarjoukset.</p>',
+        backgroundColor: '#ffffff', textColor: '#1f2937'
+      },
+      {
+        id: 'slide-offer', name: 'Alennustarjous', category: 'Slide-ins',
+        elementType: 'slide_in', popupType: 'rectangle',
+        elementConfig: { slideInPosition: 'bottom-left', slideInWidth: 300, slideInTrigger: 'time', slideInTriggerValue: 30, showCloseButton: true },
+        content: '<h3 style="margin:0 0 8px">⚡ 20% alennus!</h3><p style="margin:0 0 12px;font-size:14px">Voimassa vain tänään.</p>',
+        backgroundColor: '#fef3c7', textColor: '#92400e'
+      },
+      {
+        id: 'popup-announcement', name: 'Ilmoituspopup', category: 'Popups',
+        elementType: 'popup', popupType: 'rectangle',
+        elementConfig: { popupSubtype: 'announcement' },
+        content: '<h2>Tervetuloa!</h2><p>Tärkeä ilmoitus sivustolla kävijöille.</p>',
+        backgroundColor: '#ffffff', textColor: '#1f2937', width: 400, height: 200
+      },
+      {
+        id: 'social-booking', name: 'Ajanvarausilmoitus', category: 'Social Proof',
+        elementType: 'social_proof', popupType: 'rectangle',
+        elementConfig: { proofText: '{count} henkilöä varasi ajan tällä viikolla', proofCount: 0, proofIcon: '📅', proofDuration: 5, proofInterval: 10, proofPosition: 'bottom-left', backgroundColor: '#1f2937', textColor: '#ffffff' }
+      },
+      {
+        id: 'social-viewers', name: 'Katselijat nyt', category: 'Social Proof',
+        elementType: 'social_proof', popupType: 'rectangle',
+        elementConfig: { proofText: '{count} henkilöä katsoo tätä sivua nyt', proofCount: 0, proofIcon: '👀', proofDuration: 4, proofInterval: 8, proofPosition: 'bottom-left', backgroundColor: '#0f172a', textColor: '#f8fafc' }
+      },
+      {
+        id: 'social-purchase', name: 'Ostoilmoitus', category: 'Social Proof',
+        elementType: 'social_proof', popupType: 'rectangle',
+        elementConfig: { proofText: 'Joku osti juuri tämän tuotteen!', proofCount: 1, proofIcon: '🛒', proofDuration: 5, proofInterval: 12, proofPosition: 'bottom-right', backgroundColor: '#14532d', textColor: '#dcfce7' }
+      },
+      {
+        id: 'scroll-blue', name: 'Sininen progress bar', category: 'Scroll Progress',
+        elementType: 'scroll_progress', popupType: 'rectangle',
+        elementConfig: { progressPosition: 'top', progressHeight: 4, progressColor: '#2563eb', backgroundColor: '#e2e8f0' }
+      },
+      {
+        id: 'scroll-warm', name: 'Oranssi progress bar', category: 'Scroll Progress',
+        elementType: 'scroll_progress', popupType: 'rectangle',
+        elementConfig: { progressPosition: 'top', progressHeight: 6, progressColor: '#f59e0b', backgroundColor: '#fef3c7' }
+      }
+    ];
+    res.json(templates);
+  }
+
   static async removeImageReference(userId, imageUrl, popupId) {
     if (!imageUrl) return;
     

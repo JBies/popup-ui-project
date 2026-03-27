@@ -114,6 +114,10 @@ class UserTable {
               <option value="user" selected>User</option>
               <option value="admin">Admin</option>
             </select>
+            <button class="edit-limits-btn" data-id="${user._id}" title="Muokkaa rajoituksia"
+              style="padding:6px 10px;background:#3b82f6;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">
+              <i class="fas fa-sliders-h"></i> Limits
+            </button>
             <button class="delete-btn" data-id="${user._id}">
               <i class="fas fa-trash"></i>
             </button>
@@ -176,7 +180,15 @@ class UserTable {
         }
       });
     });
-    // tapahtumakäsittelijät popup-rajoituksille
+    // Edit Limits -painikkeet
+  document.querySelectorAll('.edit-limits-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      const userId = button.dataset.id;
+      UserTable.openLimitsModal(userId, onAction);
+    });
+  });
+
+  // tapahtumakäsittelijät popup-rajoituksille
   document.querySelectorAll('.popup-limit-input').forEach(input => {
     input.addEventListener('input', function() {
       const saveBtn = this.parentElement.querySelector('.save-limit-btn');
@@ -199,6 +211,100 @@ class UserTable {
 
   }
   
+  /**
+   * Avaa käyttäjän rajoitusten muokkausmodaalin
+   */
+  static async openLimitsModal(userId, onAction) {
+    // Hae käyttäjän nykyiset tiedot
+    let user = { limits: {} };
+    try {
+      const r = await fetch('/api/admin/users');
+      const users = await r.json();
+      user = users.find(u => u._id === userId) || user;
+    } catch (e) {}
+    const lim = user.limits || {};
+
+    const PRESETS = {
+      free:   { sticky_bar:1, fab:1, slide_in:1, popup:1, social_proof:1, scroll_progress:1, canUseTargeting:false, canUseAnalytics:true,  canUseTemplates:true  },
+      pro:    { sticky_bar:3, fab:3, slide_in:3, popup:3, social_proof:3, scroll_progress:3, canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true  },
+      growth: { sticky_bar:10,fab:10,slide_in:10,popup:10,social_proof:10,scroll_progress:10,canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true  }
+    };
+
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:12px;padding:28px;width:480px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);font-family:system-ui,sans-serif">
+        <h3 style="margin:0 0 6px;font-size:17px">Muokkaa rajoituksia</h3>
+        <p style="font-size:12px;color:#64748b;margin:0 0 16px">${user.displayName || userId} – ${user.email || ''}</p>
+        <div style="display:flex;gap:8px;margin-bottom:18px">
+          <button data-preset="free"   style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:12px;font-weight:600">Free</button>
+          <button data-preset="pro"    style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #3b82f6;background:#eff6ff;color:#1d4ed8;cursor:pointer;font-size:12px;font-weight:600">Pro</button>
+          <button data-preset="growth" style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #8b5cf6;background:#f5f3ff;color:#6d28d9;cursor:pointer;font-size:12px;font-weight:600">Growth</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+          ${['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress'].map(t => `
+            <div>
+              <label style="font-size:12px;color:#475569;display:block;margin-bottom:4px">${t.replace('_',' ')}</label>
+              <input type="number" id="lim-${t}" min="0" max="100" value="${lim[t] ?? 1}"
+                style="width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box">
+            </div>`).join('')}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="lim-targeting" ${lim.canUseTargeting ? 'checked' : ''}> Targeting (URL, device, scroll…)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="lim-analytics" ${lim.canUseAnalytics !== false ? 'checked' : ''}> Analytics
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="lim-templates" ${lim.canUseTemplates !== false ? 'checked' : ''}> Templates
+          </label>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button id="lim-cancel" style="padding:8px 18px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;cursor:pointer;font-size:13px">Peruuta</button>
+          <button id="lim-save"   style="padding:8px 18px;border:none;border-radius:7px;background:#3b82f6;color:#fff;cursor:pointer;font-size:13px;font-weight:600">Tallenna</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(modal);
+
+    // Preset-painikkeet
+    modal.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        ['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress'].forEach(t => {
+          const el = modal.querySelector('#lim-' + t);
+          if (el) el.value = p[t];
+        });
+        modal.querySelector('#lim-targeting').checked = p.canUseTargeting;
+        modal.querySelector('#lim-analytics').checked = p.canUseAnalytics;
+        modal.querySelector('#lim-templates').checked = p.canUseTemplates;
+      });
+    });
+
+    modal.querySelector('#lim-cancel').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+    modal.querySelector('#lim-save').addEventListener('click', async () => {
+      const g = id => modal.querySelector('#' + id);
+      const data = {
+        sticky_bar:      parseInt(g('lim-sticky_bar').value) || 1,
+        fab:             parseInt(g('lim-fab').value) || 1,
+        slide_in:        parseInt(g('lim-slide_in').value) || 1,
+        popup:           parseInt(g('lim-popup').value) || 1,
+        social_proof:    parseInt(g('lim-social_proof').value) || 1,
+        scroll_progress: parseInt(g('lim-scroll_progress').value) || 1,
+        canUseTargeting: g('lim-targeting').checked,
+        canUseAnalytics: g('lim-analytics').checked,
+        canUseTemplates: g('lim-templates').checked
+      };
+      try {
+        await onAction('updateLimits', userId, data);
+        modal.remove();
+      } catch (e) {}
+    });
+  }
+
   /**
    * Formatoi päivämäärän luettavaan muotoon
    * @param {string} dateString - Päivämäärä string-muodossa

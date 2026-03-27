@@ -39,8 +39,11 @@ async function handleUserAction(action, userId, data) {
       case 'updateRole':
         await UserActions.updateUserRole(userId, data);
         break;
-      case 'updatePopupLimit':  // Uusi toiminto
+      case 'updatePopupLimit':
         await UserActions.updatePopupLimit(userId, data);
+        break;
+      case 'updateLimits':
+        await UserActions.updateUserLimits(userId, data);
         break;
       case 'delete':
         await UserActions.deleteUser(userId);
