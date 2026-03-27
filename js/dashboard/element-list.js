@@ -8,7 +8,8 @@ const TYPE_META = {
   slide_in:        { label: 'Slide-in',        icon: 'fa-comment-dots', badge: 'badge-slidein' },
   popup:           { label: 'Popup',           icon: 'fa-square',       badge: 'badge-popup' },
   social_proof:    { label: 'Social Proof',    icon: 'fa-users',        badge: 'badge-social' },
-  scroll_progress: { label: 'Scroll Progress', icon: 'fa-arrows-alt-v', badge: 'badge-scroll' }
+  scroll_progress: { label: 'Scroll Progress', icon: 'fa-arrows-alt-v', badge: 'badge-scroll' },
+  lead_form:       { label: 'Lead Form',       icon: 'fa-envelope',     badge: 'badge-lead' }
 };
 
 let allElements = [];
@@ -78,6 +79,7 @@ function cardHTML(el) {
         <div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
             <span class="badge ${meta.badge}"><i class="fa ${meta.icon}"></i> ${meta.label}</span>
+            ${el.active === false ? '<span style="font-size:11px;color:#ef4444;margin-left:6px">● Ei käytössä</span>' : ''}
           </div>
           <div class="element-card-title">${escHtml(el.name)}</div>
           <div class="element-card-meta">${escHtml(subtitle)}</div>

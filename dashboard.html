@@ -31,6 +31,12 @@
       <a href="#analytics" class="nav-link" data-view="analytics">
         <i class="fa fa-chart-bar"></i> Tilastot
       </a>
+      <a href="#campaigns" class="nav-link" data-view="campaigns">
+        <i class="fa fa-flag"></i> Kampanjat
+      </a>
+      <a href="#webhooks" class="nav-link" data-view="webhooks">
+        <i class="fa fa-webhook"></i> Webhooks
+      </a>
       <a href="#settings" class="nav-link" data-view="settings">
         <i class="fa fa-code"></i> Asennuskoodi
       </a>
@@ -71,6 +77,7 @@
               <button class="dropdown-item" data-type="popup"><i class="fa fa-square" style="color:#475569"></i> Popup</button>
               <button class="dropdown-item" data-type="social_proof"><i class="fa fa-users" style="color:#d97706"></i> Social Proof</button>
               <button class="dropdown-item" data-type="scroll_progress"><i class="fa fa-arrows-alt-v" style="color:#e11d48"></i> Scroll Progress</button>
+              <button class="dropdown-item" data-type="lead_form"><i class="fa fa-envelope" style="color:#10b981"></i> Lead Form</button>
             </div>
           </div>
         </div>
@@ -87,6 +94,39 @@
       <!-- Tilastot -->
       <div id="view-analytics" style="display:none">
         <div id="analytics-content"></div>
+      </div>
+
+      <!-- Kampanjat -->
+      <div id="view-campaigns" style="display:none">
+        <div id="campaigns-content"></div>
+      </div>
+
+      <!-- Webhooks -->
+      <div id="view-webhooks" style="display:none">
+        <div style="max-width:600px">
+          <h2 style="font-size:18px;font-weight:700;margin-bottom:8px">Webhooks</h2>
+          <p style="color:#64748b;font-size:14px;margin-bottom:20px">Saa ilmoitus kun elementtiäsi näytetään, klikataan tai liidi kerätään.</p>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:16px">
+            <div class="form-group" style="margin-bottom:10px">
+              <label style="font-size:13px;font-weight:500">Webhook URL</label>
+              <input type="url" id="wh-url" placeholder="https://hooks.zapier.com/..." style="width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box;margin-top:4px">
+            </div>
+            <div class="form-group" style="margin-bottom:10px">
+              <label style="font-size:13px;font-weight:500">Nimi (valinnainen)</label>
+              <input type="text" id="wh-name" placeholder="esim. Zapier – liidi" style="width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box;margin-top:4px">
+            </div>
+            <div style="margin-bottom:14px">
+              <label style="font-size:13px;font-weight:500;display:block;margin-bottom:8px">Tapahtumat</label>
+              <div style="display:flex;gap:16px">
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="wh-event" value="view"> Näyttö</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="wh-event" value="click" checked> Klikkaus</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="wh-event" value="lead"> Liidi</label>
+              </div>
+            </div>
+            <button id="wh-add-btn" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Lisää webhook</button>
+          </div>
+          <div id="wh-list"></div>
+        </div>
       </div>
 
       <!-- Asennuskoodi -->

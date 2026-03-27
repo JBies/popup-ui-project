@@ -201,6 +201,38 @@ static async updateUserPopupLimit(req, res) {
       res.redirect('/');
     });
   }
+
+  static async getWebhooks(req, res) {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    const user = await User.findById(req.user._id).select('webhooks');
+    res.json(user?.webhooks || []);
+  }
+
+  static async addWebhook(req, res) {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    const { name, url, events } = req.body;
+    if (!url) return res.status(400).json({ message: 'URL required' });
+    try {
+      const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $push: { webhooks: { name: name || url, url, events: events || ['click'] } } },
+        { new: true }
+      );
+      res.json(user.webhooks);
+    } catch (err) {
+      res.status(500).json({ message: 'Error adding webhook' });
+    }
+  }
+
+  static async deleteWebhook(req, res) {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    try {
+      await User.findByIdAndUpdate(req.user._id, { $pull: { webhooks: { _id: req.params.id } } });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: 'Error deleting webhook' });
+    }
+  }
 }
 
 module.exports = UserController;

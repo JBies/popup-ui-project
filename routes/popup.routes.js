@@ -76,4 +76,7 @@ router.put('/:id', PopupController.updatePopup);
  */
 router.delete('/:id', PopupController.deletePopup);
 
+router.put('/:id/toggle-active', PopupController.toggleActive);
+router.post('/campaign/activate', PopupController.activateCampaign);
+
 module.exports = router;

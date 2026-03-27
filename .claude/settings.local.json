@@ -18,7 +18,19 @@
       "Bash(node --check js/dashboard/editors/social-proof-editor.js)",
       "Bash(node --check js/dashboard/editors/scroll-progress-editor.js)",
       "Bash(node --check js/dashboard/editors/targeting-editor.js)",
-      "Bash(node --check js/dashboard/live-preview.js)"
+      "Bash(node --check js/dashboard/live-preview.js)",
+      "Bash(node --check models/Popup.js)",
+      "Bash(node --check models/User.js)",
+      "Bash(node --check models/Lead.js)",
+      "Bash(node --check utils/webhooks.js)",
+      "Bash(node --check controllers/lead.controller.js)",
+      "Bash(node --check \"D:/popup-ui-project/public/ui-embed.js\")",
+      "Bash(node --check \"D:/popup-ui-project/js/dashboard/analytics-page.js\")",
+      "Bash(node --check \"D:/popup-ui-project/js/dashboard/campaigns-panel.js\")",
+      "Bash(node --check \"D:/popup-ui-project/js/dashboard/editors/ab-test-editor.js\")",
+      "Bash(node --check \"D:/popup-ui-project/js/dashboard/editors/lead-form-editor.js\")",
+      "Bash(node --check server.js)",
+      "Bash(node --check controllers/popup.controller.js)"
     ]
   }
 }

@@ -415,3 +415,13 @@ body {
   #topbar { padding: 0 16px; }
   #content { padding: 16px; }
 }
+
+
+/* ── Analytics ─────────────────────────────────────────── */
+.badge-lead { background: #d1fae5; color: #065f46; }
+
+/* ── A/B test editor ────────────────────────────────────── */
+#ab-test-section { margin-top: 12px; }
+
+/* ── Campaign active dot ────────────────────────────────── */
+.el-inactive { opacity: 0.55; }
