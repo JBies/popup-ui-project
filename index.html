@@ -195,10 +195,14 @@
 
   <script>
     // Kirjautunut käyttäjä → ohjaa suoraan dashboardiin
+    // API palauttaa { user: {...} } tai { user: null } – täytyy purkaa wrapper
     fetch('/api/user').then(r => {
-      if (r.ok) r.json().then(u => {
-        if (u && u.role !== 'pending') window.location.href = '/dashboard';
-        else if (u && u.role === 'pending') window.location.href = '/pending';
+      if (!r.ok) return;
+      r.json().then(data => {
+        const u = data.user || null;   // puretaan { user: ... } -wrapper
+        if (!u) return;                // ei kirjautunut → jää landing-sivulle
+        if (u.role === 'pending') window.location.href = '/pending';
+        else window.location.href = '/dashboard';
       });
     }).catch(() => {});
   </script>
