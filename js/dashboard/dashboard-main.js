@@ -15,7 +15,9 @@ async function init() {
   try {
     const r = await fetch('/api/user');
     if (!r.ok) { window.location.href = '/'; return; }
-    user = await r.json();
+    const data = await r.json();
+    user = data.user || data;  // unwrap { user: {...} } wrapper
+    if (!user || !user._id) { window.location.href = '/'; return; }
     if (user.role === 'pending') { window.location.href = '/pending'; return; }
   } catch {
     window.location.href = '/';

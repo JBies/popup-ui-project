@@ -20,9 +20,13 @@ async (accessToken, refreshToken, profile, done) => {
         // Etsitään käyttäjä ensin
         let user = await User.findOne({ googleId: profile.id });
         
-        // Jos käyttäjä löytyi, päivitetään viimeisin kirjautumisaika
+        // Jos käyttäjä löytyi, päivitetään viimeisin kirjautumisaika + tarkista admin-rooli
         if (user) {
             user.lastLogin = new Date();
+            // Varmista admin-rooli aina kirjautuessa (ei vain rekisteröityessä)
+            if (profile.emails?.[0]?.value && ADMIN_EMAILS.includes(profile.emails[0].value) && user.role !== 'admin') {
+                user.role = 'admin';
+            }
             await user.save();
         } else {
             // Määritetään rooli sähköpostin perusteella
