@@ -78,9 +78,6 @@ app.use('/api/popups/click', (req, res, next) => {
     next();
 });
 
-// Public lead submission (no auth)
-app.use('/api/leads', require('./routes/lead.routes'));
-
 // Poista CSP admin-reiteiltä
 app.use('/admin-popups.html', (req, res, next) => {
     res.setHeader('Content-Security-Policy', '');
@@ -129,13 +126,18 @@ if (isProduction) {
     }));
 }
 
+// Public lead submission (no auth) – after body parser
+// (mounted here so express.json() is already active)
+
 // Perusmiddleware
 app.use(express.json({limit: '10mb'}));
-app.use(express.urlencoded({ 
+app.use(express.urlencoded({
     extended: true,
-    limit: '10mb' 
+    limit: '10mb'
 }));
 
+// Public lead submission – no auth required (from embed script on any site)
+app.use('/api/leads', require('./routes/lead.routes'));
 
 // Sessioasetukset
 app.use(session({
