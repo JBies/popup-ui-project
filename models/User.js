@@ -66,9 +66,20 @@ const userSchema = new mongoose.Schema({
         enum: ['admin', 'user', 'pending'], 
         default: 'pending'  // oletusrooli "pending"-tilaksi
     },
-    popupLimit: { 
-        type: Number, 
-        default: 1  // Oletusarvona 1 popup per käyttäjä
+    popupLimit: {
+        type: Number,
+        default: 1  // Oletusarvona 1 popup per käyttäjä (yhteensä)
+    },
+    limits: {
+        sticky_bar:      { type: Number, default: 1 },
+        fab:             { type: Number, default: 1 },
+        slide_in:        { type: Number, default: 1 },
+        popup:           { type: Number, default: 1 },
+        social_proof:    { type: Number, default: 1 },
+        scroll_progress: { type: Number, default: 1 },
+        canUseTargeting: { type: Boolean, default: false },
+        canUseAnalytics: { type: Boolean, default: true },
+        canUseTemplates: { type: Boolean, default: true }
     },
     profilePicture: { type: String }, // Google-profiilikuvan URL
     registeredAt: { type: Date, default: Date.now },

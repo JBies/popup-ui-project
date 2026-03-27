@@ -118,7 +118,29 @@ class UserActions {
       this.showNotification('Virhe popup-rajoituksen päivityksessä: ' + error.message, 'error');
       throw error;
     }
+  }
 
+  /**
+   * Päivittää käyttäjän per-tyyppi-rajoitukset
+   */
+  static async updateUserLimits(userId, limits) {
+    try {
+      const response = await fetch(`/api/admin/users/limits/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(limits)
+      });
+      const result = await response.json();
+      if (response.ok) {
+        this.showNotification('Rajoitukset päivitetty!', 'success');
+        return result;
+      } else {
+        throw new Error(result.message || 'Error updating limits');
+      }
+    } catch (error) {
+      this.showNotification('Virhe rajoitusten päivityksessä: ' + error.message, 'error');
+      throw error;
+    }
   }
 }
   

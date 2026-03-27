@@ -19,12 +19,15 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
  * @desc    Google-autentikaation callback
  * @access  Public
  */
-router.get('/google/callback', 
+router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    console.log('Google authentication successful, redirecting to home');
-    console.log('User in session:', req.user ? `ID: ${req.user.id}, Role: ${req.user.role}` : 'No user');
-    res.redirect('/');
+    req.session.save(() => {
+      if (req.user && req.user.role === 'pending') {
+        return res.redirect('/pending');
+      }
+      res.redirect('/dashboard');
+    });
   });
 
 /**

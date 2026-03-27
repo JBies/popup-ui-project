@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Manager – Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <span>UI Manager</span>
+      <small>Website Conversion Tool</small>
+    </div>
+
+    <nav id="sidebar-nav">
+      <div class="nav-section">Elementit</div>
+      <a href="#elements" class="nav-link active" data-view="elements">
+        <i class="fa fa-layer-group"></i> Omat elementit
+      </a>
+      <a href="#templates" class="nav-link" id="nav-templates">
+        <i class="fa fa-magic"></i> Templates
+      </a>
+
+      <div class="nav-section" style="margin-top:12px">Hallinta</div>
+      <a href="#analytics" class="nav-link" data-view="analytics">
+        <i class="fa fa-chart-bar"></i> Tilastot
+      </a>
+      <a href="#settings" class="nav-link" data-view="settings">
+        <i class="fa fa-code"></i> Asennuskoodi
+      </a>
+      <a href="/admin-users.html" class="nav-link" id="nav-admin" style="display:none">
+        <i class="fa fa-shield-alt"></i> Admin-paneeli
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <img id="user-avatar" src="/placeholder-avatar.png" alt="avatar" onerror="this.style.display='none'">
+      <div class="user-info">
+        <div class="user-name" id="user-name">Ladataan...</div>
+        <div class="user-role" id="user-role"></div>
+      </div>
+      <button class="logout-btn" id="logout-btn" title="Kirjaudu ulos">
+        <i class="fa fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Pääsisältö -->
+  <div id="main">
+    <header id="topbar">
+      <h1 id="topbar-title">Omat elementit</h1>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-refresh" title="Päivitä">
+          <i class="fa fa-sync-alt"></i>
+        </button>
+        <div style="position:relative">
+          <button class="btn btn-primary" id="btn-create">
+            <i class="fa fa-plus"></i> Luo uusi
+          </button>
+          <div id="create-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);min-width:200px;z-index:200;overflow:hidden">
+            <div style="padding:6px">
+              <button class="dropdown-item" data-type="sticky_bar"><i class="fa fa-minus" style="color:#1d4ed8"></i> Sticky Bar</button>
+              <button class="dropdown-item" data-type="fab"><i class="fa fa-circle" style="color:#6d28d9"></i> Floating Button</button>
+              <button class="dropdown-item" data-type="slide_in"><i class="fa fa-comment-dots" style="color:#16a34a"></i> Slide-in</button>
+              <button class="dropdown-item" data-type="popup"><i class="fa fa-square" style="color:#475569"></i> Popup</button>
+              <button class="dropdown-item" data-type="social_proof"><i class="fa fa-users" style="color:#d97706"></i> Social Proof</button>
+              <button class="dropdown-item" data-type="scroll_progress"><i class="fa fa-arrows-alt-v" style="color:#e11d48"></i> Scroll Progress</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="content">
+      <!-- Elementtilista -->
+      <div id="view-elements">
+        <div id="editor-panel"></div>
+        <div id="elements-grid" class="elements-grid" style="margin-top:16px"></div>
+      </div>
+
+      <!-- Tilastot -->
+      <div id="view-analytics" style="display:none">
+        <div id="analytics-content"></div>
+      </div>
+
+      <!-- Asennuskoodi -->
+      <div id="view-settings" style="display:none">
+        <div style="max-width:640px">
+          <h2 style="font-size:18px;font-weight:700;margin-bottom:8px">Asennuskoodi</h2>
+          <p style="color:#64748b;font-size:14px;margin-bottom:20px">Lisää tämä koodi sivustosi <code>&lt;head&gt;</code>- tai <code>&lt;body&gt;</code>-tagiin kerran.</p>
+          <div style="background:#1e293b;border-radius:10px;padding:20px;color:#e2e8f0;font-family:monospace;font-size:13px;position:relative">
+            <pre id="install-code" style="white-space:pre-wrap;word-break:break-all"></pre>
+            <button onclick="copyInstallCode()" style="position:absolute;top:12px;right:12px;background:#334155;border:none;color:#94a3b8;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px">
+              <i class="fa fa-copy"></i> Kopioi
+            </button>
+          </div>
+          <p style="color:#64748b;font-size:13px;margin-top:12px">Jokainen elementti aktivoidaan erikseen sen omalla embed-koodilla (löytyy elementin tiedoista).</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modaali-kontti -->
+  <div id="modal-root"></div>
+
+  <!-- Inline-tyylit dropdownille -->
+  <style>
+    .dropdown-item {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 9px 12px; border: none;
+      background: none; cursor: pointer; font-size: 13px;
+      font-weight: 500; border-radius: 7px; color: #0f172a;
+      transition: background 0.1s;
+    }
+    .dropdown-item:hover { background: #f1f5f9; }
+    .dropdown-item i { width: 16px; text-align: center; }
+  </style>
+
+  <script type="module" src="js/dashboard/dashboard-main.js"></script>
+</body>
+</html>

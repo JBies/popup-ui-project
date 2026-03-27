@@ -34,7 +34,11 @@ const isAuthenticated = (req, res, next) => {
       });
     }
     
-    res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
+    // HTML-sivupyynnöt ohjataan kirjautumissivulle, API-kutsut saavat JSON-virheen
+    if (req.path.startsWith('/api/') || req.xhr) {
+      return res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
+    }
+    res.redirect('/');
   };
   
   /**

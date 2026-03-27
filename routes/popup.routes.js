@@ -14,6 +14,13 @@ const router = express.Router();
 router.get('/', PopupController.getUserPopups);
 
 /**
+ * @route   GET /api/popups/templates
+ * @desc    Palauttaa valmiit template-presetit
+ * @access  Private
+ */
+router.get('/templates', PopupController.getTemplates);
+
+/**
  * @route   POST /api/popups
  * @desc    Luo uuden popupin
  * @access  Private

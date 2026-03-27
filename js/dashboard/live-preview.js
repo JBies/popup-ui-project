@@ -1,0 +1,225 @@
+// js/dashboard/live-preview.js
+
+export function renderPreview(containerId, el) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  container.style.position = 'relative';
+  container.style.overflow = 'hidden';
+  container.style.background = '#f1f5f9';
+  container.style.minHeight = '360px';
+
+  // Taustasisältö simuloi sivustoa
+  const bg = document.createElement('div');
+  bg.innerHTML = `
+    <div style="padding:20px;font-family:system-ui,sans-serif">
+      <div style="height:18px;background:#e2e8f0;border-radius:4px;width:60%;margin-bottom:12px"></div>
+      <div style="height:10px;background:#e2e8f0;border-radius:4px;width:90%;margin-bottom:8px"></div>
+      <div style="height:10px;background:#e2e8f0;border-radius:4px;width:75%;margin-bottom:8px"></div>
+      <div style="height:10px;background:#e2e8f0;border-radius:4px;width:85%;margin-bottom:16px"></div>
+      <div style="height:80px;background:#e2e8f0;border-radius:6px;width:100%;margin-bottom:12px"></div>
+      <div style="height:10px;background:#e2e8f0;border-radius:4px;width:80%;margin-bottom:8px"></div>
+      <div style="height:10px;background:#e2e8f0;border-radius:4px;width:65%"></div>
+    </div>`;
+  container.appendChild(bg);
+
+  const type = el.elementType || 'popup';
+  const cfg = el.elementConfig || {};
+
+  if (type === 'sticky_bar')     previewStickyBar(container, el, cfg);
+  else if (type === 'fab')       previewFAB(container, el, cfg);
+  else if (type === 'slide_in')  previewSlideIn(container, el, cfg);
+  else if (type === 'social_proof')    previewSocialProof(container, cfg);
+  else if (type === 'scroll_progress') previewScrollProgress(container, cfg);
+  else previewPopup(container, el);
+}
+
+// ── Sticky Bar preview ──────────────────────────────────
+function previewStickyBar(container, el, cfg) {
+  const bar = document.createElement('div');
+  const isTop = cfg.barPosition === 'top';
+  Object.assign(bar.style, {
+    position: 'absolute', left: '0', right: '0', zIndex: '10',
+    top: isTop ? '0' : 'auto', bottom: isTop ? 'auto' : '0',
+    backgroundColor: el.backgroundColor || '#1a56db',
+    color: el.textColor || '#ffffff',
+    padding: '8px 10px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    gap: '8px', flexWrap: 'wrap',
+    fontFamily: 'system-ui,sans-serif', fontSize: '11px',
+    boxShadow: isTop ? '0 2px 6px rgba(0,0,0,0.15)' : '0 -2px 6px rgba(0,0,0,0.15)'
+  });
+
+  if (cfg.barText) {
+    const txt = document.createElement('span');
+    txt.textContent = cfg.barText;
+    txt.style.flex = '1';
+    txt.style.textAlign = 'center';
+    bar.appendChild(txt);
+  }
+
+  const buttons = Array.isArray(cfg.ctaButtons) ? cfg.ctaButtons : [];
+  buttons.slice(0, 3).forEach(btn => {
+    if (!btn.label) return;
+    const b = document.createElement('span');
+    b.textContent = btn.label;
+    Object.assign(b.style, {
+      padding: '3px 9px', borderRadius: '5px', cursor: 'pointer',
+      fontWeight: '600', fontSize: '10px', whiteSpace: 'nowrap'
+    });
+    if (btn.style === 'outline') {
+      b.style.border = '1.5px solid ' + (el.textColor || '#fff');
+      b.style.color = el.textColor || '#fff';
+    } else {
+      b.style.background = el.textColor || '#fff';
+      b.style.color = el.backgroundColor || '#1a56db';
+    }
+    bar.appendChild(b);
+  });
+
+  if (cfg.showDismiss !== false) {
+    const x = document.createElement('span');
+    x.textContent = '✕';
+    x.style.cssText = 'cursor:pointer;opacity:0.7;font-size:12px;padding:0 2px;position:absolute;right:8px';
+    bar.style.position = 'absolute';
+    bar.appendChild(x);
+  }
+  container.appendChild(bar);
+}
+
+// ── FAB preview ─────────────────────────────────────────
+function previewFAB(container, el, cfg) {
+  const sizes = { sm: '36px', md: '46px', lg: '56px' };
+  const sz = sizes[cfg.fabSize] || '46px';
+  const pos = cfg.fabPosition || 'bottom-right';
+  const posMap = {
+    'bottom-right': { bottom: '12px', right: '12px' },
+    'bottom-left':  { bottom: '12px', left: '12px' },
+    'top-right':    { top: '12px', right: '12px' },
+    'top-left':     { top: '12px', left: '12px' }
+  };
+
+  const btn = document.createElement('div');
+  Object.assign(btn.style, Object.assign({
+    position: 'absolute', zIndex: '10',
+    width: sz, height: sz, borderRadius: '50%',
+    background: cfg.fabColor || '#1a56db',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 3px 10px rgba(0,0,0,0.25)', cursor: 'pointer'
+  }, posMap[pos] || posMap['bottom-right']));
+
+  const icon = document.createElement('i');
+  icon.className = 'fa ' + (cfg.fabIcon || 'fa-comment');
+  icon.style.cssText = 'color:#fff;font-size:16px';
+  btn.appendChild(icon);
+  container.appendChild(btn);
+}
+
+// ── Slide-in preview ────────────────────────────────────
+function previewSlideIn(container, el, cfg) {
+  const pos = cfg.slideInPosition || 'bottom-right';
+  const w = Math.min(cfg.slideInWidth || 280, 240);
+  const box = document.createElement('div');
+  Object.assign(box.style, {
+    position: 'absolute', zIndex: '10',
+    width: w + 'px', padding: '14px',
+    backgroundColor: el.backgroundColor || '#fff',
+    color: el.textColor || '#1f2937',
+    borderRadius: '10px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+    fontFamily: 'system-ui,sans-serif', fontSize: '11px',
+    ...(pos === 'bottom-left' ? { bottom: '12px', left: '12px' } : { bottom: '12px', right: '12px' })
+  });
+
+  if (el.content) {
+    const div = document.createElement('div');
+    div.innerHTML = el.content;
+    div.style.fontSize = '11px';
+    box.appendChild(div);
+  } else {
+    box.innerHTML = '<div style="height:10px;background:#e2e8f0;border-radius:3px;margin-bottom:6px"></div><div style="height:10px;background:#e2e8f0;border-radius:3px;width:70%"></div>';
+  }
+
+  if (cfg.showCloseButton !== false) {
+    const x = document.createElement('span');
+    x.textContent = '✕';
+    x.style.cssText = 'position:absolute;top:8px;right:10px;cursor:pointer;opacity:0.5;font-size:12px';
+    box.style.position = 'absolute';
+    box.appendChild(x);
+  }
+  container.appendChild(box);
+}
+
+// ── Social Proof preview ─────────────────────────────────
+function previewSocialProof(container, cfg) {
+  const pos = cfg.proofPosition || 'bottom-left';
+  const box = document.createElement('div');
+  const text = (cfg.proofText || '{count} henkilöä katsoo nyt').replace('{count}', cfg.proofCount || '5');
+  Object.assign(box.style, {
+    position: 'absolute', zIndex: '10',
+    padding: '8px 12px', borderRadius: '8px',
+    background: cfg.backgroundColor || '#1f2937',
+    color: cfg.textColor || '#ffffff',
+    fontFamily: 'system-ui,sans-serif', fontSize: '11px',
+    display: 'flex', alignItems: 'center', gap: '6px',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+    maxWidth: '200px',
+    ...(pos === 'bottom-left' ? { bottom: '12px', left: '12px' } : { bottom: '12px', right: '12px' })
+  });
+  box.innerHTML = `<span style="font-size:16px">${cfg.proofIcon || '👥'}</span><span>${text}</span>`;
+  container.appendChild(box);
+}
+
+// ── Scroll Progress preview ──────────────────────────────
+function previewScrollProgress(container, cfg) {
+  const isTop = (cfg.progressPosition || 'top') === 'top';
+  const bar = document.createElement('div');
+  Object.assign(bar.style, {
+    position: 'absolute', left: '0', right: '0', zIndex: '10',
+    top: isTop ? '0' : 'auto', bottom: isTop ? 'auto' : '0',
+    height: (cfg.progressHeight || 4) + 'px',
+    background: cfg.backgroundColor || '#e2e8f0'
+  });
+  const fill = document.createElement('div');
+  Object.assign(fill.style, {
+    height: '100%', width: '60%',
+    background: cfg.progressColor || '#2563eb',
+    borderRadius: '0 2px 2px 0',
+    transition: 'width 0.3s'
+  });
+  bar.appendChild(fill);
+  container.appendChild(bar);
+}
+
+// ── Popup preview ────────────────────────────────────────
+function previewPopup(container, el) {
+  const overlay = document.createElement('div');
+  Object.assign(overlay.style, {
+    position: 'absolute', inset: '0', zIndex: '10',
+    background: 'rgba(0,0,0,0.35)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center'
+  });
+  const box = document.createElement('div');
+  Object.assign(box.style, {
+    background: el.backgroundColor || '#fff',
+    color: el.textColor || '#000',
+    borderRadius: '10px', padding: '18px',
+    maxWidth: '85%', maxHeight: '80%',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+    fontFamily: 'system-ui,sans-serif', fontSize: '11px',
+    overflow: 'hidden', position: 'relative'
+  });
+  if (el.content) {
+    const div = document.createElement('div');
+    div.innerHTML = el.content;
+    box.appendChild(div);
+  } else {
+    box.innerHTML = '<div style="height:12px;background:#e2e8f0;border-radius:3px;width:60%;margin-bottom:8px"></div><div style="height:8px;background:#e2e8f0;border-radius:3px;width:90%"></div>';
+  }
+  const x = document.createElement('span');
+  x.textContent = '✕';
+  x.style.cssText = 'position:absolute;top:6px;right:8px;cursor:pointer;opacity:0.5;font-size:14px';
+  box.appendChild(x);
+  overlay.appendChild(box);
+  container.appendChild(overlay);
+}

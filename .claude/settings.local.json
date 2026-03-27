@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /PID 29988 /F)",
+      "Bash(cmd /c \"taskkill /PID 29988 /F\")",
+      "Bash(cmd /c \"taskkill /PID 29988 /F 2>&1\")",
+      "Bash(powershell -Command 'Stop-Process -Id 29988 -Force')",
+      "Bash(curl -s http://localhost:3000/ui-embed.js)",
+      "Bash(curl -s \"http://localhost:3000/auth/google\" -I)",
+      "Bash(curl -s \"http://localhost:3000/auth/google/callback?code=test\" -I)",
+      "Bash(curl -s \"http://localhost:3000/dashboard\" -I)",
+      "Bash(node -e \":*)",
+      "Bash(node -e \"require\\(''''./controllers/popup.controller.js''''\\); console.log\\(''''popup.controller OK''''\\);\")",
+      "Bash(node --check public/ui-embed.js)",
+      "Bash(node --check js/dashboard/editors/social-proof-editor.js)",
+      "Bash(node --check js/dashboard/editors/scroll-progress-editor.js)",
+      "Bash(node --check js/dashboard/editors/targeting-editor.js)",
+      "Bash(node --check js/dashboard/live-preview.js)"
+    ]
+  }
+}

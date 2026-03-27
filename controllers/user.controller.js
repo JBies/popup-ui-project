@@ -153,6 +153,42 @@ static async updateUserPopupLimit(req, res) {
 }
 
   /**
+   * (Admin) Päivittää käyttäjän per-tyyppi-rajoitukset
+   */
+  static async updateUserLimits(req, res) {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    try {
+      const user = await User.findById(req.params.id);
+      if (!user) return res.status(404).json({ message: 'User not found' });
+
+      const {
+        sticky_bar, fab, slide_in, popup, social_proof, scroll_progress,
+        canUseTargeting, canUseAnalytics, canUseTemplates, popupLimit
+      } = req.body;
+
+      user.limits = {
+        sticky_bar:      parseInt(sticky_bar)      ?? user.limits?.sticky_bar      ?? 1,
+        fab:             parseInt(fab)             ?? user.limits?.fab             ?? 1,
+        slide_in:        parseInt(slide_in)        ?? user.limits?.slide_in        ?? 1,
+        popup:           parseInt(popup)           ?? user.limits?.popup           ?? 1,
+        social_proof:    parseInt(social_proof)    ?? user.limits?.social_proof    ?? 1,
+        scroll_progress: parseInt(scroll_progress) ?? user.limits?.scroll_progress ?? 1,
+        canUseTargeting: canUseTargeting !== undefined ? !!canUseTargeting : (user.limits?.canUseTargeting ?? false),
+        canUseAnalytics: canUseAnalytics !== undefined ? !!canUseAnalytics : (user.limits?.canUseAnalytics ?? true),
+        canUseTemplates: canUseTemplates !== undefined ? !!canUseTemplates : (user.limits?.canUseTemplates ?? true),
+      };
+      if (popupLimit) user.popupLimit = parseInt(popupLimit) || user.popupLimit;
+
+      await user.save();
+      res.json({ message: 'Limits updated', user });
+    } catch (err) {
+      res.status(500).json({ message: 'Error updating limits', error: err.toString() });
+    }
+  }
+
+  /**
    * Käsittelee uloskirjautumisen
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
