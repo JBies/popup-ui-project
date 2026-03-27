@@ -84,7 +84,13 @@ const userSchema = new mongoose.Schema({
     profilePicture: { type: String }, // Google-profiilikuvan URL
     registeredAt: { type: Date, default: Date.now },
     lastLogin: { type: Date, default: Date.now },
-    approvedAt: { type: Date } // Uusi kenttä hyväksymisajankohdalle
+    approvedAt: { type: Date }, // Uusi kenttä hyväksymisajankohdalle
+    webhooks: [{
+        name:   { type: String, default: '' },
+        url:    { type: String, required: true },
+        events: { type: [String], default: ['click'] },
+        active: { type: Boolean, default: true }
+    }]
 });
 
 // Luo User-malli

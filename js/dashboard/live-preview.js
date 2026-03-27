@@ -31,6 +31,7 @@ export function renderPreview(containerId, el) {
   else if (type === 'slide_in')  previewSlideIn(container, el, cfg);
   else if (type === 'social_proof')    previewSocialProof(container, cfg);
   else if (type === 'scroll_progress') previewScrollProgress(container, cfg);
+  else if (type === 'lead_form') previewLeadForm(container, el, cfg);
   else previewPopup(container, el);
 }
 
@@ -189,6 +190,36 @@ function previewScrollProgress(container, cfg) {
   });
   bar.appendChild(fill);
   container.appendChild(bar);
+}
+
+// ── Lead Form preview ───────────────────────────────────
+function previewLeadForm(container, el, cfg) {
+  const overlay = document.createElement('div');
+  Object.assign(overlay.style, {
+    position: 'absolute', inset: '0', zIndex: '10',
+    background: 'rgba(0,0,0,0.3)', display: 'flex',
+    alignItems: 'center', justifyContent: 'center'
+  });
+  const box = document.createElement('div');
+  Object.assign(box.style, {
+    background: cfg.backgroundColor || '#fff',
+    color: cfg.textColor || '#1f2937',
+    borderRadius: '10px', padding: '16px', width: '80%',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+    fontFamily: 'system-ui,sans-serif', fontSize: '11px'
+  });
+  const fields = cfg.leadFields || [{ label: 'Nimi' }, { label: 'Sähköposti' }];
+  box.innerHTML = fields.map(f =>
+    `<div style="margin-bottom:8px">
+      <div style="font-size:10px;margin-bottom:3px;opacity:0.7">${f.label || ''}</div>
+      <div style="height:24px;background:rgba(0,0,0,0.08);border-radius:4px"></div>
+    </div>`
+  ).join('') +
+  `<div style="margin-top:10px;background:#3b82f6;color:#fff;padding:6px 12px;border-radius:5px;text-align:center;font-size:10px;font-weight:600">
+    ${cfg.leadSubmitText || 'Lähetä'}
+  </div>`;
+  overlay.appendChild(box);
+  container.appendChild(overlay);
 }
 
 // ── Popup preview ────────────────────────────────────────

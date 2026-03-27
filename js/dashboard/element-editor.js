@@ -6,6 +6,8 @@ import { renderPopupFields, getPopupData }                   from './editors/pop
 import { renderSocialProofFields, getSocialProofData }       from './editors/social-proof-editor.js';
 import { renderScrollProgressFields, getScrollProgressData } from './editors/scroll-progress-editor.js';
 import { renderTargetingFields, getTargetingData }           from './editors/targeting-editor.js';
+import { renderLeadFormFields, getLeadFormData }             from './editors/lead-form-editor.js';
+import { renderAbTestFields, getAbTestData }                 from './editors/ab-test-editor.js';
 import { renderPreview }  from './live-preview.js';
 import { showToast }      from './dashboard-main.js';
 
@@ -14,7 +16,7 @@ let currentType = 'sticky_bar';
 
 const TYPE_LABELS = {
   sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in', popup: 'Popup',
-  social_proof: 'Social Proof', scroll_progress: 'Scroll Progress'
+  social_proof: 'Social Proof', scroll_progress: 'Scroll Progress', lead_form: 'Lead Form'
 };
 
 export function initEditor() {}
@@ -35,6 +37,10 @@ export function openEditor(data = {}) {
   // Targeting
   const targetingSection = document.getElementById('targeting-section');
   if (targetingSection) renderTargetingFields(targetingSection, data.targeting || {});
+
+  // A/B test
+  const abSection = document.getElementById('ab-test-section');
+  if (abSection) renderAbTestFields(abSection, data.abTest || {});
 
   // Preview initialisointi
   updatePreview();
@@ -71,6 +77,8 @@ function buildEditorHTML(type, data = {}) {
         <div id="type-fields"></div>
 
         <div id="targeting-section" style="margin-top:20px"></div>
+
+        <div id="ab-test-section" style="margin-top:12px"></div>
 
         <div class="section-title" style="margin-top:20px">Ajoitus</div>
         <div class="form-row">
@@ -133,6 +141,7 @@ function renderTypeFields(container, type, data) {
   else if (type === 'slide_in')  renderSlideInFields(container, cfg, data);
   else if (type === 'social_proof')    renderSocialProofFields(container, cfg);
   else if (type === 'scroll_progress') renderScrollProgressFields(container, cfg);
+  else if (type === 'lead_form') renderLeadFormFields(container, cfg);
   else renderPopupFields(container, cfg, data);
 }
 
@@ -143,6 +152,7 @@ function getTypeData() {
   if (currentType === 'fab')            return { elementConfig: getFabData(fieldsContainer) };
   if (currentType === 'social_proof')   return { elementConfig: getSocialProofData(fieldsContainer) };
   if (currentType === 'scroll_progress') return { elementConfig: getScrollProgressData(fieldsContainer) };
+  if (currentType === 'lead_form') return { elementConfig: getLeadFormData(fieldsContainer) };
   if (currentType === 'slide_in') {
     const d = getSlideInData(fieldsContainer);
     return { elementConfig: d.config, content: d.content, backgroundColor: d.backgroundColor, textColor: d.textColor };
@@ -160,6 +170,8 @@ function buildPayload() {
   const typeData = getTypeData();
   const targetingSection = document.getElementById('targeting-section');
   const targeting = targetingSection ? getTargetingData(targetingSection) : { enabled: false, matchType: 'all', rules: [] };
+  const abSection = document.getElementById('ab-test-section');
+  const abTest = abSection ? getAbTestData(abSection) : { enabled: false };
 
   return {
     name,
@@ -167,6 +179,7 @@ function buildPayload() {
     popupType: typeData.popupType || 'rectangle',
     delay, frequency,
     targeting,
+    abTest,
     ...(startDate && { startDate }),
     ...(endDate && { endDate }),
     ...typeData

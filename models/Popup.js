@@ -35,6 +35,7 @@ const popupSchema = new mongoose.Schema({
     statistics: {
         views: { type: Number, default: 0 },
         clicks: { type: Number, default: 0 },
+        leads: { type: Number, default: 0 },
         lastViewed: { type: Date },
         lastClicked: { type: Date },
         statsResetAt: { type: Date }
@@ -42,7 +43,7 @@ const popupSchema = new mongoose.Schema({
     // Uusi elementtityyppi (Phase 1+)
     elementType: {
         type: String,
-        enum: ['popup', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress'],
+        enum: ['popup', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress', 'lead_form'],
         default: 'popup'
     },
     // Targeting Engine v2
@@ -90,16 +91,27 @@ const popupSchema = new mongoose.Schema({
         // Scroll Progress Bar
         progressColor:      { type: String, default: '#2563eb' },
         progressHeight:     { type: Number, default: 4 },
-        progressPosition:   { type: String, default: 'top' }
+        progressPosition:   { type: String, default: 'top' },
+        // Lead Form
+        leadFields:         { type: Array, default: [] },
+        leadSubmitText:     { type: String, default: 'Lähetä' },
+        leadSuccessMsg:     { type: String, default: 'Kiitos! Olemme yhteydessä pian.' }
     },
     version: { type: Number, default: Date.now },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    active:    { type: Boolean, default: true },
+    campaign:  { type: String, default: '' },
+    abTest: {
+        enabled:        { type: Boolean, default: false },
+        variantBConfig: { type: mongoose.Schema.Types.Mixed, default: {} },
+        traffic:        { type: Number, default: 50 }
+    }
 });
 
 // pre-save hook
 popupSchema.pre('save', function(next) {
     // Uudet elementtityypit ja stats_only eivät tarvitse content/image -validaatiota
-    const skipValidation = ['stats_only', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress'].includes(this.elementType)
+    const skipValidation = ['stats_only', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress', 'lead_form'].includes(this.elementType)
         || this.popupType === 'stats_only';
 
     if (skipValidation) {

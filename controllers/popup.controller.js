@@ -3,6 +3,7 @@
 
 const Popup = require('../models/Popup');
 const Image = require('../models/Image');
+const { triggerWebhooks } = require('../utils/webhooks');
 
 /**
  * PopupController luokka sisältää popup CRUD-toimintojen logiikan
@@ -52,25 +53,30 @@ class PopupController {
       delay,
       showDuration,
       startDate,
-      endDate
+      endDate,
+      active,
+      campaign,
+      abTest,
+      frequency
     } = req.body;
 
     try {
       // Käsittele päivämäärät oikein - vain jos ne ovat valideja
       const timingData = {
         delay: parseInt(delay) || 0,
-        showDuration: parseInt(showDuration) || 0
+        showDuration: parseInt(showDuration) || 0,
+        frequency: frequency || 'always'
       };
-      
+
       // Lisää päivämäärät vain jos ne ovat valideja
       if (startDate && startDate !== 'default' && startDate !== 'null') {
         timingData.startDate = new Date(startDate);
       }
-      
+
       if (endDate && endDate !== 'default' && endDate !== 'null') {
         timingData.endDate = new Date(endDate);
       }
-      
+
       // Luo uusi popup
       const newPopup = new Popup({
         userId: req.user._id,
@@ -88,7 +94,10 @@ class PopupController {
         textColor,
         imageUrl,
         linkUrl,
-        timing: timingData
+        timing: timingData,
+        active: active !== undefined ? active : true,
+        campaign: campaign || '',
+        abTest: abTest || { enabled: false }
       });
       
       await newPopup.save();
@@ -152,7 +161,11 @@ class PopupController {
       delay,
       showDuration,
       startDate,
-      endDate
+      endDate,
+      active,
+      campaign,
+      abTest,
+      frequency
     } = req.body;
 
     try {
@@ -198,18 +211,19 @@ class PopupController {
       // Käsittele päivämäärät oikein
       const timingData = {
         delay: parseInt(delay) || 0,
-        showDuration: parseInt(showDuration) || 0
+        showDuration: parseInt(showDuration) || 0,
+        frequency: frequency || 'always'
       };
-      
+
       // Lisää päivämäärät vain jos ne ovat valideja
       if (startDate && startDate !== 'default' && startDate !== 'null') {
         timingData.startDate = new Date(startDate);
       }
-      
+
       if (endDate && endDate !== 'default' && endDate !== 'null') {
         timingData.endDate = new Date(endDate);
       }
-      
+
       // Päivitä popup
       const updatedPopup = await Popup.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id },
@@ -229,6 +243,9 @@ class PopupController {
           imageUrl,
           linkUrl,
           timing: timingData,
+          ...(active !== undefined && { active }),
+          ...(campaign !== undefined && { campaign }),
+          ...(abTest !== undefined && { abTest }),
         },
         { new: true }
       );
@@ -349,7 +366,10 @@ class PopupController {
         $inc: { 'statistics.views': 1 },
         $set: { 'statistics.lastViewed': new Date() }
       });
-      
+
+      const popup = await Popup.findById(popupId).select('userId').lean();
+      if (popup) triggerWebhooks(popup.userId, 'view', { popupId });
+
       res.status(200).json({ success: true });
     } catch (err) {
       console.error('Error registering view:', err);
@@ -367,11 +387,14 @@ class PopupController {
       const popupId = req.params.id;
       
       // Päivitä tilastot
-      const result = await Popup.findByIdAndUpdate(popupId, {
+      await Popup.findByIdAndUpdate(popupId, {
         $inc: { 'statistics.clicks': 1 },
         $set: { 'statistics.lastClicked': new Date() }
       }, { new: true });
-      
+
+      const clickedPopup = await Popup.findById(popupId).select('userId').lean();
+      if (clickedPopup) triggerWebhooks(clickedPopup.userId, 'click', { popupId });
+
       res.status(200).json({ success: true, message: 'Click registered' });
     } catch (err) {
       console.error('Error registering click:', err);
@@ -723,6 +746,16 @@ class PopupController {
         id: 'scroll-warm', name: 'Oranssi progress bar', category: 'Scroll Progress',
         elementType: 'scroll_progress', popupType: 'rectangle',
         elementConfig: { progressPosition: 'top', progressHeight: 6, progressColor: '#f59e0b', backgroundColor: '#fef3c7' }
+      },
+      {
+        id: 'lead-contact', name: 'Yhteydenottolomake', category: 'Lead Forms',
+        elementType: 'lead_form', popupType: 'rectangle',
+        elementConfig: { leadFields: [{ type: 'text', label: 'Nimi', required: true }, { type: 'email', label: 'Sähköposti', required: true }, { type: 'tel', label: 'Puhelinnumero', required: false }], leadSubmitText: 'Lähetä', leadSuccessMsg: 'Kiitos! Olemme yhteydessä pian.', backgroundColor: '#ffffff', textColor: '#1f2937' }
+      },
+      {
+        id: 'lead-newsletter', name: 'Uutiskirjeen tilaus', category: 'Lead Forms',
+        elementType: 'lead_form', popupType: 'rectangle',
+        elementConfig: { leadFields: [{ type: 'email', label: 'Sähköpostiosoitteesi', required: true }], leadSubmitText: 'Tilaa uutiskirje', leadSuccessMsg: '🎉 Tervetuloa mukaan!', backgroundColor: '#1e40af', textColor: '#ffffff' }
       }
     ];
     res.json(templates);
@@ -730,13 +763,13 @@ class PopupController {
 
   static async removeImageReference(userId, imageUrl, popupId) {
     if (!imageUrl) return;
-    
+
     try {
-      const image = await Image.findOne({ 
+      const image = await Image.findOne({
         url: imageUrl,
         userId: userId
       });
-      
+
       if (image && image.usedInPopups) {
         // Poista popup kuvan käyttötiedoista
         image.usedInPopups = image.usedInPopups.filter(
@@ -746,6 +779,33 @@ class PopupController {
       }
     } catch (error) {
       console.error('Error removing image reference:', error);
+    }
+  }
+
+  static async toggleActive(req, res) {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    try {
+      const { active } = req.body;
+      const popup = await Popup.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id },
+        { $set: { active } },
+        { new: true }
+      );
+      if (!popup) return res.status(404).json({ message: 'Not found' });
+      res.json(popup);
+    } catch (err) {
+      res.status(500).json({ message: 'Error toggling active' });
+    }
+  }
+
+  static async activateCampaign(req, res) {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    try {
+      const { campaign, active } = req.body;
+      await Popup.updateMany({ userId: req.user._id, campaign }, { $set: { active } });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: 'Error activating campaign' });
     }
   }
 }

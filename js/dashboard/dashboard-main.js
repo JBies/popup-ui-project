@@ -3,6 +3,8 @@ import { initSidebar } from './sidebar.js';
 import { initElementList } from './element-list.js';
 import { initTemplateLibrary } from './template-library.js';
 import { openEditor } from './element-editor.js';
+import { initAnalyticsPage }  from './analytics-page.js';
+import { initCampaignsPanel } from './campaigns-panel.js';
 
 let currentView = 'elements';
 
@@ -45,6 +47,9 @@ async function init() {
   initSidebar(user);
   initElementList();
   initTemplateLibrary();
+  initAnalyticsPage();
+  initCampaignsPanel();
+  setupWebhooks();
   setupCreateDropdown();
   setupNavigation();
   setupLogout();
@@ -75,7 +80,7 @@ export function showView(name) {
     a.classList.toggle('active', a.dataset.view === name || a.getAttribute('href') === '#' + name);
   });
 
-  const titles = { elements: 'Omat elementit', analytics: 'Tilastot', settings: 'Asennuskoodi' };
+  const titles = { elements: 'Omat elementit', analytics: 'Tilastot', settings: 'Asennuskoodi', campaigns: 'Kampanjat', webhooks: 'Webhooks' };
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = titles[name] || 'UI Manager';
 }
@@ -118,6 +123,53 @@ function setupLogout() {
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     await fetch('/auth/logout', { method: 'POST' });
     window.location.href = '/';
+  });
+}
+
+async function setupWebhooks() {
+  const container = document.getElementById('webhooks-content');
+  if (!container) return;
+
+  async function loadWebhooks() {
+    const r = await fetch('/api/user/webhooks');
+    if (!r.ok) return;
+    const whs = await r.json();
+    const list = document.getElementById('wh-list');
+    if (!list) return;
+    list.innerHTML = whs.length ? whs.map(wh => `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px">
+        <div style="flex:1">
+          <div style="font-weight:500;font-size:13px">${wh.name || wh.url}</div>
+          <div style="font-size:11px;color:#64748b">${wh.url} · events: ${(wh.events||[]).join(', ')}</div>
+        </div>
+        <button class="wh-delete" data-id="${wh._id}" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px">✕</button>
+      </div>`).join('') : '<p style="color:#94a3b8;font-size:13px">Ei webhookeja</p>';
+
+    list.querySelectorAll('.wh-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await fetch('/api/user/webhooks/' + btn.dataset.id, { method: 'DELETE' });
+        loadWebhooks();
+      });
+    });
+  }
+
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#webhooks') loadWebhooks();
+  });
+  if (window.location.hash === '#webhooks') loadWebhooks();
+
+  document.getElementById('wh-add-btn')?.addEventListener('click', async () => {
+    const url    = document.getElementById('wh-url')?.value?.trim();
+    const name   = document.getElementById('wh-name')?.value?.trim();
+    const events = [...document.querySelectorAll('.wh-event:checked')].map(cb => cb.value);
+    if (!url) return;
+    await fetch('/api/user/webhooks', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, url, events: events.length ? events : ['click'] })
+    });
+    if (document.getElementById('wh-url')) document.getElementById('wh-url').value = '';
+    if (document.getElementById('wh-name')) document.getElementById('wh-name').value = '';
+    loadWebhooks();
   });
 }
 

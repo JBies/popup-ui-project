@@ -13,4 +13,8 @@ const router = express.Router();
  */
 router.get('/', UserController.getCurrentUser);
 
+router.get('/webhooks', UserController.getWebhooks);
+router.post('/webhooks', UserController.addWebhook);
+router.delete('/webhooks/:id', UserController.deleteWebhook);
+
 module.exports = router;

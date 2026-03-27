@@ -2,6 +2,7 @@
   'use strict';
 
   var API_BASE = 'https://popupmanager.net';
+  window.__UE_API__ = API_BASE;
 
   // ─── Julkinen API ────────────────────────────────────────────────────────────
 
@@ -11,6 +12,26 @@
       .then(function (el) {
         if (!shouldShow(el)) return;
         if (!matchesTargeting(el)) return;
+        // A/B test split
+        if (el.abTest && el.abTest.enabled) {
+          var stored = sessionStorage.getItem('ue_variant_' + elementId);
+          var variant;
+          if (stored) {
+            variant = stored;
+          } else {
+            variant = (Math.random() * 100) < (el.abTest.traffic || 50) ? 'A' : 'B';
+            sessionStorage.setItem('ue_variant_' + elementId, variant);
+          }
+          if (variant === 'B' && el.abTest.variantBConfig) {
+            var bCfg = el.abTest.variantBConfig;
+            if (bCfg.backgroundColor) el.backgroundColor = bCfg.backgroundColor;
+            if (bCfg.textColor) el.textColor = bCfg.textColor;
+            if (bCfg.title && el.elementConfig) el.elementConfig.barText = bCfg.title;
+            if (bCfg.cta && el.elementConfig && el.elementConfig.ctaButtons && el.elementConfig.ctaButtons[0]) {
+              el.elementConfig.ctaButtons[0].label = bCfg.cta;
+            }
+          }
+        }
         trackView(elementId);
         var type = el.elementType || 'popup';
         if (type === 'sticky_bar')     renderStickyBar(el);
@@ -18,6 +39,7 @@
         else if (type === 'slide_in')  setupSlideIn(el);
         else if (type === 'social_proof')    setupSocialProof(el);
         else if (type === 'scroll_progress') renderScrollProgress(el);
+        else if (type === 'lead_form') renderLeadForm(el);
         else renderLegacyPopup(el);
       })
       .catch(function (e) { console.warn('[ui-embed] Elementtiä ei löydy:', e); });
@@ -26,6 +48,7 @@
   // ─── Näyttölogiikka ─────────────────────────────────────────────────────────
 
   function shouldShow(el) {
+    if (el.active === false) return false;
     var now = new Date();
     var t = el.timing || {};
     if (t.startDate && t.startDate !== 'default' && new Date(t.startDate) > now) return false;
@@ -437,6 +460,88 @@
       var pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight || 1)) * 100;
       fill.style.width = Math.min(100, pct) + '%';
     });
+  }
+
+  // ─── Lead Form ──────────────────────────────────────────────────────────────
+
+  function renderLeadForm(el) {
+    var cfg = el.elementConfig || {};
+    var delay = (el.timing && el.timing.delay) ? el.timing.delay * 1000 : 0;
+    setTimeout(function () {
+      var overlay = document.createElement('div');
+      Object.assign(overlay.style, {
+        position: 'fixed', inset: '0', zIndex: '999996',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(0,0,0,0.4)'
+      });
+      var box = document.createElement('div');
+      Object.assign(box.style, {
+        position: 'relative',
+        background: cfg.backgroundColor || el.backgroundColor || '#fff',
+        color: cfg.textColor || el.textColor || '#1f2937',
+        borderRadius: '14px', padding: '28px',
+        maxWidth: '90vw', width: '400px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+        fontFamily: 'system-ui, sans-serif'
+      });
+
+      var fields = Array.isArray(cfg.leadFields) ? cfg.leadFields : [
+        { type: 'text',  label: 'Nimi',      required: true },
+        { type: 'email', label: 'Sähköposti', required: true }
+      ];
+
+      var fieldsHtml = fields.filter(function (f) { return f.label; }).map(function (f) {
+        if (f.type === 'textarea') {
+          return '<div style="margin-bottom:12px"><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">' +
+            f.label + (f.required ? ' *' : '') + '</label>' +
+            '<textarea data-field="' + f.label + '" rows="3" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;resize:vertical"></textarea></div>';
+        }
+        return '<div style="margin-bottom:12px"><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">' +
+          f.label + (f.required ? ' *' : '') + '</label>' +
+          '<input type="' + f.type + '" data-field="' + f.label + '" data-required="' + (f.required ? '1' : '') + '" ' +
+          'style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box"></div>';
+      }).join('');
+
+      box.innerHTML = fieldsHtml +
+        '<button id="ue-lead-submit" style="width:100%;padding:11px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px">' +
+        (cfg.leadSubmitText || 'Lähetä') + '</button>' +
+        '<div id="ue-lead-success" style="display:none;text-align:center;padding:12px;color:#16a34a;font-weight:500">' +
+        (cfg.leadSuccessMsg || 'Kiitos!') + '</div>';
+
+      var closeBtn = document.createElement('button');
+      closeBtn.textContent = '✕';
+      Object.assign(closeBtn.style, {
+        position: 'absolute', top: '12px', right: '14px',
+        background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', opacity: '0.5'
+      });
+      closeBtn.addEventListener('click', function () { overlay.remove(); });
+      box.appendChild(closeBtn);
+
+      box.querySelector('#ue-lead-submit').addEventListener('click', function () {
+        var data = {};
+        var valid = true;
+        box.querySelectorAll('[data-field]').forEach(function (inp) {
+          var val = inp.value ? inp.value.trim() : '';
+          if (inp.dataset.required === '1' && !val) { inp.style.borderColor = '#ef4444'; valid = false; }
+          else { inp.style.borderColor = '#e2e8f0'; }
+          data[inp.dataset.field] = val;
+        });
+        if (!valid) return;
+        fetch(window.__UE_API__ + '/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ popupId: el._id, data: data, variant: sessionStorage.getItem('ue_variant_' + el._id) || 'A' })
+        }).catch(function () {});
+        box.querySelector('#ue-lead-submit').style.display = 'none';
+        box.querySelector('#ue-lead-success').style.display = 'block';
+        trackClick(el._id);
+        setTimeout(function () { overlay.remove(); }, 2500);
+      });
+
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+    }, delay);
   }
 
   // ─── Modal ──────────────────────────────────────────────────────────────────

@@ -78,6 +78,9 @@ app.use('/api/popups/click', (req, res, next) => {
     next();
 });
 
+// Public lead submission (no auth)
+app.use('/api/leads', require('./routes/lead.routes'));
+
 // Poista CSP admin-reiteiltä
 app.use('/admin-popups.html', (req, res, next) => {
     res.setHeader('Content-Security-Policy', '');
@@ -204,6 +207,9 @@ app.use('/api/popups', authMiddleware.isUser, popupRoutes);
 app.use('/api/upload', authMiddleware.isUser, imageRoutes);
 app.use('/api/images', authMiddleware.isUser, imageRoutes);
 app.use('/api/admin', authMiddleware.isAdmin, adminRoutes);
+const LeadController = require('./controllers/lead.controller');
+app.get('/api/leads', authMiddleware.isUser, LeadController.getLeads);
+app.get('/api/leads/:popupId', authMiddleware.isUser, LeadController.getLeadsByPopup);
 
 // Swagger-dokumentaatio (vain kehitysympäristössä tai admin-käyttäjille)
 if (!isProduction) {
