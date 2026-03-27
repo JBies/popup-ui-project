@@ -68,7 +68,8 @@ export function renderFabFields(container, cfg = {}) {
     </div>
     <div id="fab-link-group" class="form-group" style="${cfg.fabAction === 'modal' ? 'display:none' : ''}">
       <label>URL</label>
-      <input type="text" name="fabUrl" value="${cfg.fabUrl || ''}" placeholder="https://...">
+      <input type="text" name="fabUrl" value="${cfg.fabUrl || ''}" placeholder="https://wa.me/358... tai https://tawk.to/...">
+      <small style="color:#64748b;font-size:11px;margin-top:3px;display:block">Chat-nappi: syötä WhatsApp-linkki (wa.me/358XXXXXXXXX), Tawk.to tai muu chat-URL</small>
     </div>
     <div id="fab-modal-group" class="form-group" style="${cfg.fabAction === 'modal' ? '' : 'display:none'}">
       <label>Modaalin sisältö (HTML)</label>

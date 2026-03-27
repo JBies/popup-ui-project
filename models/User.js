@@ -68,18 +68,22 @@ const userSchema = new mongoose.Schema({
     },
     popupLimit: {
         type: Number,
-        default: 1  // Oletusarvona 1 popup per käyttäjä (yhteensä)
+        default: 2  // Free: 2 elementtiä yhteensä
     },
     limits: {
-        sticky_bar:      { type: Number, default: 1 },
-        fab:             { type: Number, default: 1 },
-        slide_in:        { type: Number, default: 1 },
-        popup:           { type: Number, default: 1 },
-        social_proof:    { type: Number, default: 1 },
-        scroll_progress: { type: Number, default: 1 },
+        sticky_bar:      { type: Number,  default: 1 },
+        fab:             { type: Number,  default: 1 },
+        slide_in:        { type: Number,  default: 1 },
+        popup:           { type: Number,  default: 1 },
+        social_proof:    { type: Number,  default: 1 },
+        scroll_progress: { type: Number,  default: 1 },
+        lead_form:       { type: Number,  default: 0 },  // ei Free-tasolla
         canUseTargeting: { type: Boolean, default: false },
         canUseAnalytics: { type: Boolean, default: true },
-        canUseTemplates: { type: Boolean, default: true }
+        canUseTemplates: { type: Boolean, default: true },
+        canUseAbTest:    { type: Boolean, default: false },
+        canUseCampaigns: { type: Boolean, default: false },
+        canUseWebhooks:  { type: Boolean, default: false },
     },
     profilePicture: { type: String }, // Google-profiilikuvan URL
     registeredAt: { type: Date, default: Date.now },

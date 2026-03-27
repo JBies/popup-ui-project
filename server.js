@@ -162,24 +162,10 @@ app.use(express.static(path.join(__dirname, '/'), {
     index: false  // Tämä estää express.static:ia tarjoamasta index.html-tiedostoa automaattisesti
 }));
 
-// Pääreitti
+// Pääreitti – aina uusi landing page, JS hoitaa kirjautuneen uudelleenohjauksen
 app.get('/', (req, res) => {
     try {
-        console.log("Checking authentication status");
-        // Tarkista ensin onko isAuthenticated olemassa
-        const isLoggedIn = req.isAuthenticated && typeof req.isAuthenticated === 'function' 
-            ? req.isAuthenticated() 
-            : false;
-            
-        console.log("Is authenticated:", isLoggedIn);
-        
-        if (isLoggedIn) {
-            console.log("Serving index.html");
-            res.sendFile(path.join(__dirname, '/index.html'));
-        } else {
-            console.log("Serving landing.html");
-            res.sendFile(path.join(__dirname, '/landing.html'));
-        }
+        res.sendFile(path.join(__dirname, '/index.html'));
     } catch (error) {
         console.error("Error in root route:", error);
         res.status(500).send("Server error: " + error.message);

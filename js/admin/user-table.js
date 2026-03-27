@@ -225,9 +225,9 @@ class UserTable {
     const lim = user.limits || {};
 
     const PRESETS = {
-      free:   { sticky_bar:1, fab:1, slide_in:1, popup:1, social_proof:1, scroll_progress:1, canUseTargeting:false, canUseAnalytics:true,  canUseTemplates:true  },
-      pro:    { sticky_bar:3, fab:3, slide_in:3, popup:3, social_proof:3, scroll_progress:3, canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true  },
-      growth: { sticky_bar:10,fab:10,slide_in:10,popup:10,social_proof:10,scroll_progress:10,canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true  }
+      free:   { popupLimit:2,   sticky_bar:1,  fab:1,  slide_in:1,  popup:1,  social_proof:1,  scroll_progress:1,  lead_form:0,  canUseTargeting:false, canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:false, canUseCampaigns:false, canUseWebhooks:false },
+      pro:    { popupLimit:20,  sticky_bar:5,  fab:5,  slide_in:5,  popup:5,  social_proof:5,  scroll_progress:5,  lead_form:3,  canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:true,  canUseCampaigns:true,  canUseWebhooks:true  },
+      agency: { popupLimit:100, sticky_bar:20, fab:20, slide_in:20, popup:20, social_proof:20, scroll_progress:20, lead_form:10, canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:true,  canUseCampaigns:true,  canUseWebhooks:true  }
     };
 
     const modal = document.createElement('div');
@@ -239,19 +239,33 @@ class UserTable {
         <div style="display:flex;gap:8px;margin-bottom:18px">
           <button data-preset="free"   style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:12px;font-weight:600">Free</button>
           <button data-preset="pro"    style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #3b82f6;background:#eff6ff;color:#1d4ed8;cursor:pointer;font-size:12px;font-weight:600">Pro</button>
-          <button data-preset="growth" style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #8b5cf6;background:#f5f3ff;color:#6d28d9;cursor:pointer;font-size:12px;font-weight:600">Growth</button>
+          <button data-preset="agency" style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #8b5cf6;background:#f5f3ff;color:#6d28d9;cursor:pointer;font-size:12px;font-weight:600">Agency</button>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;color:#475569;display:block;margin-bottom:4px;font-weight:600">Max elementtejä yhteensä</label>
+          <input type="number" id="lim-popupLimit" min="0" max="9999" value="${user.popupLimit ?? 2}"
+            style="width:120px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-          ${['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress'].map(t => `
+          ${['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress','lead_form'].map(t => `
             <div>
-              <label style="font-size:12px;color:#475569;display:block;margin-bottom:4px">${t.replace('_',' ')}</label>
-              <input type="number" id="lim-${t}" min="0" max="100" value="${lim[t] ?? 1}"
+              <label style="font-size:12px;color:#475569;display:block;margin-bottom:4px">${t.replace(/_/g,' ')}</label>
+              <input type="number" id="lim-${t}" min="0" max="100" value="${lim[t] ?? (t==='lead_form'?0:1)}"
                 style="width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box">
             </div>`).join('')}
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="lim-targeting" ${lim.canUseTargeting ? 'checked' : ''}> Targeting (URL, device, scroll…)
+            <input type="checkbox" id="lim-targeting" ${lim.canUseTargeting ? 'checked' : ''}> Targeting
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="lim-abtest" ${lim.canUseAbTest ? 'checked' : ''}> A/B-testaus
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="lim-campaigns" ${lim.canUseCampaigns ? 'checked' : ''}> Kampanjat
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="lim-webhooks" ${lim.canUseWebhooks ? 'checked' : ''}> Webhooks
           </label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
             <input type="checkbox" id="lim-analytics" ${lim.canUseAnalytics !== false ? 'checked' : ''}> Analytics
@@ -272,13 +286,17 @@ class UserTable {
     modal.querySelectorAll('[data-preset]').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = PRESETS[btn.dataset.preset];
-        ['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress'].forEach(t => {
+        ['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress','lead_form'].forEach(t => {
           const el = modal.querySelector('#lim-' + t);
           if (el) el.value = p[t];
         });
-        modal.querySelector('#lim-targeting').checked = p.canUseTargeting;
-        modal.querySelector('#lim-analytics').checked = p.canUseAnalytics;
-        modal.querySelector('#lim-templates').checked = p.canUseTemplates;
+        if (p.popupLimit !== undefined) modal.querySelector('#lim-popupLimit').value = p.popupLimit;
+        modal.querySelector('#lim-targeting').checked  = p.canUseTargeting;
+        modal.querySelector('#lim-analytics').checked  = p.canUseAnalytics;
+        modal.querySelector('#lim-templates').checked  = p.canUseTemplates;
+        modal.querySelector('#lim-abtest').checked     = p.canUseAbTest;
+        modal.querySelector('#lim-campaigns').checked  = p.canUseCampaigns;
+        modal.querySelector('#lim-webhooks').checked   = p.canUseWebhooks;
       });
     });
 
@@ -288,15 +306,20 @@ class UserTable {
     modal.querySelector('#lim-save').addEventListener('click', async () => {
       const g = id => modal.querySelector('#' + id);
       const data = {
-        sticky_bar:      parseInt(g('lim-sticky_bar').value) || 1,
-        fab:             parseInt(g('lim-fab').value) || 1,
-        slide_in:        parseInt(g('lim-slide_in').value) || 1,
-        popup:           parseInt(g('lim-popup').value) || 1,
-        social_proof:    parseInt(g('lim-social_proof').value) || 1,
-        scroll_progress: parseInt(g('lim-scroll_progress').value) || 1,
+        popupLimit:      parseInt(g('lim-popupLimit').value) || 2,
+        sticky_bar:      parseInt(g('lim-sticky_bar').value) || 0,
+        fab:             parseInt(g('lim-fab').value) || 0,
+        slide_in:        parseInt(g('lim-slide_in').value) || 0,
+        popup:           parseInt(g('lim-popup').value) || 0,
+        social_proof:    parseInt(g('lim-social_proof').value) || 0,
+        scroll_progress: parseInt(g('lim-scroll_progress').value) || 0,
+        lead_form:       parseInt(g('lim-lead_form').value) || 0,
         canUseTargeting: g('lim-targeting').checked,
         canUseAnalytics: g('lim-analytics').checked,
-        canUseTemplates: g('lim-templates').checked
+        canUseTemplates: g('lim-templates').checked,
+        canUseAbTest:    g('lim-abtest').checked,
+        canUseCampaigns: g('lim-campaigns').checked,
+        canUseWebhooks:  g('lim-webhooks').checked
       };
       try {
         await onAction('updateLimits', userId, data);

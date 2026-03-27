@@ -164,20 +164,28 @@ static async updateUserPopupLimit(req, res) {
       if (!user) return res.status(404).json({ message: 'User not found' });
 
       const {
-        sticky_bar, fab, slide_in, popup, social_proof, scroll_progress,
-        canUseTargeting, canUseAnalytics, canUseTemplates, popupLimit
+        sticky_bar, fab, slide_in, popup, social_proof, scroll_progress, lead_form,
+        canUseTargeting, canUseAnalytics, canUseTemplates, canUseAbTest, canUseCampaigns, canUseWebhooks,
+        popupLimit
       } = req.body;
 
+      const b = (val, fallback) => val !== undefined ? !!val : fallback;
+      const n = (val, fallback) => val !== undefined ? (parseInt(val) ?? fallback) : fallback;
+
       user.limits = {
-        sticky_bar:      parseInt(sticky_bar)      ?? user.limits?.sticky_bar      ?? 1,
-        fab:             parseInt(fab)             ?? user.limits?.fab             ?? 1,
-        slide_in:        parseInt(slide_in)        ?? user.limits?.slide_in        ?? 1,
-        popup:           parseInt(popup)           ?? user.limits?.popup           ?? 1,
-        social_proof:    parseInt(social_proof)    ?? user.limits?.social_proof    ?? 1,
-        scroll_progress: parseInt(scroll_progress) ?? user.limits?.scroll_progress ?? 1,
-        canUseTargeting: canUseTargeting !== undefined ? !!canUseTargeting : (user.limits?.canUseTargeting ?? false),
-        canUseAnalytics: canUseAnalytics !== undefined ? !!canUseAnalytics : (user.limits?.canUseAnalytics ?? true),
-        canUseTemplates: canUseTemplates !== undefined ? !!canUseTemplates : (user.limits?.canUseTemplates ?? true),
+        sticky_bar:      n(sticky_bar,      user.limits?.sticky_bar      ?? 1),
+        fab:             n(fab,             user.limits?.fab             ?? 1),
+        slide_in:        n(slide_in,        user.limits?.slide_in        ?? 1),
+        popup:           n(popup,           user.limits?.popup           ?? 1),
+        social_proof:    n(social_proof,    user.limits?.social_proof    ?? 1),
+        scroll_progress: n(scroll_progress, user.limits?.scroll_progress ?? 1),
+        lead_form:       n(lead_form,       user.limits?.lead_form       ?? 0),
+        canUseTargeting: b(canUseTargeting, user.limits?.canUseTargeting ?? false),
+        canUseAnalytics: b(canUseAnalytics, user.limits?.canUseAnalytics ?? true),
+        canUseTemplates: b(canUseTemplates, user.limits?.canUseTemplates ?? true),
+        canUseAbTest:    b(canUseAbTest,    user.limits?.canUseAbTest    ?? false),
+        canUseCampaigns: b(canUseCampaigns, user.limits?.canUseCampaigns ?? false),
+        canUseWebhooks:  b(canUseWebhooks,  user.limits?.canUseWebhooks  ?? false),
       };
       if (popupLimit) user.popupLimit = parseInt(popupLimit) || user.popupLimit;
 

@@ -22,12 +22,28 @@ class PopupController {
     try {
       const userPopupCount = await Popup.countDocuments({ userId: req.user._id });
 
-      // admin voi luoida rajattomasti popuppeja
-      if (req.user.role !== 'admin' && userPopupCount >= req.user.popupLimit) {
-        return res.status(403).json({
-          message: `Olet saavuttanut maksimimäärän popuppeja (${req.user.popupLimit}). Ota yhteyttä joni.bies@gmail.com lisätietoja varten.`,
-          limitReached: true
-        });
+      if (req.user.role !== 'admin') {
+        // Kokonaisraja
+        if (userPopupCount >= req.user.popupLimit) {
+          return res.status(403).json({
+            message: `Olet käyttänyt kaikki ${req.user.popupLimit} elementtiäsi. Ota yhteyttä tukeen päivittääksesi Pro-tiliin.`,
+            limitReached: true, limitType: 'total'
+          });
+        }
+        // Per-tyyppi-raja
+        const elType = req.body.elementType || 'popup';
+        const typeLimit = req.user.limits?.[elType];
+        if (typeof typeLimit === 'number') {
+          const typeCount = await Popup.countDocuments({ userId: req.user._id, elementType: elType });
+          if (typeCount >= typeLimit) {
+            return res.status(403).json({
+              message: typeLimit === 0
+                ? `${elType.replace('_',' ')} on saatavilla Pro-tilissä. Ota yhteyttä tukeen.`
+                : `Olet käyttänyt tyypin "${elType.replace('_',' ')}" rajan (${typeLimit} kpl). Ota yhteyttä tukeen.`,
+              limitReached: true, limitType: 'per_type', feature: elType
+            });
+          }
+        }
       }
     } catch (err) {
       console.error('Error checking popup limit:', err);
@@ -141,6 +157,15 @@ class PopupController {
   static async updatePopup(req, res) {
     if (!req.user) {
       return res.status(401).json({ message: 'Not authenticated' });
+    }
+
+    // Targeting-oikeus tarkistus
+    const incomingTargeting = req.body.targeting;
+    if (req.user.role !== 'admin' && incomingTargeting?.rules?.length > 0 && !req.user.limits?.canUseTargeting) {
+      return res.status(403).json({
+        message: 'Targeting on saatavilla Pro-tilissä. Ota yhteyttä tukeen.',
+        feature: 'targeting'
+      });
     }
 
     const {
@@ -688,8 +713,9 @@ class PopupController {
       },
       {
         id: 'fab-chat', name: 'Chat-nappi', category: 'Floating Buttons',
+        description: 'Avaa chat-linkin klikkauksen jälkeen. Aseta URL:iksi WhatsApp (wa.me/358...), Tawk.to tai muu chat-palvelu.',
         elementType: 'fab', popupType: 'rectangle',
-        elementConfig: { fabPosition: 'bottom-right', fabIcon: 'fa-comment', fabColor: '#1a56db', fabSize: 'md', fabAction: 'link', pulseAnimation: true }
+        elementConfig: { fabPosition: 'bottom-right', fabIcon: 'fa-comment', fabColor: '#1a56db', fabSize: 'md', fabAction: 'link', fabUrl: 'https://wa.me/358XXXXXXXXX', pulseAnimation: true }
       },
       {
         id: 'fab-phone', name: 'Soittopyyntö', category: 'Floating Buttons',

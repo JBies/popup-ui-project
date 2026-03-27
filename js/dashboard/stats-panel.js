@@ -90,9 +90,10 @@ async function loadStats(id, el) {
     if (sctr) sctr.textContent = (s.clickThroughRate ?? '0.00') + '%';
     if (sd) {
       const parts = [];
-      if (s.lastViewed) parts.push('Viimeksi nähty: ' + new Date(s.lastViewed).toLocaleString('fi-FI'));
-      if (s.lastClicked) parts.push('Viimeksi klikattu: ' + new Date(s.lastClicked).toLocaleString('fi-FI'));
-      sd.textContent = parts.join(' · ');
+      if (s.lastViewed)    parts.push('Viimeksi nähty: ' + new Date(s.lastViewed).toLocaleString('fi-FI'));
+      if (s.lastClicked)   parts.push('Viimeksi klikattu: ' + new Date(s.lastClicked).toLocaleString('fi-FI'));
+      if (s.statsResetAt)  parts.push('🔄 Nollattu: ' + new Date(s.statsResetAt).toLocaleString('fi-FI'));
+      sd.innerHTML = parts.map(p => `<span>${p}</span>`).join(' <span style="color:#e2e8f0">·</span> ');
     }
   } catch {}
 }
