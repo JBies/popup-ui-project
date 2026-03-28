@@ -45,6 +45,25 @@
       .catch(function (e) { console.warn('[ui-embed] Elementtiä ei löydy:', e); });
   };
 
+  // ─── Site Token – automaattinen lataus ──────────────────────────────────────
+  // Jos <script src="...ui-embed.js" data-site="TOKEN"> niin lataa kaikki aktiiviset elementit
+  (function () {
+    var script = document.currentScript ||
+      (function () {
+        var scripts = document.querySelectorAll('script[data-site]');
+        return scripts[scripts.length - 1] || null;
+      })();
+    var token = script && script.getAttribute('data-site');
+    if (!token) return;
+    fetch(API_BASE + '/api/popups/site/' + token)
+      .then(function (r) { return r.json(); })
+      .then(function (els) {
+        if (!Array.isArray(els)) return;
+        els.forEach(function (el) { window.ShowElement(el._id); });
+      })
+      .catch(function () {});
+  })();
+
   // ─── Näyttölogiikka ─────────────────────────────────────────────────────────
 
   function shouldShow(el) {

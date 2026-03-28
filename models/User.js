@@ -89,6 +89,7 @@ const userSchema = new mongoose.Schema({
     registeredAt: { type: Date, default: Date.now },
     lastLogin: { type: Date, default: Date.now },
     approvedAt: { type: Date }, // Uusi kenttä hyväksymisajankohdalle
+    siteToken: { type: String, unique: true, sparse: true },
     webhooks: [{
         name:   { type: String, default: '' },
         url:    { type: String, required: true },

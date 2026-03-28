@@ -35,6 +35,9 @@
       <a href="#campaigns" class="nav-link" data-view="campaigns">
         <i class="fa fa-flag"></i> Kampanjat
       </a>
+      <a href="#leads" class="nav-link" data-view="leads">
+        <i class="fa fa-inbox"></i> Liidit
+      </a>
       <a href="#webhooks" class="nav-link" data-view="webhooks">
         <i class="fa fa-webhook"></i> Webhooks
       </a>
@@ -141,17 +144,16 @@
 
       <!-- Asennuskoodi -->
       <div id="view-settings" style="display:none">
-        <div style="max-width:640px">
-          <h2 style="font-size:18px;font-weight:700;margin-bottom:8px">Asennuskoodi</h2>
-          <p style="color:#64748b;font-size:14px;margin-bottom:20px">Lisää tämä koodi sivustosi <code>&lt;head&gt;</code>- tai <code>&lt;body&gt;</code>-tagiin kerran.</p>
-          <div style="background:#1e293b;border-radius:10px;padding:20px;color:#e2e8f0;font-family:monospace;font-size:13px;position:relative">
-            <pre id="install-code" style="white-space:pre-wrap;word-break:break-all"></pre>
-            <button onclick="copyInstallCode()" style="position:absolute;top:12px;right:12px;background:#334155;border:none;color:#94a3b8;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px">
-              <i class="fa fa-copy"></i> Kopioi
-            </button>
-          </div>
-          <p style="color:#64748b;font-size:13px;margin-top:12px">Jokainen elementti aktivoidaan erikseen sen omalla embed-koodilla (löytyy elementin tiedoista).</p>
+        <div style="max-width:660px">
+          <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Asennuskoodi</h2>
+          <p style="color:#64748b;font-size:13px;margin-bottom:20px">Valitse asennustapa: yleinen koodi (suositeltava) tai yksittäinen elementtikoodi.</p>
+          <div id="install-section"></div>
         </div>
+      </div>
+
+      <!-- Liidit -->
+      <div id="view-leads" style="display:none">
+        <div id="leads-content"></div>
       </div>
     </main>
   </div>

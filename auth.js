@@ -2,6 +2,12 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('./models/User'); // Tuodaan User-malli
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+}
 
 // Admins list - näitä sähköposteja käytetään automaattiseen admin-rooliin
 const ADMIN_EMAILS = [
@@ -27,6 +33,8 @@ async (accessToken, refreshToken, profile, done) => {
             if (profile.emails?.[0]?.value && ADMIN_EMAILS.includes(profile.emails[0].value) && user.role !== 'admin') {
                 user.role = 'admin';
             }
+            // Generoi siteToken jos puuttuu
+            if (!user.siteToken) { user.siteToken = uuidv4(); }
             await user.save();
         } else {
             // Määritetään rooli sähköpostin perusteella
@@ -48,7 +56,8 @@ async (accessToken, refreshToken, profile, done) => {
                 role: role,
                 profilePicture: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : null,
                 registeredAt: new Date(),
-                lastLogin: new Date()
+                lastLogin: new Date(),
+                siteToken: uuidv4()
             });
             await user.save();
         }

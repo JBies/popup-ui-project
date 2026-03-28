@@ -21,6 +21,13 @@ router.get('/', PopupController.getUserPopups);
 router.get('/templates', PopupController.getTemplates);
 
 /**
+ * @route   GET /api/popups/site/:token
+ * @desc    Palauttaa kaikki aktiiviset elementit site-tokenin perusteella
+ * @access  Public
+ */
+router.get('/site/:token', PopupController.getSiteElements);
+
+/**
  * @route   POST /api/popups
  * @desc    Luo uuden popupin
  * @access  Private

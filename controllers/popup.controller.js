@@ -3,6 +3,7 @@
 
 const Popup = require('../models/Popup');
 const Image = require('../models/Image');
+const User = require('../models/User');
 const { triggerWebhooks } = require('../utils/webhooks');
 
 /**
@@ -456,6 +457,7 @@ class PopupController {
       res.json({
         views: popup.statistics.views || 0,
         clicks: popup.statistics.clicks || 0,
+        leads: popup.statistics.leads || 0,
         clickThroughRate: clickThroughRate.toFixed(2),
         lastViewed: popup.statistics.lastViewed || null,
         lastClicked: popup.statistics.lastClicked || null,
@@ -559,6 +561,30 @@ class PopupController {
     } catch (err) {
       console.error('Error fetching popups:', err);
       res.status(500).json({ message: 'Error fetching popups', error: err });
+    }
+  }
+
+  /**
+   * Palauttaa kaikki aktiiviset elementit site-tokenin perusteella (julkinen)
+   */
+  static async getSiteElements(req, res) {
+    try {
+      const user = await User.findOne({ siteToken: req.params.token }).lean();
+      if (!user) return res.status(404).json({ message: 'Site not found' });
+      const now = new Date();
+      const elements = await Popup.find({ userId: user._id, active: true }).lean();
+      // Suodatetaan päättyneet/ei-alkaneet pois
+      const visible = elements.filter(el => {
+        const start = el.timing?.startDate ? new Date(el.timing.startDate) : null;
+        const end   = el.timing?.endDate   ? new Date(el.timing.endDate)   : null;
+        if (start && now < start) return false;
+        if (end   && now > end)   return false;
+        return true;
+      });
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.json(visible);
+    } catch (err) {
+      res.status(500).json({ message: 'Error fetching site elements', error: err.toString() });
     }
   }
 
