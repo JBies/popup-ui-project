@@ -32,7 +32,8 @@
       "Bash(node --check server.js)",
       "Bash(node --check controllers/popup.controller.js)",
       "Bash(grep -rn \"Content-Security-Policy\\\\|cdn.jsdelivr\\\\|helmet\" D:popup-ui-project --include=*.js --include=*.html)",
-      "Bash(grep -rn Content-Security-Policy D:/popup-ui-project/ --include=*.js --include=*.html)"
+      "Bash(grep -rn Content-Security-Policy D:/popup-ui-project/ --include=*.js --include=*.html)",
+      "Bash(node -e \"require\\(''uuid''\\)\")"
     ]
   }
 }

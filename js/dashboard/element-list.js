@@ -50,11 +50,12 @@ async function loadElements() {
 function quotaBarHTML(elements) {
   const user = currentUser || window.__currentUser__;
   if (!user) return '';
+  if (user.role === 'admin') return '';
   const used = elements.length;
   const max  = user.popupLimit || 2;
   const pct  = Math.min(100, Math.round((used / max) * 100));
   const full = used >= max;
-  const contact = `mailto:tuki@uimanager.fi?subject=Pro-tili%20päivitys&body=Hei%2C%20haluaisin%20päivittää%20Pro-tiliin.`;
+  const contact = `mailto:joni.bies@gmail.com?subject=Pro-tili%20päivitys&body=Hei%2C%20haluaisin%20päivittää%20Pro-tiliin.`;
   return `
     <div style="margin-bottom:16px;padding:12px 16px;background:${full?'#fef2f2':'#f8fafc'};
       border:1px solid ${full?'#fecaca':'#e2e8f0'};border-radius:10px;display:flex;align-items:center;gap:14px">

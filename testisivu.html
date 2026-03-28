@@ -1,34 +1,230 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perus HTML-sivu</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Linkki CSS-tiedostoon -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testisivu – UI Manager</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.6; }
+
+    /* Nav */
+    nav { background: #1e293b; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    nav .logo { color: #fff; font-weight: 700; font-size: 15px; }
+    nav .nav-links { display: flex; gap: 24px; }
+    nav .nav-links a { color: #94a3b8; text-decoration: none; font-size: 14px; transition: color 0.15s; }
+    nav .nav-links a:hover { color: #fff; }
+
+    /* Test panel */
+    .test-panel {
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      padding: 20px 24px; color: #fff;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .test-panel h2 { font-size: 14px; font-weight: 700; flex: 0 0 auto; }
+    .test-panel input {
+      flex: 1; min-width: 220px; padding: 8px 14px; border: none; border-radius: 8px;
+      font-size: 13px; outline: none; font-family: monospace;
+    }
+    .test-panel button {
+      padding: 8px 18px; background: #fff; color: #1e40af; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background 0.15s;
+    }
+    .test-panel button:hover { background: #dbeafe; }
+    .test-panel .info { font-size: 12px; opacity: 0.8; flex: 0 0 100%; margin-top: -8px; }
+
+    /* Site token panel */
+    .site-panel {
+      background: #0f172a; padding: 16px 24px; color: #94a3b8;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .site-panel span { font-size: 13px; }
+    .site-panel input {
+      flex: 1; min-width: 240px; padding: 7px 12px; background: #1e293b; border: 1px solid #334155;
+      border-radius: 7px; color: #e2e8f0; font-size: 13px; font-family: monospace; outline: none;
+    }
+    .site-panel button {
+      padding: 7px 16px; background: #3b82f6; color: #fff; border: none; border-radius: 7px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+
+    /* Hero */
+    .hero { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 64px 24px; text-align: center; }
+    .hero h1 { font-size: 36px; font-weight: 800; color: #0f172a; margin-bottom: 16px; }
+    .hero p { font-size: 18px; color: #64748b; max-width: 560px; margin: 0 auto 32px; }
+    .hero .btn { display: inline-block; background: #3b82f6; color: #fff; padding: 13px 28px; border-radius: 10px; font-size: 15px; font-weight: 700; text-decoration: none; }
+
+    /* Content sections */
+    .section { max-width: 760px; margin: 0 auto; padding: 60px 24px; }
+    .section h2 { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
+    .section p { color: #475569; margin-bottom: 16px; }
+    .section img { width: 100%; border-radius: 12px; background: #e2e8f0; height: 200px; object-fit: cover; }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin: 24px 0; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; }
+    .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+    .card p { font-size: 13px; color: #64748b; margin: 0; }
+
+    /* Long text for scroll testing */
+    .long-text p { margin-bottom: 20px; color: #475569; }
+
+    /* Pricing */
+    .pricing { background: #fff; padding: 60px 24px; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+    .pricing-inner { max-width: 760px; margin: 0 auto; }
+    .pricing h2 { text-align: center; font-size: 26px; font-weight: 700; margin-bottom: 32px; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .pricing-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; text-align: center; }
+    .pricing-card.featured { border-color: #3b82f6; border-width: 2px; }
+    .pricing-card .price { font-size: 28px; font-weight: 800; color: #0f172a; margin: 8px 0; }
+    .pricing-card button { margin-top: 16px; width: 100%; padding: 10px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+    /* CTA */
+    .cta { background: linear-gradient(135deg, #1e40af, #7c3aed); padding: 60px 24px; text-align: center; color: #fff; }
+    .cta h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+    .cta p { font-size: 16px; opacity: 0.85; margin-bottom: 28px; }
+    .cta a { display: inline-block; background: #fff; color: #1e40af; padding: 13px 28px; border-radius: 10px; font-weight: 700; text-decoration: none; }
+
+    /* Footer */
+    footer { background: #1e293b; color: #64748b; padding: 32px 24px; text-align: center; font-size: 13px; }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Tervetuloa!</h1>
-    </header>
-    
-    <main>
-        <p>Yksinkertainen Testisivu Popupeille</p>
-    </main>
-    
-    <footer>
-        <p>&copy; 2025 Popups</p>
-    </footer>
-    
-    <script src="https://popupmanager.net/popup-embed.js"></script>
+
+<!-- Testipaneeli – yksi elementti ID:llä -->
+<div class="test-panel">
+  <h2>🧪 Testaa elementtiä</h2>
+  <input type="text" id="test-id-input" placeholder="Liitä Element ID tähän…" />
+  <button onclick="testElement()">Näytä elementti</button>
+  <div class="info">Kopioi Element ID dashboardin tilasto-painikkeesta (📊) ja liitä tähän.</div>
+</div>
+
+<!-- Site Token paneeli – kaikki elementit kerralla -->
+<div class="site-panel">
+  <span>🌐 Tai testaa site-tokenilla (kaikki aktiiviset elementit):</span>
+  <input type="text" id="site-token-input" placeholder="Site-token (löytyy dashboardin Asennuskoodi-osiosta)" />
+  <button onclick="testSiteToken()">Lataa kaikki</button>
+</div>
+
+<!-- Sivuston sisältö -->
+<nav>
+  <div class="logo">Esimerkki Oy</div>
+  <div class="nav-links">
+    <a href="#">Etusivu</a>
+    <a href="#palvelut">Palvelut</a>
+    <a href="#hinnat">Hinnat</a>
+    <a href="#yhteystiedot">Yhteystiedot</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>Otsikko joka kiinnittää huomion</h1>
+  <p>Tämä on esimerkkiyrityksen verkkosivusto. Testaa elementtejä oikeassa ympäristössä — scroll, klikkaa, täytä lomakkeita.</p>
+  <a href="#" class="btn">Aloita ilmaiseksi →</a>
+</div>
+
+<div class="section" id="palvelut">
+  <h2>Palvelumme</h2>
+  <p>Tarjoamme laadukkaita ratkaisuja yrityksille. Alla näet pääpalvelumme lyhyesti esiteltyinä. Vieritä sivua alaspäin nähdäksesi kaikki sisältö — tämä auttaa testaamaan scroll-pohjaisia elementtejä kuten Slide-in- ja Scroll Progress -tyyppejä.</p>
+  <div class="cards">
+    <div class="card"><h3>🎯 Markkinointi</h3><p>Tehokkaita markkinointiratkaisuja kaikenkokoisille yrityksille.</p></div>
+    <div class="card"><h3>💻 Verkkosivut</h3><p>Modernit ja toimivat verkkosivut nopeasti ja edullisesti.</p></div>
+    <div class="card"><h3>📊 Analytiikka</h3><p>Ymmärrä kävijäsi ja optimoi tuloksia dataan perustuen.</p></div>
+    <div class="card"><h3>🤝 Konsultointi</h3><p>Asiantuntevaa neuvoa digitaalisen kasvun tueksi.</p></div>
+  </div>
+</div>
+
+<div class="section long-text">
+  <h2>Miksi valita meidät?</h2>
+  <div class="long-text">
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.</p>
+    <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.</p>
+  </div>
+</div>
+
+<div class="pricing" id="hinnat">
+  <div class="pricing-inner">
+    <h2>Selkeä hinnoittelu</h2>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div style="font-weight:700">Starter</div>
+        <div class="price">0€<span style="font-size:14px;font-weight:400">/kk</span></div>
+        <div style="font-size:13px;color:#64748b">Ilmainen ikuisesti</div>
+        <button style="background:#e2e8f0;color:#374151">Aloita</button>
+      </div>
+      <div class="pricing-card featured">
+        <div style="font-weight:700;color:#1d4ed8">Pro</div>
+        <div class="price">49€<span style="font-size:14px;font-weight:400">/kk</span></div>
+        <div style="font-size:13px;color:#64748b">Kaikki ominaisuudet</div>
+        <button>Tilaa nyt</button>
+      </div>
+      <div class="pricing-card">
+        <div style="font-weight:700">Agency</div>
+        <div class="price">149€<span style="font-size:14px;font-weight:400">/kk</span></div>
+        <div style="font-size:13px;color:#64748b">Useita sivustoja</div>
+        <button>Ota yhteyttä</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section long-text">
+  <h2>Asiakkaidemme kokemuksia</h2>
+  <div class="long-text">
+    <p>"Palvelu on ollut erinomainen alusta asti. Suosittelemme lämpimästi kaikille yrityksille, jotka haluavat kasvattaa online-näkyvyyttään." – Matti K.</p>
+    <p>"Verkkosivumme konversioprosentti nousi 40% ensimmäisen kuukauden aikana. Investointi maksoi itsensä takaisin nopeasti." – Liisa H.</p>
+    <p>Tämä osio on tarkoituksella pitkä, jotta voit testata scroll-pohjaisia triggereita. Vieritä sivua hitaasti alas ja katso aktivoituvatko elementit asettamillasi triggeriarvoilla.</p>
+    <p>Slide-in elementit aktivoituvat yleensä kun käyttäjä on vierittänyt tietyn prosenttiosuuden sivusta. Voit asettaa tämän arvon elementin asetuksissa dashboardissa.</p>
+  </div>
+</div>
+
+<div class="cta" id="yhteystiedot">
+  <h2>Valmis aloittamaan?</h2>
+  <p>Ota yhteyttä tänään ja saat ilmaisen konsultaation.</p>
+  <a href="#">Ota yhteyttä →</a>
+</div>
+
+<footer>
+  <p>© 2025 Esimerkki Oy · Tämä on testisivu UI Manager -palvelulle</p>
+</footer>
+
+<!-- UI Manager embed -->
+<script src="https://popupmanager.net/ui-embed.js"></script>
 <script>
-  window.addEventListener('load', function() {
-    ShowPopup('69c5a34223b51aca74cc78f8');
+  function testElement() {
+    var id = document.getElementById('test-id-input').value.trim();
+    if (!id) { alert('Syötä Element ID!'); return; }
+    if (typeof ShowElement !== 'undefined') {
+      ShowElement(id);
+    } else {
+      alert('Embed-skripti ei latautunut. Tarkista verkkoyhteys.');
+    }
+  }
+
+  function testSiteToken() {
+    var token = document.getElementById('site-token-input').value.trim();
+    if (!token) { alert('Syötä Site Token!'); return; }
+    var apiBase = 'https://popupmanager.net';
+    fetch(apiBase + '/api/popups/site/' + token)
+      .then(function(r) { return r.json(); })
+      .then(function(els) {
+        if (!Array.isArray(els) || els.length === 0) {
+          alert('Ei aktiivisia elementtejä tällä tokenilla.');
+          return;
+        }
+        els.forEach(function(el) { ShowElement(el._id); });
+        alert(els.length + ' elementtiä ladattu!');
+      })
+      .catch(function() { alert('Virhe: tarkista site-token.'); });
+  }
+
+  // Enter-näppäin ID-kentässä
+  document.getElementById('test-id-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') testElement();
   });
 </script>
-            
-      
-<!--console.log("Loading popup with ID:", popupId);-->
-            
-
 </body>
 </html>

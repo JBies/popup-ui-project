@@ -6,6 +6,7 @@ import { openEditor } from './element-editor.js';
 import { initAnalyticsPage }  from './analytics-page.js';
 import { initCampaignsPanel } from './campaigns-panel.js';
 import { initHelpPanel }      from './help-panel.js';
+import { initLeadsPanel }     from './leads-panel.js';
 
 let currentView = 'elements';
 
@@ -36,16 +37,8 @@ async function init() {
     if (adminLink) adminLink.style.display = 'flex';
   }
 
-  // Asennuskoodi
-  const installEl = document.getElementById('install-code');
-  if (installEl) {
-    installEl.textContent = `<!-- Liitä tämä </body>-tagin yläpuolelle -->
-<script src="https://popupmanager.net/ui-embed.js"><\/script>`;
-  }
-  window.copyInstallCode = function () {
-    const code = installEl ? installEl.textContent : '';
-    navigator.clipboard.writeText(code).then(() => showToast('Koodi kopioitu!'));
-  };
+  // Asennuskoodi – site token + selkeä ohjeistus
+  renderInstallSection(user);
 
   window.__currentUser__ = user;  // tarvitaan editor + list komponenteissa
   initSidebar(user);
@@ -54,6 +47,7 @@ async function init() {
   initAnalyticsPage();
   initCampaignsPanel();
   initHelpPanel();
+  initLeadsPanel();
   setupWebhooks();
   setupCreateDropdown();
   setupNavigation();
@@ -85,7 +79,7 @@ export function showView(name) {
     a.classList.toggle('active', a.dataset.view === name || a.getAttribute('href') === '#' + name);
   });
 
-  const titles = { elements: 'Omat elementit', analytics: 'Tilastot', settings: 'Asennuskoodi', campaigns: 'Kampanjat', webhooks: 'Webhooks', help: 'Ohjeet' };
+  const titles = { elements: 'Omat elementit', analytics: 'Tilastot', settings: 'Asennuskoodi', campaigns: 'Kampanjat', webhooks: 'Webhooks', help: 'Ohjeet', leads: 'Liidit' };
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = titles[name] || 'UI Manager';
 }
@@ -176,6 +170,55 @@ async function setupWebhooks() {
     if (document.getElementById('wh-name')) document.getElementById('wh-name').value = '';
     loadWebhooks();
   });
+}
+
+function renderInstallSection(user) {
+  const container = document.getElementById('install-section');
+  if (!container) return;
+
+  const siteToken = user?.siteToken || '';
+  const universalCode = siteToken
+    ? `<script src="https://popupmanager.net/ui-embed.js" data-site="${siteToken}"><\/script>`
+    : `<!-- Kirjaudu uudelleen niin site-token generoidaan -->`;
+
+  container.innerHTML = `
+    <!-- Suositeltava: Yleinen asennuskoodi -->
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:18px 20px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:16px">⭐</span>
+        <span style="font-size:14px;font-weight:700;color:#1e40af">Suositeltava: Yleinen asennuskoodi</span>
+      </div>
+      <p style="font-size:13px;color:#1e40af;margin:0 0 12px">Lisää <strong>kerran</strong> sivustollesi – kaikki luomasi elementit latautuvat automaattisesti. Ei tarvitse koskea sivustokoodiin kun lisäät tai poistat elementtejä.</p>
+      <div style="background:#1e293b;border-radius:8px;padding:14px;position:relative">
+        <pre id="install-universal" style="color:#e2e8f0;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:0">${escHtml(universalCode)}</pre>
+        <button onclick="copyUniversal()" style="position:absolute;top:8px;right:8px;background:#334155;border:none;color:#94a3b8;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px"><i class="fa fa-copy"></i> Kopioi</button>
+      </div>
+      <p style="font-size:12px;color:#3b82f6;margin:8px 0 0">Liitä tämä sivustosi <code>&lt;/body&gt;</code>-tagin yläpuolelle. Vain yksi koodi koko sivustolle.</p>
+    </div>
+
+    <!-- Yksittäinen elementti -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:16px">📌</span>
+        <span style="font-size:14px;font-weight:700;color:#374151">Yksittäinen elementti</span>
+      </div>
+      <p style="font-size:13px;color:#64748b;margin:0 0 12px">Voit myös aktivoida elementtejä yksitellen. Embed-koodi löytyy jokaisen elementin <strong>tilasto-painikkeesta (📊)</strong>. Useita elementtejä voi laittaa samaan scriptilohkoon:</p>
+      <div style="background:#1e293b;border-radius:8px;padding:14px">
+        <pre style="color:#e2e8f0;font-family:monospace;font-size:12px;white-space:pre-wrap;margin:0">${escHtml('<script src="https://popupmanager.net/ui-embed.js"><\/script>\n<script>\n  ShowElement(\'ELEMENT_ID_1\');\n  ShowElement(\'ELEMENT_ID_2\');  // useita elementtejä = OK\n<\/script>')}</pre>
+      </div>
+      <p style="font-size:12px;color:#94a3b8;margin:8px 0 0">⚠️ Yllä olevat ID:t ovat esimerkkejä – oikeat ID:t löytyvät kunkin elementin tilastoista.</p>
+    </div>`;
+
+  window.copyUniversal = function () {
+    const code = document.getElementById('install-universal')?.textContent || '';
+    navigator.clipboard.writeText(code).then(() => showToast('Koodi kopioitu!'));
+  };
+  // Legacy support
+  window.copyInstallCode = window.copyUniversal;
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 export function showToast(msg, type = 'success') {

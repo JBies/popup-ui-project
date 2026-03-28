@@ -1,6 +1,22 @@
 // js/dashboard/stats-panel.js
 import { showToast } from './dashboard-main.js';
 
+const TYPE_LABELS = {
+  sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in',
+  popup: 'Popup', social_proof: 'Social Proof', scroll_progress: 'Scroll Progress', lead_form: 'Lead Form'
+};
+
+function getTimingStatus(el) {
+  const now = new Date();
+  const timing = el.timing || {};
+  const start = timing.startDate && timing.startDate !== 'default' ? new Date(timing.startDate) : null;
+  const end   = timing.endDate   && timing.endDate   !== 'default' ? new Date(timing.endDate)   : null;
+  if (el.active === false) return { label: '● Ei käytössä',         color: '#ef4444' };
+  if (end   && now > end)   return { label: '● Kampanja päättynyt', color: '#f59e0b' };
+  if (start && now < start) return { label: `● Alkaa ${start.toLocaleDateString('fi-FI')}`, color: '#64748b' };
+  return { label: '● Aktiivinen', color: '#10b981' };
+}
+
 const TYPE_EMBED = {
   sticky_bar: 'ui-embed.js',
   fab:        'ui-embed.js',
@@ -20,6 +36,7 @@ export function openStats(el) {
 
   root.innerHTML = buildStatsHTML(el);
   loadStats(el._id, el);
+  renderStatusRow(el);
 
   root.querySelector('#close-stats')?.addEventListener('click', () => { root.innerHTML = ''; });
   root.querySelector('#reset-stats')?.addEventListener('click', () => resetStats(el._id, el));
@@ -43,6 +60,7 @@ function buildStatsHTML(el) {
           <button class="modal-close" id="close-stats">✕</button>
         </div>
 
+        <div id="s-status" style="margin-bottom:14px"></div>
         <div id="stats-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
           <div class="stat-card"><div class="stat-value" id="s-views">–</div><div class="stat-label">Näytöt</div></div>
           <div class="stat-card"><div class="stat-value" id="s-clicks">–</div><div class="stat-label">Klikkaukset</div></div>
@@ -76,6 +94,27 @@ function buildStatsHTML(el) {
     </style>`;
 }
 
+function renderStatusRow(el) {
+  const sd = document.getElementById('s-status');
+  if (!sd) return;
+  const status = getTimingStatus(el);
+  const typeLabel = TYPE_LABELS[el.elementType] || el.elementType || 'Popup';
+  const timing = el.timing || {};
+  const start = timing.startDate && timing.startDate !== 'default' ? new Date(timing.startDate) : null;
+  const end   = timing.endDate   && timing.endDate   !== 'default' ? new Date(timing.endDate)   : null;
+  let dateRange = '';
+  if (start && end) dateRange = `Voimassa: ${start.toLocaleDateString('fi-FI')}–${end.toLocaleDateString('fi-FI')}`;
+  else if (start)   dateRange = `Alkaa: ${start.toLocaleDateString('fi-FI')}`;
+  else if (end)     dateRange = `Päättyy: ${end.toLocaleDateString('fi-FI')}`;
+  sd.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;flex-wrap:wrap">
+      <span style="color:${status.color};font-size:13px;font-weight:600">${status.label}</span>
+      <span style="color:#94a3b8;font-size:12px">·</span>
+      <span style="color:#64748b;font-size:12px">${typeLabel}</span>
+      ${dateRange ? `<span style="color:#94a3b8;font-size:12px">·</span><span style="color:#64748b;font-size:12px">${dateRange}</span>` : ''}
+    </div>`;
+}
+
 async function loadStats(id, el) {
   try {
     const r = await fetch('/api/popups/stats/' + id);
@@ -90,6 +129,7 @@ async function loadStats(id, el) {
     if (sctr) sctr.textContent = (s.clickThroughRate ?? '0.00') + '%';
     if (sd) {
       const parts = [];
+      if (s.leads > 0)     parts.push(`📋 Liidejä: ${s.leads} kpl`);
       if (s.lastViewed)    parts.push('Viimeksi nähty: ' + new Date(s.lastViewed).toLocaleString('fi-FI'));
       if (s.lastClicked)   parts.push('Viimeksi klikattu: ' + new Date(s.lastClicked).toLocaleString('fi-FI'));
       if (s.statsResetAt)  parts.push('🔄 Nollattu: ' + new Date(s.statsResetAt).toLocaleString('fi-FI'));

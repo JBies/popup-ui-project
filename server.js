@@ -188,6 +188,10 @@ app.get('/pending', (req, res) => {
     res.sendFile(path.join(__dirname, 'pending.html'));
 });
 
+app.get('/testisivu', (req, res) => {
+    res.sendFile(path.join(__dirname, 'testisivu.html'));
+});
+
 // Reittien rekisteröinti
 app.use('/auth', authRoutes);
 app.use('/api/user', userRoutes);
