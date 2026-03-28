@@ -45,7 +45,7 @@ function renderHelp() {
         card('fa-square','#475569','Popup',
           'Perinteinen modaali-popup, joka avautuu sivun päälle. Tukee neljää alatyyppiä eri käyttötarkoituksiin.',
           ['Tervetuloviesti uusille kävijöille','Exit intent – "Odota, tässä tarjous"','Kuva + CTA -mainospopup','Tarjouskoodi viiveen jälkeen'],
-          ['popupSubtype – announcement / offer / image / exit_intent','position – center, top, bottom','animation – none, fade, slide','imageUrl – kuva image-tyypille']),
+          ['popupSubtype – announcement / offer / image / exit_intent','position – center, top, bottom','animation – none, fade, slide','Kuva – valitse Kuvakirjastosta tai lataa suoraan editorissa']),
 
         card('fa-users','#d97706','Social Proof',
           'Ponnahdusviesti sivun kulmassa: "X henkilöä katsoo nyt tätä sivua". Kasvattaa luottamusta ja kiireellisyyden tunnetta.',
@@ -61,6 +61,27 @@ function renderHelp() {
           'Liidilomake, joka kerää yhteystietoja suoraan tietokantaan. Kentät ovat täysin konfiguroitavissa. Liidit näkyvät tilastoissa.',
           ['Yhteydenottopyyntö','Uutiskirjetilaus','Varaa demo -lomake','Kilpailun osallistuminen'],
           ['leadFields – lista kentistä (teksti/email/puhelin/textarea)','leadSubmitText – lähetä-napin teksti','leadSuccessMsg – onnistumisviesti','Kaikki liidit tallentuvat automaattisesti'])
+      ])}
+
+      <!-- Kuvakirjasto -->
+      ${section('fa-images','Kuvakirjasto','Hallitse kuvia ja lisää niitä elementteihin', [
+        infoBlock('Kuvakirjastosta löydät kaikki lataamasi kuvat. Kuvat tallennetaan pilveen ja ovat käytettävissä elementtien muokkauksessa.',
+        [
+          ['Missä kuvakirjasto on','Dashboard-sivupalkin linkki <strong>Kuvakirjasto</strong>. Kaikki aiemmin lataamasi kuvat näkyvät ruudukkonäkymässä.'],
+          ['Kuvan lataaminen','Kuvakirjastossa: klikkaa <em>Lataa uusi kuva</em> -nappia ja valitse tiedosto. Kuvat pakataan automaattisesti jos ne ovat yli 950 KB.'],
+          ['Kuvan käyttö popupissa','Avaa Popup-elementti muokkaukseen → vaihda tyypiksi <em>Kuvapopup</em> → klikkaa <em>Valitse kirjastosta</em> tai <em>Lataa kuva</em> suoraan editorista.'],
+          ['Tuetut tiedostomuodot','JPG, PNG, GIF, WebP. Suositeltu maksimikoko 5 MB (pakataan automaattisesti alle 950 KB).'],
+          ['Kuvan URL leikepöydälle','Kuvakirjastossa: klikkaa kuvan esikatselua → URL kopioidaan leikepöydälle. Käyttökelpoinen jos tarvitset suoran linkin muualle.'],
+          ['Kuvan poistaminen','Vie hiiri kuvan päälle → klikkaa punainen roskakori-ikoni. Kuvaa ei voi poistaa jos se on käytössä jossakin elementissä.'],
+          ['Kuvalinkit eivät vanhene','Kuvat tallennetaan turvallisesti pilveen. Linkit ovat voimassa 7 päivää kerrallaan ja päivittyvät automaattisesti – kuvat näkyvät aina oikein sivustollasi.'],
+        ]),
+
+        `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:10px">
+          <span style="font-size:18px;flex-shrink:0">💡</span>
+          <div style="font-size:13px;color:#78350f">
+            <strong>Vinkki – kuvapopup nopeasti:</strong> Avaa uuden Popup-elementin luonti → vaihda tyyppi <em>Kuvapopupiksi</em> → klikkaa <em>Lataa kuva</em> editorin kuvaosassa. Kuva latautuu suoraan kirjastoon ja asetetaan samalla popuppiin – ei tarvitse käydä erikseen kuvakirjastossa.
+          </div>
+        </div>`
       ])}
 
       <!-- Targeting -->

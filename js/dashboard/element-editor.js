@@ -226,7 +226,7 @@ function getTypeData() {
     return { elementConfig: d.config, content: d.content, backgroundColor: d.backgroundColor, textColor: d.textColor };
   }
   const d = getPopupData(fieldsContainer);
-  return { elementConfig: d.config, popupType: d.popupType, position: d.position, animation: d.animation, width: d.width, content: d.content, imageUrl: d.imageUrl, linkUrl: d.linkUrl, backgroundColor: d.backgroundColor, textColor: d.textColor };
+  return { elementConfig: d.config, popupType: d.popupType, position: d.position, animation: d.animation, width: d.width, content: d.content, imageUrl: d.imageUrl, imageFirebasePath: d.imageFirebasePath, linkUrl: d.linkUrl, backgroundColor: d.backgroundColor, textColor: d.textColor };
 }
 
 function buildPayload() {
@@ -242,7 +242,7 @@ function buildPayload() {
   const abSection = document.getElementById('ab-test-section');
   const abTest = abSection ? getAbTestData(abSection) : { enabled: false };
 
-  const payload = {
+  return {
     name,
     elementType: currentType,
     popupType: typeData.popupType || 'rectangle',
@@ -254,14 +254,6 @@ function buildPayload() {
     ...(endDate && { endDate }),
     ...typeData
   };
-
-  // Säilytä imageFirebasePath jos kuva ei ole muuttunut (URL sama kuin tallennettu)
-  if (currentElement?.imageFirebasePath && typeData.imageUrl &&
-      typeData.imageUrl === currentElement.imageUrl) {
-    payload.imageFirebasePath = currentElement.imageFirebasePath;
-  }
-
-  return payload;
 }
 
 async function saveElement() {

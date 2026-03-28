@@ -7,6 +7,7 @@ import { initAnalyticsPage }  from './analytics-page.js';
 import { initCampaignsPanel } from './campaigns-panel.js';
 import { initHelpPanel }      from './help-panel.js';
 import { initLeadsPanel }     from './leads-panel.js';
+import { initImageLibraryPanel } from './image-library-panel.js';
 
 let currentView = 'elements';
 
@@ -48,6 +49,7 @@ async function init() {
   initCampaignsPanel();
   initHelpPanel();
   initLeadsPanel();
+  initImageLibraryPanel();
   setupWebhooks();
   setupCreateDropdown();
   setupNavigation();
@@ -79,7 +81,7 @@ export function showView(name) {
     a.classList.toggle('active', a.dataset.view === name || a.getAttribute('href') === '#' + name);
   });
 
-  const titles = { elements: 'Omat elementit', analytics: 'Tilastot', settings: 'Asennuskoodi', campaigns: 'Kampanjat', webhooks: 'Webhooks', help: 'Ohjeet', leads: 'Liidit' };
+  const titles = { elements: 'Omat elementit', images: 'Kuvakirjasto', analytics: 'Tilastot', settings: 'Asennuskoodi', campaigns: 'Kampanjat', webhooks: 'Webhooks', help: 'Ohjeet', leads: 'Liidit' };
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = titles[name] || 'UI Manager';
 }
@@ -95,6 +97,7 @@ function setupNavigation() {
 
   document.getElementById('btn-refresh')?.addEventListener('click', () => {
     if (currentView === 'elements') window.dispatchEvent(new CustomEvent('refresh-elements'));
+    if (currentView === 'images') initImageLibraryPanel();
   });
 }
 

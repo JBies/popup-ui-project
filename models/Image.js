@@ -30,7 +30,12 @@ const imageSchema = new mongoose.Schema({
     usedInPopups: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Popup'
-    }]
+    }],
+    // Firebase Storage polku URL:ien uudelleengenerointia varten
+    firebasePath: {
+        type: String,
+        default: ''
+    }
 });
 
 module.exports = mongoose.model('Image', imageSchema);

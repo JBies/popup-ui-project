@@ -1,4 +1,6 @@
 // editors/popup-editor.js
+import { openImagePicker } from '../image-library-panel.js';
+
 const SUBTYPES = [
   { value: 'announcement', label: 'Ilmoitus' },
   { value: 'offer',        label: 'Tarjous' },
@@ -8,6 +10,8 @@ const SUBTYPES = [
 
 export function renderPopupFields(container, cfg = {}, el = {}) {
   const subtype = cfg.popupSubtype || el.popupType || 'announcement';
+  const hasImage = !!(el.imageUrl && el.imageUrl.trim());
+
   container.innerHTML = `
     <div class="section-title">Popup-asetukset</div>
     <div class="form-row">
@@ -48,12 +52,37 @@ export function renderPopupFields(container, cfg = {}, el = {}) {
       <label>Sisältö (HTML)</label>
       <textarea name="content" rows="5" placeholder="<h2>Otsikko</h2><p>Teksti...</p>">${el.content || ''}</textarea>
     </div>
+
     <div class="form-group" id="popup-image-group" style="${subtype !== 'image' ? 'display:none':''}">
-      <label>Kuvan URL</label>
-      <input type="text" name="imageUrl" value="${el.imageUrl || ''}" placeholder="https://...">
+      <label>Kuva</label>
+      <input type="hidden" name="imageUrl" value="${el.imageUrl || ''}">
+      <input type="hidden" name="imageFirebasePath" value="${el.imageFirebasePath || ''}">
+
+      <div id="popup-img-preview" style="${hasImage ? '' : 'display:none'};margin-bottom:10px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:200px;background:#f8fafc;text-align:center">
+        <img id="popup-img-tag" src="${el.imageUrl || ''}" alt="Kuvaesikatselu"
+          style="max-width:100%;max-height:200px;object-fit:contain;display:block;margin:0 auto"
+          onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" id="popup-img-library" class="btn btn-secondary btn-sm">
+          <i class="fa fa-images"></i> Valitse kirjastosta
+        </button>
+        <label class="btn btn-secondary btn-sm" style="cursor:pointer">
+          <i class="fa fa-upload"></i> Lataa kuva
+          <input type="file" id="popup-img-upload" accept="image/*" style="display:none">
+        </label>
+        <button type="button" id="popup-img-remove" class="btn btn-danger btn-sm" style="${hasImage ? '' : 'display:none'}">
+          <i class="fa fa-times"></i> Poista
+        </button>
+      </div>
+      <div id="popup-img-uploading" style="display:none;font-size:12px;color:#3b82f6;margin-top:6px">
+        <i class="fa fa-spinner fa-spin"></i> Ladataan kuvaa...
+      </div>
     </div>
+
     <div class="form-group">
-      <label>Linkki-URL (klikattavuus)</label>
+      <label>Linkki-URL <span style="font-size:11px;color:#94a3b8;font-weight:400">(koko popup klikattavaksi)</span></label>
       <input type="text" name="linkUrl" value="${el.linkUrl || ''}" placeholder="https://...">
     </div>
     <div class="form-row">
@@ -67,9 +96,82 @@ export function renderPopupFields(container, cfg = {}, el = {}) {
       </div>
     </div>`;
 
+  // Tyyppivaihto → näytä/piilota kuvakenttä
   container.querySelector('[name="popupSubtype"]')?.addEventListener('change', e => {
     const imgGrp = container.querySelector('#popup-image-group');
     if (imgGrp) imgGrp.style.display = e.target.value === 'image' ? '' : 'none';
+  });
+
+  // ── Apufunktiot ──────────────────────────────────────────────────────────
+  function setImage(url, firebasePath) {
+    container.querySelector('[name="imageUrl"]').value = url;
+    container.querySelector('[name="imageFirebasePath"]').value = firebasePath || '';
+    const preview = container.querySelector('#popup-img-preview');
+    const tag = container.querySelector('#popup-img-tag');
+    const removeBtn = container.querySelector('#popup-img-remove');
+    if (url) {
+      tag.src = url;
+      preview.style.display = '';
+      if (removeBtn) removeBtn.style.display = '';
+    } else {
+      preview.style.display = 'none';
+      if (removeBtn) removeBtn.style.display = 'none';
+    }
+    // Päivitä esikatselu
+    container.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  async function handleFileUpload(file) {
+    const status = container.querySelector('#popup-img-uploading');
+    status.style.display = 'block';
+    try {
+      const maxSize = 950 * 1024;
+      let processed = file;
+      if (file.size > maxSize) {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        await new Promise(r => { img.onload = r; img.src = url; });
+        const scale = Math.sqrt(maxSize / file.size);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.floor(img.width * scale);
+        canvas.height = Math.floor(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        const fmt = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const blob = await new Promise(r => canvas.toBlob(r, fmt, 0.9));
+        processed = new File([blob], file.name, { type: blob.type });
+      }
+      const fd = new FormData();
+      fd.append('image', processed);
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      setImage(data.imageUrl, data.imageFirebasePath || '');
+    } catch (err) {
+      alert('Kuvan lataus epäonnistui: ' + err.message);
+    } finally {
+      status.style.display = 'none';
+    }
+  }
+
+  // ── Event-kuuntelijat ────────────────────────────────────────────────────
+
+  // Valitse kirjastosta
+  container.querySelector('#popup-img-library')?.addEventListener('click', async () => {
+    const result = await openImagePicker();
+    if (result) setImage(result.url, result.firebasePath);
+  });
+
+  // Lataa uusi kuva
+  container.querySelector('#popup-img-upload')?.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (file) await handleFileUpload(file);
+  });
+
+  // Poista kuva
+  container.querySelector('#popup-img-remove')?.addEventListener('click', () => {
+    setImage('', '');
   });
 }
 
@@ -77,14 +179,15 @@ export function getPopupData(container) {
   const g = n => container.querySelector(`[name="${n}"]`);
   return {
     config: { popupSubtype: g('popupSubtype')?.value || 'announcement' },
-    popupType:       g('popupSubtype')?.value === 'image' ? 'image' : 'rectangle',
-    position:        g('position')?.value || 'center',
-    animation:       g('animation')?.value || 'none',
-    width:           parseInt(g('width')?.value) || 400,
-    content:         g('content')?.value || '',
-    imageUrl:        g('imageUrl')?.value?.trim() || '',
-    linkUrl:         g('linkUrl')?.value?.trim() || '',
-    backgroundColor: g('backgroundColor')?.value || '#ffffff',
-    textColor:       g('textColor')?.value || '#000000'
+    popupType:          g('popupSubtype')?.value === 'image' ? 'image' : 'rectangle',
+    position:           g('position')?.value || 'center',
+    animation:          g('animation')?.value || 'none',
+    width:              parseInt(g('width')?.value) || 400,
+    content:            g('content')?.value || '',
+    imageUrl:           g('imageUrl')?.value?.trim() || '',
+    imageFirebasePath:  g('imageFirebasePath')?.value?.trim() || '',
+    linkUrl:            g('linkUrl')?.value?.trim() || '',
+    backgroundColor:    g('backgroundColor')?.value || '#ffffff',
+    textColor:          g('textColor')?.value || '#000000'
   };
 }
