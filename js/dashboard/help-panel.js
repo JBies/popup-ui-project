@@ -115,43 +115,36 @@ function renderHelp() {
       ])}
 
       <!-- Sivustot & asennuskoodi -->
-      ${section('fa-code','Asennuskoodi','Miten lisäät elementit sivustollesi', [
-        `<div style="display:flex;flex-direction:column;gap:14px">
+      ${section('fa-code','Asennuskoodi','Valitse tilanteeseesi sopiva tapa', [
+        `<div style="display:flex;flex-direction:column;gap:10px">
 
-          <!-- Tapa 1: Sivustokohtainen koodi (suositeltava) -->
-          <div style="border:2px solid #3b82f6;border-radius:10px;overflow:hidden">
-            <div style="background:#eff6ff;padding:12px 16px;display:flex;align-items:center;gap:8px">
-              <span style="font-size:16px">⭐</span>
-              <span style="font-size:13px;font-weight:700;color:#1d4ed8">Tapa 1: Sivustokohtainen koodi (suositeltava)</span>
-            </div>
-            <div style="padding:14px 16px;background:#fff">
-              <p style="font-size:13px;color:#475569;margin:0 0 10px">Luo sivusto <strong>Asennuskoodi</strong>-välilehdellä → saat oman koodin jokaiselle sivustolle. Yksi rivi per sivusto, ei mitään muuta tarvita.</p>
-              <code style="display:block;background:#1e293b;color:#e2e8f0;padding:10px 14px;border-radius:6px;font-size:11px">&lt;script src="https://popupmanager.net/ui-embed.js" data-site="SIVUSTO_TOKEN"&gt;&lt;/script&gt;</code>
-              <p style="font-size:12px;color:#64748b;margin:8px 0 0">✓ Lataa automaattisesti kaikki kyseiselle sivustolle kuuluvat aktiiviset elementit. Ei muita koodirivejä tarvita.</p>
-            </div>
-          </div>
+          ${scenario('⭐','#1d4ed8','#eff6ff','#dbeafe',
+            'Skenaario 1 – Kaikki elementit automaattisesti (suositeltava)',
+            'Lisää <strong>yksi rivi</strong> sivustosi &lt;head&gt;-osioon. Kaikki aktiiviset elementit latautuvat itsestään – ei muita koodirivejä tarvita koskaan.',
+            '&lt;!-- Lisää sivuston &lt;head&gt;-osioon kerran --&gt;\n&lt;script src="https://popupmanager.net/ui-embed.js"\n        data-site="SINUN_SIVUSTO_TOKEN"&gt;&lt;/script&gt;',
+            'Token löytyy Asennuskoodi-välilehdeltä. Luo ensin sivusto sieltä.'
+          )}
 
-          <!-- Tapa 2: Yksittäinen elementtikoodi -->
-          <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">
-            <div style="background:#f8fafc;padding:12px 16px;display:flex;align-items:center;gap:8px">
-              <span style="font-size:16px">📌</span>
-              <span style="font-size:13px;font-weight:700;color:#374151">Tapa 2: Yksittäinen elementtikoodi</span>
-            </div>
-            <div style="padding:14px 16px;background:#fff">
-              <p style="font-size:13px;color:#475569;margin:0 0 10px">Lisää ensin pääskripti kerran sivuston &lt;head&gt;-osioon, sen jälkeen kutsu <code style="background:#e0f2fe;color:#0369a1;padding:1px 4px;border-radius:3px;font-size:10px">ShowElement()</code> haluamassasi kohdassa.</p>
-              <code style="display:block;background:#1e293b;color:#e2e8f0;padding:10px 14px;border-radius:6px;font-size:11px">&lt;!-- 1. Lisää head-osioon (kerran) --&gt;<br>&lt;script src="https://popupmanager.net/ui-embed.js"&gt;&lt;/script&gt;<br><br>&lt;!-- 2. Aktivoi elementti --&gt;<br>&lt;script&gt;ShowElement('ELEMENTIN_ID');&lt;/script&gt;</code>
-              <p style="font-size:12px;color:#64748b;margin:8px 0 0">Valmis embed-koodi löytyy jokaisen elementtikortin 📊 <strong>Tilastot</strong>-painikkeesta.</p>
-            </div>
-          </div>
+          ${scenario('📌','#374151','#f8fafc','#e2e8f0',
+            'Skenaario 2 – Yksi elementti yhdelle sivulle',
+            'Haluat näyttää tietyn elementin vain yhdellä sivulla. Lisää pääskripti &lt;head&gt;-osioon ja kutsu ShowElement() halutulla sivulla.',
+            '&lt;!-- head-osioon (kerran per sivusto) --&gt;\n&lt;script src="https://popupmanager.net/ui-embed.js"&gt;&lt;/script&gt;\n\n&lt;!-- sivun loppuun tai &lt;body&gt;-osioon --&gt;\n&lt;script&gt;ShowElement(\'ELEMENTIN_ID\');&lt;/script&gt;',
+            'Elementin ID löytyy elementtikortin 📊 Tilastot-painikkeesta.'
+          )}
 
-          <!-- Useampi sivusto -->
-          <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;background:#fffbeb">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-              <span style="font-size:15px">🌐</span>
-              <span style="font-size:13px;font-weight:700;color:#92400e">Useampi nettisivu?</span>
-            </div>
-            <p style="font-size:12px;color:#78350f;margin:0">Luo jokaiselle sivustolle oma "sivusto" <strong>Asennuskoodi</strong>-välilehdellä. Saat erillisen token-koodin per sivusto → sama dashboard hallitsee kaikkia. Elementin editorissa voit valita mille sivustolle elementti kuuluu.</p>
-          </div>
+          ${scenario('✅','#15803d','#f0fdf4','#bbf7d0',
+            'Skenaario 3 – Useita elementtejä samalla sivulla (esim. sticky bar + popup)',
+            '<strong>Kyllä onnistuu!</strong> Kahdella tavalla: käytä data-site (lataa kaikki automaattisesti) tai kutsu ShowElement() useampaan kertaan – yksi kutsu per elementti.',
+            '&lt;!-- Tapa A: data-site lataa KAIKKI automaattisesti --&gt;\n&lt;script src="https://popupmanager.net/ui-embed.js"\n        data-site="SINUN_TOKEN"&gt;&lt;/script&gt;\n\n&lt;!-- Tapa B: Valitse tarkasti mitä näytetään --&gt;\n&lt;script src="https://popupmanager.net/ui-embed.js"&gt;&lt;/script&gt;\n&lt;script&gt;\n  ShowElement(\'sticky-bar-id\');  // sticky bar\n  ShowElement(\'popup-id\');       // popup\n  ShowElement(\'fab-id\');         // floating button\n&lt;/script&gt;',
+            'Ei rajoituksia kuinka monta ShowElement()-kutsua voit tehdä.'
+          )}
+
+          ${scenario('🌐','#6d28d9','#f5f3ff','#ede9fe',
+            'Skenaario 4 – Eri elementtejä eri sivuille',
+            'Haluat esim. exit-popup vain kassasivulle ja sticky barin kaikille sivuille. Lisää pääskripti joka sivulle, mutta ShowElement()-kutsu vain oikealle sivulle.',
+            '&lt;!-- Etusivu (index.html) --&gt;\n&lt;script src="...ui-embed.js"&gt;&lt;/script&gt;\n&lt;script&gt;ShowElement(\'hero-popup-id\');&lt;/script&gt;\n\n&lt;!-- Tuotesivu (product.html) --&gt;\n&lt;script src="...ui-embed.js"&gt;&lt;/script&gt;\n&lt;script&gt;ShowElement(\'discount-bar-id\');&lt;/script&gt;\n\n&lt;!-- Kassasivu (checkout.html) --&gt;\n&lt;script src="...ui-embed.js"&gt;&lt;/script&gt;\n&lt;script&gt;ShowElement(\'exit-intent-id\');&lt;/script&gt;',
+            'Vinkki: Voit myös käyttää Targeting-sääntöjä URL-osoitteen perusteella yhdessä data-site-koodissa.'
+          )}
 
         </div>`
       ])}
@@ -222,4 +215,19 @@ function infoBlock(intro, rows) {
         </div>`).join('')}
     </div>
   </div>`;
+}
+
+function scenario(icon, titleColor, bgHeader, bgBorder, title, desc, code, tip) {
+  return `<details style="border:1px solid ${bgBorder};border-radius:10px;overflow:hidden">
+    <summary style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;background:${bgHeader};list-style:none;user-select:none">
+      <span style="font-size:18px">${icon}</span>
+      <span style="font-size:13px;font-weight:700;color:${titleColor};flex:1">${title}</span>
+      <i class="fa fa-chevron-down" style="color:#94a3b8;font-size:11px"></i>
+    </summary>
+    <div style="padding:16px;border-top:1px solid ${bgBorder};background:#fff">
+      <p style="font-size:13px;color:#475569;margin:0 0 12px">${desc}</p>
+      <pre style="background:#1e293b;color:#e2e8f0;padding:14px 16px;border-radius:8px;font-size:11px;font-family:monospace;white-space:pre-wrap;word-break:break-all;margin:0 0 10px;line-height:1.6">${code}</pre>
+      ${tip ? `<div style="display:flex;align-items:flex-start;gap:6px;font-size:12px;color:#64748b"><span>💡</span><span>${tip}</span></div>` : ''}
+    </div>
+  </details>`;
 }

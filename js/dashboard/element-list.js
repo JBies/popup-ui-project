@@ -121,20 +121,68 @@ function renderList() {
 
   if (filtered.length === 0) {
     grid.innerHTML = `
-      <div class="empty-state" style="grid-column:1/-1;text-align:center;padding:48px 24px">
-        <div style="font-size:48px;margin-bottom:16px">🚀</div>
-        <h3 style="font-size:18px;font-weight:600;color:#1e293b;margin:0 0 8px">Ei elementtejä vielä</h3>
-        <p style="color:#64748b;font-size:14px;margin:0 0 28px">Aloita valmiilla templatella tai luo tyhjästä</p>
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-          <button class="btn btn-primary" data-quick="sticky_bar"><i class="fa fa-minus"></i> Sticky Bar</button>
-          <button class="btn btn-primary" data-quick="popup"><i class="fa fa-square"></i> Ponnahdusviesti</button>
-          <button class="btn btn-primary" data-quick="lead_form"><i class="fa fa-envelope"></i> Lead Form</button>
+      <div class="empty-state" style="grid-column:1/-1;max-width:640px;margin:0 auto;padding:32px 16px">
+
+        <!-- Otsikko -->
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:44px;margin-bottom:12px">🚀</div>
+          <h3 style="font-size:18px;font-weight:700;color:#1e293b;margin:0 0 6px">Tervetuloa UI Manageriin!</h3>
+          <p style="color:#64748b;font-size:14px;margin:0">Näin pääset käyntiin kolmessa askeleessa</p>
         </div>
+
+        <!-- 3 askelta -->
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px">
+
+          <div style="display:flex;gap:14px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px">
+            <div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">Luo elementti</div>
+              <div style="font-size:12px;color:#64748b;margin-bottom:10px">Valitse tyyppi alta, mukauta ja tallenna. Voit luoda niin monta kuin haluat.</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-primary btn-sm" data-quick="sticky_bar" style="font-size:12px"><i class="fa fa-minus"></i> Sticky Bar</button>
+                <button class="btn btn-primary btn-sm" data-quick="popup" style="font-size:12px"><i class="fa fa-square"></i> Popup</button>
+                <button class="btn btn-primary btn-sm" data-quick="lead_form" style="font-size:12px"><i class="fa fa-envelope"></i> Lead Form</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:14px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px">
+            <div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">Lisää sivustosi ja kopioi asennuskoodi</div>
+              <div style="font-size:12px;color:#64748b;margin-bottom:8px">Luo sivusto ja kopioi <strong>yksi koodi</strong> sivustosi &lt;head&gt;-osioon. Se riittää kaikille elementeille.</div>
+              <a href="#settings" id="goto-settings-link" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#3b82f6;text-decoration:none">
+                <i class="fa fa-code"></i> Asennuskoodi-välilehti →
+              </a>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:14px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px">
+            <div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">Aktivoi elementti togglella</div>
+              <div style="font-size:12px;color:#64748b">Elementtikortin toggle = päällä → elementti on heti live sivustollasi. Toggle = pois → elementti piilotetaan.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Vinkki -->
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:8px">
+          <span style="font-size:16px;flex-shrink:0">💡</span>
+          <span style="font-size:12px;color:#1d4ed8"><strong>Yksi koodi riittää kaikelle:</strong> Kun asennuskoodi on sivustolla, kaikki luomasi elementit aktivoituvat automaattisesti ilman lisäkoodia. Voit luoda sticky barin, popupin ja lead formin – ne kaikki toimivat samalla yhdellä koodirivillä.</span>
+        </div>
+
       </div>`;
     grid.querySelectorAll('[data-quick]').forEach(btn => {
       btn.addEventListener('click', () => {
         window.dispatchEvent(new CustomEvent('open-editor', { detail: { elementType: btn.dataset.quick } }));
       });
+    });
+    // Asennuskoodi-linkki navigoi settings-näkymään
+    grid.querySelector('#goto-settings-link')?.addEventListener('click', e => {
+      e.preventDefault();
+      window.location.hash = '#settings';
     });
     return;
   }
