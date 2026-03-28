@@ -4,6 +4,18 @@
   var API_BASE = 'https://popupmanager.net';
   window.__UE_API__ = API_BASE;
 
+  // ─── XSS-apufunktio ─────────────────────────────────────────────────────────
+  // Palauttaa HTML-enkoodatun merkkijonon (estää XSS kun käytetään innerHTML:ssä)
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  }
+
   // ─── Julkinen API ────────────────────────────────────────────────────────────
 
   window.ShowElement = function (elementId) {
@@ -435,7 +447,7 @@
         opacity: '0', transform: 'translateY(10px)',
         transition: 'opacity 0.3s, transform 0.3s'
       }, posStyle));
-      notif.innerHTML = '<span style="font-size:20px">' + (cfg.proofIcon || '👥') + '</span><span>' + text + '</span>';
+      notif.innerHTML = '<span style="font-size:20px">' + escHtml(cfg.proofIcon || '👥') + '</span><span>' + escHtml(text) + '</span>';
       document.body.appendChild(notif);
       requestAnimationFrame(function () {
         requestAnimationFrame(function () { notif.style.opacity = '1'; notif.style.transform = 'translateY(0)'; });
@@ -510,22 +522,24 @@
       ];
 
       var fieldsHtml = fields.filter(function (f) { return f.label; }).map(function (f) {
+        var safeLabel = escHtml(f.label);
+        var safeType  = escHtml(f.type === 'textarea' ? 'textarea' : f.type);
         if (f.type === 'textarea') {
           return '<div style="margin-bottom:12px"><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">' +
-            f.label + (f.required ? ' *' : '') + '</label>' +
-            '<textarea data-field="' + f.label + '" rows="3" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;resize:vertical"></textarea></div>';
+            safeLabel + (f.required ? ' *' : '') + '</label>' +
+            '<textarea data-field="' + safeLabel + '" rows="3" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;resize:vertical"></textarea></div>';
         }
         return '<div style="margin-bottom:12px"><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">' +
-          f.label + (f.required ? ' *' : '') + '</label>' +
-          '<input type="' + f.type + '" data-field="' + f.label + '" data-required="' + (f.required ? '1' : '') + '" ' +
+          safeLabel + (f.required ? ' *' : '') + '</label>' +
+          '<input type="' + safeType + '" data-field="' + safeLabel + '" data-required="' + (f.required ? '1' : '') + '" ' +
           'style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box"></div>';
       }).join('');
 
       box.innerHTML = fieldsHtml +
         '<button id="ue-lead-submit" style="width:100%;padding:11px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px">' +
-        (cfg.leadSubmitText || 'Lähetä') + '</button>' +
+        escHtml(cfg.leadSubmitText || 'Lähetä') + '</button>' +
         '<div id="ue-lead-success" style="display:none;text-align:center;padding:12px;color:#16a34a;font-weight:500">' +
-        (cfg.leadSuccessMsg || 'Kiitos!') + '</div>';
+        escHtml(cfg.leadSuccessMsg || 'Kiitos!') + '</div>';
 
       var closeBtn = document.createElement('button');
       closeBtn.textContent = '✕';

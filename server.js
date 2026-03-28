@@ -8,6 +8,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const MongoStore = require('connect-mongo');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./db');
 
 // Swagger dokumentaatio
@@ -30,7 +31,8 @@ require('./auth');
 const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionSecret = process.env.SESSION_SECRET || 'local-dev-secret';
-const cookieSecure = process.env.COOKIE_SECURE === 'false';
+// secure=true tuotannossa (HTTPS vaaditaan), voi ylikirjoittaa COOKIE_SECURE=false kehityksessä
+const cookieSecure = process.env.COOKIE_SECURE === 'true' || (isProduction && process.env.COOKIE_SECURE !== 'false');
 const allowedOrigins = process.env.CORS_ORIGIN 
     ? process.env.CORS_ORIGIN.split(',') 
     : ['http://localhost:3000', 'https://popupmanager.net', 'https://www.popupmanager.net'];
@@ -108,6 +110,42 @@ if (isProduction) {
 // Gzip-pakkaus
 app.use(compression());
 
+// ─── Rate Limiting ───────────────────────────────────────────────────────────
+
+// Auth-endpointit: max 20 yritystä 15 min sisällä (bruteforce-suojaus)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Liian monta kirjautumisyritystä. Yritä uudelleen 15 minuutin kuluttua.' }
+});
+app.use('/auth/', authLimiter);
+
+// Julkiset embed-endpointit: max 200 pyyntöä 1 min sisällä per IP
+const embedLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Liian monta pyyntöä. Yritä hetken kuluttua.' }
+});
+app.use('/api/popups/embed', embedLimiter);
+app.use('/api/popups/view', embedLimiter);
+app.use('/api/popups/click', embedLimiter);
+app.use('/api/popups/site', embedLimiter);
+app.use('/api/leads/submit', embedLimiter);
+
+// Yleinen API-raja: max 300 pyyntöä 1 min sisällä per IP
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.user && req.user.role === 'admin'
+});
+app.use('/api/', apiLimiter);
+
 // CORS-asetukset - 
 if (isProduction) {
     // Rajoitetut CORS-asetukset tuotannossa
@@ -144,9 +182,10 @@ app.use(session({
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    cookie: { 
-        secure: cookieSecure, // Käytetään ympäristömuuttujaa, tuotannossa true jos HTTPS
+    cookie: {
+        secure: cookieSecure,  // true tuotannossa (HTTPS), false kehityksessä
         httpOnly: true,
+        sameSite: 'lax',       // suojaa CSRF-hyökkäyksiltä
         maxAge: 24 * 60 * 60 * 1000 // 24 tuntia
     },
     store: MongoStore.create({
@@ -202,6 +241,63 @@ app.use('/api/admin', authMiddleware.isAdmin, adminRoutes);
 const LeadController = require('./controllers/lead.controller');
 app.get('/api/leads', authMiddleware.isUser, LeadController.getLeads);
 app.get('/api/leads/:popupId', authMiddleware.isUser, LeadController.getLeadsByPopup);
+
+// --- Sivustot (Sites) API ---
+const User = require('./models/User');
+const Popup = require('./models/Popup');
+
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+// GET /api/sites – käyttäjän kaikki sivustot
+app.get('/api/sites', authMiddleware.isUser, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).lean();
+    res.json(user.sites || []);
+  } catch (err) {
+    res.status(500).json({ message: 'Virhe sivustojen haussa', error: err.toString() });
+  }
+});
+
+// POST /api/sites – luo uusi sivusto
+app.post('/api/sites', authMiddleware.isUser, async (req, res) => {
+  try {
+    const { name, domain } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ message: 'Nimi on pakollinen' });
+    const token = uuidv4();
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $push: { sites: { name: name.trim(), domain: (domain || '').trim(), token } } },
+      { new: true }
+    );
+    const created = user.sites[user.sites.length - 1];
+    res.status(201).json(created);
+  } catch (err) {
+    res.status(500).json({ message: 'Sivuston luonti epäonnistui', error: err.toString() });
+  }
+});
+
+// DELETE /api/sites/:siteId – poista sivusto
+app.delete('/api/sites/:siteId', authMiddleware.isUser, async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { sites: { _id: req.params.siteId } } }
+    );
+    // Irrota elementit tästä sivustosta (aseta siteId null)
+    await Popup.updateMany(
+      { userId: req.user._id, siteId: req.params.siteId },
+      { $set: { siteId: null } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: 'Sivuston poisto epäonnistui', error: err.toString() });
+  }
+});
 
 // Swagger-dokumentaatio (vain kehitysympäristössä tai admin-käyttäjille)
 if (!isProduction) {

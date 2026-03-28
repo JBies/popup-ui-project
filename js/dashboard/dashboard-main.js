@@ -172,48 +172,153 @@ async function setupWebhooks() {
   });
 }
 
-function renderInstallSection(user) {
+async function renderInstallSection(user) {
   const container = document.getElementById('install-section');
   if (!container) return;
 
-  const siteToken = user?.siteToken || '';
-  const universalCode = siteToken
-    ? `<script src="https://popupmanager.net/ui-embed.js" data-site="${siteToken}"><\/script>`
-    : `<!-- Kirjaudu uudelleen niin site-token generoidaan -->`;
+  // Hae sivustot
+  let sites = [];
+  try {
+    const r = await fetch('/api/sites');
+    if (r.ok) sites = await r.json();
+  } catch {}
 
-  container.innerHTML = `
-    <!-- Suositeltava: Yleinen asennuskoodi -->
-    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:18px 20px;margin-bottom:20px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:16px">⭐</span>
-        <span style="font-size:14px;font-weight:700;color:#1e40af">Suositeltava: Yleinen asennuskoodi</span>
-      </div>
-      <p style="font-size:13px;color:#1e40af;margin:0 0 12px">Lisää <strong>kerran</strong> sivustollesi – kaikki luomasi elementit latautuvat automaattisesti. Ei tarvitse koskea sivustokoodiin kun lisäät tai poistat elementtejä.</p>
-      <div style="background:#1e293b;border-radius:8px;padding:14px;position:relative">
-        <pre id="install-universal" style="color:#e2e8f0;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:0">${escHtml(universalCode)}</pre>
-        <button onclick="copyUniversal()" style="position:absolute;top:8px;right:8px;background:#334155;border:none;color:#94a3b8;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px"><i class="fa fa-copy"></i> Kopioi</button>
-      </div>
-      <p style="font-size:12px;color:#3b82f6;margin:8px 0 0">Liitä tämä sivustosi <code>&lt;/body&gt;</code>-tagin yläpuolelle. Vain yksi koodi koko sivustolle.</p>
-    </div>
+  const renderSites = (siteList) => {
+    const siteToken = user?.siteToken || '';
+    const sitesHTML = siteList.length ? siteList.map((s, i) => {
+      const code = `<script src="https://popupmanager.net/ui-embed.js" data-site="${s.token}"><\/script>`;
+      return `
+        <div class="site-row" data-site-id="${s._id}" style="border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8fafc">
+            <span style="font-size:15px">🌐</span>
+            <div style="flex:1">
+              <span style="font-weight:600;font-size:13px;color:#1e293b">${escHtml(s.name)}</span>
+              ${s.domain ? `<span style="font-size:11px;color:#94a3b8;margin-left:8px">${escHtml(s.domain)}</span>` : ''}
+            </div>
+            <button class="copy-site-btn btn btn-secondary btn-sm" data-code="${escHtml(code)}" style="font-size:11px;padding:4px 10px"><i class="fa fa-copy"></i> Kopioi</button>
+            <button class="delete-site-btn" data-id="${s._id}" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:4px 8px" title="Poista sivusto">✕</button>
+          </div>
+          <div style="padding:8px 14px;background:#1e293b">
+            <pre style="color:#e2e8f0;font-family:monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;margin:0">${escHtml(code)}</pre>
+          </div>
+        </div>`;
+    }).join('') : '<p style="font-size:13px;color:#94a3b8;margin:8px 0">Ei sivustoja vielä. Lisää ensimmäinen sivusto →</p>';
 
-    <!-- Yksittäinen elementti -->
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:16px">📌</span>
-        <span style="font-size:14px;font-weight:700;color:#374151">Yksittäinen elementti</span>
+    const globalCode = siteToken
+      ? `<script src="https://popupmanager.net/ui-embed.js" data-site="${siteToken}"><\/script>`
+      : `<!-- Kirjaudu uudelleen niin site-token generoidaan -->`;
+
+    container.innerHTML = `
+      <!-- Sivustot -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <span style="font-size:14px;font-weight:700;color:#1e293b">Sivustosi</span>
+            <span style="font-size:12px;color:#64748b;margin-left:8px">Kukin sivusto saa oman asennuskoodin</span>
+          </div>
+          <button id="btn-add-site" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Lisää sivusto</button>
+        </div>
+        <div id="sites-list">${sitesHTML}</div>
       </div>
-      <p style="font-size:13px;color:#64748b;margin:0 0 12px">Voit myös aktivoida elementtejä yksitellen. Embed-koodi löytyy jokaisen elementin <strong>tilasto-painikkeesta (📊)</strong>. Useita elementtejä voi laittaa samaan scriptilohkoon:</p>
-      <div style="background:#1e293b;border-radius:8px;padding:14px">
-        <pre style="color:#e2e8f0;font-family:monospace;font-size:12px;white-space:pre-wrap;margin:0">${escHtml('<script src="https://popupmanager.net/ui-embed.js"><\/script>\n<script>\n  ShowElement(\'ELEMENT_ID_1\');\n  ShowElement(\'ELEMENT_ID_2\');  // useita elementtejä = OK\n<\/script>')}</pre>
+
+      <!-- Yleinen token (fallback) -->
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:16px">⭐</span>
+          <span style="font-size:14px;font-weight:700;color:#374151">Yleinen koodi (kaikki elementit kaikille sivuille)</span>
+        </div>
+        <p style="font-size:13px;color:#64748b;margin:0 0 12px">Tämä koodi lataa <strong>kaikki</strong> elementtisi jokaiselle sivulle. Sopii jos sinulla on vain yksi sivusto tai haluat kaiken kaikkialle.</p>
+        <div style="background:#1e293b;border-radius:8px;padding:14px;position:relative">
+          <pre id="install-universal" style="color:#e2e8f0;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:0">${escHtml(globalCode)}</pre>
+          <button onclick="copyUniversal()" style="position:absolute;top:8px;right:8px;background:#334155;border:none;color:#94a3b8;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px"><i class="fa fa-copy"></i> Kopioi</button>
+        </div>
       </div>
-      <p style="font-size:12px;color:#94a3b8;margin:8px 0 0">⚠️ Yllä olevat ID:t ovat esimerkkejä – oikeat ID:t löytyvät kunkin elementin tilastoista.</p>
-    </div>`;
+
+      <!-- Yksittäinen elementti -->
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:16px">📌</span>
+          <span style="font-size:14px;font-weight:700;color:#374151">Yksittäinen elementti</span>
+        </div>
+        <p style="font-size:13px;color:#64748b;margin:0 0 12px">Embed-koodi löytyy jokaisen elementin <strong>tilasto-painikkeesta (📊)</strong>.</p>
+        <div style="background:#1e293b;border-radius:8px;padding:14px">
+          <pre style="color:#e2e8f0;font-family:monospace;font-size:12px;white-space:pre-wrap;margin:0">${escHtml('<script src="https://popupmanager.net/ui-embed.js"><\/script>\n<script>\n  ShowElement(\'ELEMENT_ID_1\');\n<\/script>')}</pre>
+        </div>
+      </div>
+
+      <!-- Lisää sivusto -modaali -->
+      <div id="add-site-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:none;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:12px;padding:28px;width:420px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+          <h3 style="font-size:16px;font-weight:700;margin:0 0 20px">Lisää sivusto</h3>
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Sivuston nimi *</label>
+            <input id="new-site-name" type="text" placeholder="esim. Pääsivu, Verkkokauppa…" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none">
+          </div>
+          <div style="margin-bottom:20px">
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Domain (vapaaehtoinen)</label>
+            <input id="new-site-domain" type="text" placeholder="esim. paasivu.fi" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none">
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button id="cancel-site-modal" class="btn btn-secondary">Peruuta</button>
+            <button id="confirm-add-site" class="btn btn-primary">Luo sivusto</button>
+          </div>
+        </div>
+      </div>`;
+
+    // Kuuntelijat
+    document.getElementById('btn-add-site')?.addEventListener('click', () => {
+      const m = document.getElementById('add-site-modal');
+      if (m) { m.style.display = 'flex'; document.getElementById('new-site-name')?.focus(); }
+    });
+    document.getElementById('cancel-site-modal')?.addEventListener('click', () => {
+      document.getElementById('add-site-modal').style.display = 'none';
+    });
+    document.getElementById('confirm-add-site')?.addEventListener('click', async () => {
+      const name = document.getElementById('new-site-name')?.value?.trim();
+      const domain = document.getElementById('new-site-domain')?.value?.trim();
+      if (!name) { showToast('Nimi on pakollinen', 'error'); return; }
+      const r = await fetch('/api/sites', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, domain })
+      });
+      if (!r.ok) { showToast('Sivuston luonti epäonnistui', 'error'); return; }
+      document.getElementById('add-site-modal').style.display = 'none';
+      document.getElementById('new-site-name').value = '';
+      document.getElementById('new-site-domain').value = '';
+      showToast('Sivusto luotu!');
+      const newSite = await r.json();
+      siteList.push(newSite);
+      renderSites(siteList);
+      window.dispatchEvent(new CustomEvent('sites-updated'));
+    });
+
+    container.querySelectorAll('.copy-site-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const code = btn.dataset.code;
+        navigator.clipboard.writeText(code).then(() => showToast('Koodi kopioitu!'));
+      });
+    });
+
+    container.querySelectorAll('.delete-site-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Poistetaanko sivusto? Elementit eivät katoa, mutta ne irrotetaan tästä sivustosta.')) return;
+        const r = await fetch('/api/sites/' + btn.dataset.id, { method: 'DELETE' });
+        if (!r.ok) { showToast('Poisto epäonnistui', 'error'); return; }
+        showToast('Sivusto poistettu');
+        const idx = siteList.findIndex(s => String(s._id) === btn.dataset.id);
+        if (idx !== -1) siteList.splice(idx, 1);
+        renderSites(siteList);
+        window.dispatchEvent(new CustomEvent('sites-updated'));
+      });
+    });
+  };
+
+  renderSites(sites);
 
   window.copyUniversal = function () {
     const code = document.getElementById('install-universal')?.textContent || '';
     navigator.clipboard.writeText(code).then(() => showToast('Koodi kopioitu!'));
   };
-  // Legacy support
   window.copyInstallCode = window.copyUniversal;
 }
 

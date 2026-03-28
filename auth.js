@@ -1,7 +1,8 @@
 // auth.js
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('./models/User'); // Tuodaan User-malli
+const User = require('./models/User');
+const AuditLog = require('./models/AuditLog');
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const r = Math.random() * 16 | 0;
@@ -9,11 +10,12 @@ function uuidv4() {
     });
 }
 
-// Admins list - näitä sähköposteja käytetään automaattiseen admin-rooliin
-const ADMIN_EMAILS = [
-    'joni.bies@gmail.com',
-    // Lisää tähän muut admin-sähköpostit tarvittaessa
-];
+// Admin-sähköpostit luetaan .env-tiedostosta (ADMIN_EMAILS=a@b.com,c@d.com)
+// Muuta admin-oikeuksia .env-tiedostossa ilman koodimuutoksia
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean);
 
 // Configure the Google OAuth strategy
 passport.use(new GoogleStrategy({
@@ -30,7 +32,7 @@ async (accessToken, refreshToken, profile, done) => {
         if (user) {
             user.lastLogin = new Date();
             // Varmista admin-rooli aina kirjautuessa (ei vain rekisteröityessä)
-            if (profile.emails?.[0]?.value && ADMIN_EMAILS.includes(profile.emails[0].value) && user.role !== 'admin') {
+            if (profile.emails?.[0]?.value && ADMIN_EMAILS.includes(profile.emails[0].value.toLowerCase()) && user.role !== 'admin') {
                 user.role = 'admin';
             }
             // Generoi siteToken jos puuttuu
@@ -43,7 +45,7 @@ async (accessToken, refreshToken, profile, done) => {
             // Määritetään automaattisesti admin-rooli tietyille sähköposteille
             if (profile.emails && profile.emails.length > 0) {
                 const email = profile.emails[0].value;
-                if (ADMIN_EMAILS.includes(email)) {
+                if (ADMIN_EMAILS.includes(email.toLowerCase())) {
                     role = 'admin';
                 }
             }
@@ -62,6 +64,16 @@ async (accessToken, refreshToken, profile, done) => {
             await user.save();
         }
         
+        // Kirjautumisloki
+        AuditLog.create({
+          action: 'login',
+          adminId:    user.role === 'admin' ? user._id : null,
+          adminEmail: user.email,
+          targetId:   user._id,
+          targetEmail: user.email,
+          details: { role: user.role, displayName: user.displayName }
+        }).catch(() => {});
+
         done(null, user); // Palautetaan käyttäjä
     } catch (error) {
         console.error('Error in Google authentication:', error);

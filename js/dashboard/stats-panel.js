@@ -38,7 +38,7 @@ export function openStats(el) {
   loadStats(el._id, el);
   renderStatusRow(el);
 
-  root.querySelector('#close-stats')?.addEventListener('click', () => { root.innerHTML = ''; });
+  root.querySelectorAll('#close-stats').forEach(btn => btn.addEventListener('click', () => { root.innerHTML = ''; }));
   root.querySelector('#reset-stats')?.addEventListener('click', () => resetStats(el._id, el));
   root.querySelector('#copy-embed')?.addEventListener('click', () => copyEmbed(el));
   root.querySelector('#stats-overlay')?.addEventListener('click', e => {

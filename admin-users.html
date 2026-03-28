@@ -127,11 +127,39 @@
     .btn-modal-save { padding: 9px 20px; border: none; border-radius: 9px; background: #3b82f6; color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; }
     .btn-modal-save:hover { background: #2563eb; }
 
+    /* Tabs */
+    .admin-tabs { display: flex; gap: 0; padding: 0 24px; border-bottom: 2px solid #e2e8f0; margin-top: 16px; }
+    .admin-tab { padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: none; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+    .admin-tab:hover { color: #3b82f6; }
+    .admin-tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+
+    /* Audit log */
+    #audit-view { padding: 0 24px 32px; display: none; }
+    .audit-toolbar { display: flex; gap: 10px; padding: 16px 0; align-items: center; flex-wrap: wrap; }
+    .audit-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; font-size: 12px; }
+    .audit-table th { background: #f8fafc; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #e2e8f0; }
+    .audit-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .audit-table tr:last-child td { border-bottom: none; }
+    .audit-table tr:hover td { background: #f8fafc; }
+    .action-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+    .act-login        { background: #dcfce7; color: #15803d; }
+    .act-user_approved{ background: #dbeafe; color: #1d4ed8; }
+    .act-role_change  { background: #fef3c7; color: #b45309; }
+    .act-user_deleted { background: #fee2e2; color: #dc2626; }
+    .act-limits_updated { background: #f5f3ff; color: #6d28d9; }
+    .act-tier_preset  { background: #f0fdf4; color: #15803d; }
+    .audit-pagination { display: flex; align-items: center; gap: 8px; padding: 14px 0; font-size: 12px; color: #64748b; }
+    .audit-page-btn { padding: 5px 12px; border: 1px solid #e2e8f0; border-radius: 7px; background: #fff; cursor: pointer; font-size: 12px; }
+    .audit-page-btn:hover { background: #f1f5f9; }
+    .audit-page-btn:disabled { opacity: 0.4; cursor: default; }
+
     @media (max-width: 600px) {
       .summary-bar { padding: 12px; }
       .toolbar { padding: 12px; }
       .users-grid { padding: 0 12px 24px; }
       .users-grid { grid-template-columns: 1fr; }
+      .admin-tabs { padding: 0 12px; }
+      #audit-view { padding: 0 12px 24px; }
     }
   </style>
 </head>
@@ -143,6 +171,13 @@
   <span class="admin-badge">ADMIN</span>
 </header>
 
+<!-- Navigointitabit -->
+<div class="admin-tabs">
+  <button class="admin-tab active" data-tab="users"><i class="fa fa-users"></i> Käyttäjät</button>
+  <button class="admin-tab" data-tab="audit"><i class="fa fa-history"></i> Audit-loki</button>
+</div>
+
+<div id="users-view">
 <div class="summary-bar" id="summary-bar">
   <div class="summary-card">
     <div class="summary-icon" style="background:#dbeafe"><i class="fa fa-users" style="color:#3b82f6"></i></div>
@@ -178,6 +213,50 @@
 
 <div class="users-grid" id="users-grid">
   <div class="state-msg"><i class="fa fa-spinner fa-spin"></i> Ladataan käyttäjiä…</div>
+</div>
+
+</div><!-- /users-view -->
+
+<!-- Audit-loki-näkymä -->
+<div id="audit-view">
+  <div class="audit-toolbar">
+    <div class="search-box" style="max-width:240px">
+      <i class="fa fa-search"></i>
+      <input type="text" id="audit-search" placeholder="Hae sähköpostilla…">
+    </div>
+    <select id="audit-action-filter" style="padding:9px 12px;border:1px solid #e2e8f0;border-radius:9px;font-size:13px;background:#fff;outline:none">
+      <option value="">Kaikki tapahtumat</option>
+      <option value="login">Kirjautumiset</option>
+      <option value="user_approved">Hyväksynnät</option>
+      <option value="role_change">Roolin muutokset</option>
+      <option value="user_deleted">Poistetut käyttäjät</option>
+      <option value="limits_updated">Rajoitusten muutokset</option>
+    </select>
+    <button class="btn-refresh" id="audit-refresh"><i class="fa fa-sync"></i> Päivitä</button>
+    <span id="audit-total" style="font-size:12px;color:#64748b;margin-left:auto"></span>
+  </div>
+
+  <table class="audit-table" id="audit-table">
+    <thead>
+      <tr>
+        <th>Aika</th>
+        <th>Tapahtuma</th>
+        <th>Tekijä</th>
+        <th>Kohde</th>
+        <th>Lisätiedot</th>
+        <th>IP</th>
+      </tr>
+    </thead>
+    <tbody id="audit-tbody">
+      <tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8"><i class="fa fa-spinner fa-spin"></i> Ladataan…</td></tr>
+    </tbody>
+  </table>
+
+  <div class="audit-pagination" id="audit-pagination">
+    <button class="audit-page-btn" id="audit-prev">← Edellinen</button>
+    <span id="audit-page-info"></span>
+    <button class="audit-page-btn" id="audit-next">Seuraava →</button>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -519,6 +598,101 @@ document.getElementById('btn-refresh').addEventListener('click', loadAll);
 
 // ─── Init ─────────────────────────────────────────────────
 await loadAll();
+
+// ─── Tab-navigointi ───────────────────────────────────────
+document.querySelectorAll('.admin-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const name = tab.dataset.tab;
+    document.getElementById('users-view').style.display = name === 'users' ? 'block' : 'none';
+    document.getElementById('audit-view').style.display  = name === 'audit'  ? 'block' : 'none';
+    if (name === 'audit') loadAudit();
+  });
+});
+
+// ─── Audit-loki ───────────────────────────────────────────
+let auditPage = 1;
+let auditSearch = '';
+let auditAction = '';
+
+const ACTION_LABELS = {
+  login:          ['🔑 Kirjautuminen', 'act-login'],
+  user_approved:  ['✅ Hyväksytty',    'act-user_approved'],
+  role_change:    ['🔄 Rooli muuttui', 'act-role_change'],
+  user_deleted:   ['🗑️ Poistettu',     'act-user_deleted'],
+  limits_updated: ['⚙️ Rajoitukset',   'act-limits_updated'],
+  tier_preset:    ['⭐ Tieri',          'act-tier_preset'],
+};
+
+function fmtDetails(log) {
+  const d = log.details || {};
+  if (log.action === 'role_change' || log.action === 'user_approved') {
+    return `${d.from || '?'} → <strong>${d.to || '?'}</strong>`;
+  }
+  if (log.action === 'limits_updated') {
+    return `Raja: ${d.popupLimit ?? '?'}`;
+  }
+  if (log.action === 'user_deleted') {
+    return `<span style="color:#dc2626">${esc(d.displayName || d.email || '?')}</span>`;
+  }
+  if (log.action === 'login') {
+    return `Rooli: ${d.role || '?'}`;
+  }
+  return JSON.stringify(d).substring(0, 60);
+}
+
+async function loadAudit() {
+  const tbody = document.getElementById('audit-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8"><i class="fa fa-spinner fa-spin"></i> Ladataan…</td></tr>';
+
+  const params = new URLSearchParams({ page: auditPage, limit: 50 });
+  if (auditAction) params.set('action', auditAction);
+  if (auditSearch) {
+    params.set('adminEmail', auditSearch);
+  }
+
+  const data = await fetch('/api/admin/audit-logs?' + params).then(r => r.json()).catch(() => ({ logs: [], total: 0 }));
+  const { logs, total, page, pages } = data;
+
+  document.getElementById('audit-total').textContent = `${total} tapahtumaa yhteensä`;
+  document.getElementById('audit-page-info').textContent = `Sivu ${page} / ${pages || 1}`;
+  document.getElementById('audit-prev').disabled = page <= 1;
+  document.getElementById('audit-next').disabled = page >= (pages || 1);
+
+  if (!logs.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8">Ei lokimerkintöjä</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = logs.map(log => {
+    const [label, cls] = ACTION_LABELS[log.action] || [log.action, 'act-login'];
+    const dt = new Date(log.createdAt);
+    const dateStr = dt.toLocaleDateString('fi-FI') + ' ' + dt.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' });
+    return `<tr>
+      <td style="white-space:nowrap;color:#64748b">${dateStr}</td>
+      <td><span class="action-badge ${cls}">${label}</span></td>
+      <td style="color:#0f172a">${esc(log.adminEmail || '–')}</td>
+      <td style="color:#475569">${esc(log.targetEmail || '–')}</td>
+      <td style="color:#64748b">${fmtDetails(log)}</td>
+      <td style="font-family:monospace;font-size:11px;color:#94a3b8">${esc(log.ip || '–')}</td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('audit-search').addEventListener('input', e => {
+  auditSearch = e.target.value.trim();
+  auditPage = 1;
+  loadAudit();
+});
+document.getElementById('audit-action-filter').addEventListener('change', e => {
+  auditAction = e.target.value;
+  auditPage = 1;
+  loadAudit();
+});
+document.getElementById('audit-refresh').addEventListener('click', () => loadAudit());
+document.getElementById('audit-prev').addEventListener('click', () => { auditPage--; loadAudit(); });
+document.getElementById('audit-next').addEventListener('click', () => { auditPage++; loadAudit(); });
 </script>
 </body>
 </html>

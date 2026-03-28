@@ -1,6 +1,7 @@
 // controllers/user.controller.js
 
 const User = require('../models/User');
+const { logAudit } = require('../utils/audit');
 
 /**
  * UserController vastaa käyttäjien hallinnan toimintalogiikasta
@@ -59,13 +60,17 @@ class UserController {
           // Jos käyttäjä hyväksytään pending-tilasta
           if (previousRole === 'pending' && role === 'user') {
             user.approvedAt = new Date();
-            
-            // Tähän lisätä sähköposti-ilmoituksen lähettämisen
-            console.log(`Käyttäjä ${user.displayName} (${user.email}) hyväksytty.`);
           }
-          
+
           await user.save();
-          res.status(200).json({ 
+
+          // Audit-loki
+          const auditAction = (previousRole === 'pending' && role === 'user')
+            ? 'user_approved'
+            : 'role_change';
+          await logAudit(req, auditAction, user, { from: previousRole, to: role });
+
+          res.status(200).json({
             message: 'Role updated successfully!',
             user: {
               id: user._id,
@@ -96,12 +101,17 @@ class UserController {
       const userId = req.params.id;
       
       try {
-        const user = await User.findByIdAndDelete(userId);
-        if (user) {
-          res.status(200).send('User deleted successfully!');
-        } else {
-          res.status(404).send('User not found');
-        }
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).send('User not found');
+
+        // Tallenna tiedot ennen poistoa audit-lokia varten
+        const snapshot = { email: user.email, displayName: user.displayName, role: user.role };
+        await User.findByIdAndDelete(userId);
+
+        // Audit-loki
+        await logAudit(req, 'user_deleted', snapshot, snapshot);
+
+        res.status(200).send('User deleted successfully!');
       } catch (err) {
         res.status(500).json({ message: 'Error deleting user', error: err });
       }
@@ -190,6 +200,13 @@ static async updateUserPopupLimit(req, res) {
       if (popupLimit) user.popupLimit = parseInt(popupLimit) || user.popupLimit;
 
       await user.save();
+
+      // Audit-loki
+      await logAudit(req, 'limits_updated', user, {
+        popupLimit: user.popupLimit,
+        limits: user.limits
+      });
+
       res.json({ message: 'Limits updated', user });
     } catch (err) {
       res.status(500).json({ message: 'Error updating limits', error: err.toString() });
@@ -220,6 +237,21 @@ static async updateUserPopupLimit(req, res) {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
     const { name, url, events } = req.body;
     if (!url) return res.status(400).json({ message: 'URL required' });
+
+    // SSRF-suojaus: salli vain https:// julkisiin osoitteisiin
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'https:') {
+        return res.status(400).json({ message: 'Webhook URL täytyy olla HTTPS-osoite' });
+      }
+      const host = parsed.hostname.toLowerCase();
+      const blocked = ['localhost', '127.0.0.1', '0.0.0.0', '::1'];
+      if (blocked.includes(host) || host.startsWith('192.168.') || host.startsWith('10.') || host.startsWith('172.')) {
+        return res.status(400).json({ message: 'Sisäverkko-osoitteet eivät ole sallittuja' });
+      }
+    } catch {
+      return res.status(400).json({ message: 'Virheellinen URL-osoite' });
+    }
     try {
       const user = await User.findByIdAndUpdate(
         req.user._id,
