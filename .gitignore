@@ -1,2 +1,6 @@
 .env
 firebaseSDK.json
+node_modules/
+.claude/
+*.log
+npm-debug.log*
