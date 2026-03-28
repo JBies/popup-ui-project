@@ -1,88 +1,113 @@
 /**
  * Migraatioskrip: Täyttää imageFirebasePath-kentän olemassa oleville Popup-dokumenteille.
+ * Käyttää allekirjoitetun URL:in polkuosaa Firebase-polun selvittämiseen.
  *
  * Aja tuotantopalvelimella:
- *   NODE_ENV=production node scripts/migrate-image-firebase-paths.js
+ *   node scripts/migrate-image-firebase-paths.js
  */
 
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Popup = require('../models/Popup');
-const Image = require('../models/Image');
 const { bucket } = require('../firebase');
+
+/**
+ * Poimii Firebase-polun allekirjoitetusta tai tavallisesta storage-URL:ista.
+ * Esimerkki:
+ *   https://storage.googleapis.com/bucket/popupImages/abc.jpg?X-Goog-...
+ *   → popupImages/abc.jpg
+ */
+function extractFirebasePath(imageUrl, bucketName) {
+  if (!imageUrl) return null;
+  try {
+    const parsed = new URL(imageUrl);
+    // pathname on muotoa /bucket-name/popupImages/file.jpg
+    // tai /v0/b/bucket/o/popupImages%2Ffile.jpg (Firebase download URL)
+    let pathname = parsed.pathname;
+
+    // Firebase download URL muoto
+    if (pathname.startsWith('/v0/b/')) {
+      const match = pathname.match(/\/v0\/b\/[^/]+\/o\/(.+)/);
+      if (match) return decodeURIComponent(match[1]);
+    }
+
+    // storage.googleapis.com muoto: /bucket-name/path/to/file
+    if (bucketName && pathname.startsWith('/' + bucketName + '/')) {
+      return pathname.slice(bucketName.length + 2); // +2 for /bucket/
+    }
+
+    // Kokeile ilman bucket-nimeä: oleta että ensimmäinen osa on bucket
+    const parts = pathname.split('/').filter(Boolean);
+    if (parts.length >= 2) {
+      return parts.slice(1).join('/'); // Poista ensimmäinen osa (bucket)
+    }
+  } catch (e) {
+    // ignore
+  }
+  return null;
+}
 
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI);
   console.log('✅ Connected to MongoDB');
 
-  // Hae kaikki Image-tietueet joilla on firebasePath
-  const images = await Image.find({ firebasePath: { $exists: true, $ne: '' } }).lean();
-  console.log(`Found ${images.length} Image records with firebasePath`);
+  const bucketName = bucket.name;
+  console.log('Firebase bucket:', bucketName);
 
-  // Rakenna hakutaulukko: popupId → firebasePath (Image.usedInPopups viittaa popup ID:hen)
-  const popupToPath = {};
-  for (const img of images) {
-    if (img.usedInPopups && img.usedInPopups.length > 0) {
-      for (const popupId of img.usedInPopups) {
-        popupToPath[popupId.toString()] = img.firebasePath;
-      }
-    }
-  }
-  console.log(`Mapped ${Object.keys(popupToPath).length} popup IDs to Firebase paths`);
+  // Hae kaikki Firebase-tiedostot
+  const [fbFiles] = await bucket.getFiles({ prefix: 'popupImages/' });
+  console.log(`Firebase files in bucket: ${fbFiles.length}`);
+  const fbPaths = new Set(fbFiles.map(f => f.name));
+  fbFiles.forEach(f => console.log('  -', f.name));
 
-  // Hae popupit joilla on imageUrl mutta ei imageFirebasePath
-  const popups = await Popup.find({
-    imageUrl: { $ne: '' },
-    $or: [{ imageFirebasePath: { $exists: false } }, { imageFirebasePath: '' }]
-  }).lean();
-  console.log(`Popups missing imageFirebasePath: ${popups.length}`);
+  // Hae popupit joilla on imageUrl
+  const popups = await Popup.find({ imageUrl: { $ne: '' } }).lean();
+  console.log(`\nPopups with imageUrl: ${popups.length}`);
 
   let updated = 0;
   let skipped = 0;
 
   for (const popup of popups) {
-    const firebasePath = popupToPath[popup._id.toString()];
-    if (firebasePath) {
-      await Popup.updateOne({ _id: popup._id }, { $set: { imageFirebasePath: firebasePath } });
-      console.log(`  ✅ Updated "${popup.name}" → ${firebasePath}`);
-      updated++;
-    } else {
-      // Jos Image.usedInPopups ei sisällä tätä popup-ID:tä, yritä käyttäjän ainoaa kuvaa
-      const userImages = images.filter(img => img.userId.toString() === popup.userId.toString());
-      if (userImages.length === 1) {
-        await Popup.updateOne({ _id: popup._id }, { $set: { imageFirebasePath: userImages[0].firebasePath } });
-        console.log(`  ✅ Updated "${popup.name}" via single-user-image → ${userImages[0].firebasePath}`);
-        updated++;
-      } else {
-        console.log(`  ⚠️  Skipped "${popup.name}" (${popup._id}) — could not match (${userImages.length} user images)`);
-        skipped++;
-      }
+    const path = extractFirebasePath(popup.imageUrl, bucketName);
+    console.log(`\n"${popup.name}" → extracted path: ${path}`);
+
+    if (!path) {
+      console.log('  ⚠️  Could not extract path from URL');
+      skipped++;
+      continue;
     }
-  }
 
-  console.log(`\n📊 Migration complete: ${updated} updated, ${skipped} skipped`);
+    if (!fbPaths.has(path)) {
+      console.log(`  ⚠️  Path not found in Firebase bucket: ${path}`);
+      // Tallenna polku silti – tiedosto saattaa olla olemassa vaikka lista ei täsmää
+    }
 
-  // Refresh signed URLs for popups that now have imageFirebasePath
-  console.log('\n🔄 Refreshing signed URLs in Popup documents...');
-  const toRefresh = await Popup.find({ imageUrl: { $ne: '' }, imageFirebasePath: { $ne: '' } }).lean();
-  let refreshed = 0;
-  for (const popup of toRefresh) {
+    // Generoi uusi 7 päivän URL
     try {
-      const [signedUrl] = await bucket.file(popup.imageFirebasePath).getSignedUrl({
+      const [signedUrl] = await bucket.file(path).getSignedUrl({
         action: 'read',
         expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
         version: 'v4'
       });
-      await Popup.updateOne({ _id: popup._id }, { $set: { imageUrl: signedUrl } });
-      refreshed++;
+
+      await Popup.updateOne(
+        { _id: popup._id },
+        { $set: { imageFirebasePath: path, imageUrl: signedUrl } }
+      );
+      console.log(`  ✅ Updated imageFirebasePath and refreshed URL`);
+      updated++;
     } catch (e) {
-      console.error(`  ❌ Failed to refresh URL for "${popup.name}":`, e.message);
+      console.error(`  ❌ Error generating signed URL: ${e.message}`);
+      // Tallenna vähintään polku
+      await Popup.updateOne({ _id: popup._id }, { $set: { imageFirebasePath: path } });
+      console.log(`  ✅ Saved imageFirebasePath (URL refresh failed)`);
+      updated++;
     }
   }
-  console.log(`✅ Refreshed ${refreshed} popup image URLs`);
 
+  console.log(`\n📊 Migration complete: ${updated} updated, ${skipped} skipped`);
   await mongoose.disconnect();
-  console.log('\nDone!');
+  console.log('Done!');
 }
 
 main().catch(err => {
