@@ -13,6 +13,7 @@ import { showToast }      from './dashboard-main.js';
 
 let currentElement = null;
 let currentType = 'sticky_bar';
+let cachedSites = null;
 
 const TYPE_LABELS = {
   sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in', popup: 'Popup',
@@ -21,14 +22,33 @@ const TYPE_LABELS = {
 
 export function initEditor() {}
 
-export function openEditor(data = {}) {
+async function loadSites() {
+  if (cachedSites) return cachedSites;
+  try {
+    const r = await fetch('/api/sites');
+    if (r.ok) cachedSites = await r.json();
+    else cachedSites = [];
+  } catch { cachedSites = []; }
+  // Tyhjennä cache sivustojen muuttuessa
+  window.addEventListener('sites-updated', () => { cachedSites = null; });
+  return cachedSites;
+}
+
+export async function openEditor(data = {}) {
   currentElement = data._id ? data : null;
   currentType = data.elementType || data.type || 'sticky_bar';
 
   const panel = document.getElementById('editor-panel');
   if (!panel) return;
   panel.classList.add('open');
-  panel.innerHTML = buildEditorHTML(currentType, data);
+
+  // Lataa sivustot ennen HTML:n rakentamista
+  const sites = await loadSites();
+  panel.innerHTML = buildEditorHTML(currentType, data, sites);
+
+  // Aseta valittu sivusto
+  const siteSelect = document.getElementById('el-site');
+  if (siteSelect && data.siteId) siteSelect.value = String(data.siteId);
 
   // Render type-specific fields
   const fieldsContainer = document.getElementById('type-fields');
@@ -69,10 +89,21 @@ export function openEditor(data = {}) {
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function buildEditorHTML(type, data = {}) {
+function buildEditorHTML(type, data = {}, sites = []) {
   const isNew = !data._id;
   const title = isNew ? 'Uusi ' + (TYPE_LABELS[type] || type) : 'Muokkaa: ' + (data.name || '');
   const timing = data.timing || {};
+  const siteOptions = sites.map(s =>
+    `<option value="${s._id}">${escHtml(s.name)}${s.domain ? ' (' + escHtml(s.domain) + ')' : ''}</option>`
+  ).join('');
+  const siteSelectHTML = `
+    <div class="form-group">
+      <label>Sivusto <span style="font-size:11px;color:#94a3b8;font-weight:400">(vapaaehtoinen – rajaa mille sivustolle elementti näkyy)</span></label>
+      <select id="el-site">
+        <option value="">– Ei sivustoa (globaali) –</option>
+        ${siteOptions}
+      </select>
+    </div>`;
 
   return `
     <div class="editor-header">
@@ -87,6 +118,8 @@ function buildEditorHTML(type, data = {}) {
           <label>Elementin nimi</label>
           <input type="text" id="el-name" value="${data.name || ''}" placeholder="esim. Etusivun sticky bar">
         </div>
+
+        ${siteSelectHTML}
 
         <div id="type-fields"></div>
 
@@ -202,6 +235,7 @@ function buildPayload() {
   const frequency = document.getElementById('el-frequency')?.value || 'always';
   const startDate = document.getElementById('el-start')?.value || null;
   const endDate = document.getElementById('el-end')?.value || null;
+  const siteId = document.getElementById('el-site')?.value || null;
   const typeData = getTypeData();
   const targetingSection = document.getElementById('targeting-section');
   const targeting = targetingSection ? getTargetingData(targetingSection) : { enabled: false, matchType: 'all', rules: [] };
@@ -215,6 +249,7 @@ function buildPayload() {
     delay, frequency,
     targeting,
     abTest,
+    siteId: siteId || null,
     ...(startDate && { startDate }),
     ...(endDate && { endDate }),
     ...typeData
@@ -258,6 +293,11 @@ function updatePreview() {
     const payload = buildPayload();
     renderPreview('preview-inner', payload);
   } catch {}
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // Desktop/mobile toggle

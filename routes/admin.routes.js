@@ -4,6 +4,7 @@
 const express = require('express');
 const UserController = require('../controllers/user.controller');
 const PopupController = require('../controllers/popup.controller');
+const AuditLog = require('../models/AuditLog');
 
 const router = express.Router();
 
@@ -70,5 +71,31 @@ router.get('/popups/stats/:id', isAdmin, PopupController.getAdminPopupStats);
  * @access  Admin
  */
 router.put('/users/limits/:id', isAdmin, UserController.updateUserLimits);
+
+/**
+ * @route   GET /api/admin/audit-logs
+ * @desc    Hakee audit-lokit (vain admin). Query: ?limit=50&action=role_change&page=1
+ * @access  Admin
+ */
+router.get('/audit-logs', isAdmin, async (req, res) => {
+  try {
+    const limit  = Math.min(parseInt(req.query.limit)  || 100, 500);
+    const page   = Math.max(parseInt(req.query.page)   || 1,   1);
+    const skip   = (page - 1) * limit;
+    const filter = {};
+    if (req.query.action) filter.action = req.query.action;
+    if (req.query.adminEmail) filter.adminEmail = new RegExp(req.query.adminEmail, 'i');
+    if (req.query.targetEmail) filter.targetEmail = new RegExp(req.query.targetEmail, 'i');
+
+    const [logs, total] = await Promise.all([
+      AuditLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      AuditLog.countDocuments(filter)
+    ]);
+
+    res.json({ logs, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching audit logs', error: err.toString() });
+  }
+});
 
 module.exports = router;

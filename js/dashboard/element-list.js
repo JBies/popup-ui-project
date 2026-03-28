@@ -14,12 +14,44 @@ const TYPE_META = {
 
 let allElements = [];
 let searchQuery = '';
+let siteFilter = '';  // '_none' = ei sivustoa, '' = kaikki, muuten siteId
 let currentUser = null;
+let cachedSites = [];
 
 export function initElementList(user) {
   currentUser = user || null;
   loadElements();
+  loadSitesFilter();
   window.addEventListener('refresh-elements', loadElements);
+  window.addEventListener('sites-updated', loadSitesFilter);
+}
+
+async function loadSitesFilter() {
+  try {
+    const r = await fetch('/api/sites');
+    if (r.ok) cachedSites = await r.json();
+    else cachedSites = [];
+  } catch { cachedSites = []; }
+  renderSiteFilter();
+}
+
+function renderSiteFilter() {
+  const bar = document.getElementById('elements-filter-bar');
+  if (!bar) return;
+  if (!cachedSites.length) { bar.innerHTML = ''; return; }
+  const options = cachedSites.map(s =>
+    `<option value="${s._id}">${escHtml(s.name)}${s.domain ? ' (' + escHtml(s.domain) + ')' : ''}</option>`
+  ).join('');
+  bar.innerHTML = `
+    <select id="site-filter-select" style="font-size:12px;padding:5px 10px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;color:#374151;cursor:pointer">
+      <option value="">Kaikki sivustot</option>
+      ${options}
+      <option value="_none">– Ei sivustoa –</option>
+    </select>`;
+  document.getElementById('site-filter-select')?.addEventListener('change', e => {
+    siteFilter = e.target.value;
+    renderList();
+  });
 }
 
 function applyStoredOrder(elements) {
@@ -80,9 +112,12 @@ function renderList() {
   const quotaEl = document.getElementById('quota-bar');
   if (quotaEl) quotaEl.innerHTML = quotaBarHTML(allElements);
 
-  const filtered = allElements.filter(el =>
-    !searchQuery || el.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = allElements.filter(el => {
+    if (searchQuery && !el.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (siteFilter === '_none') return !el.siteId;
+    if (siteFilter) return String(el.siteId) === siteFilter;
+    return true;
+  });
 
   if (filtered.length === 0) {
     grid.innerHTML = `
@@ -143,6 +178,8 @@ function cardHTML(el) {
   const date = new Date(el.createdAt).toLocaleDateString('fi-FI');
   const cfg = el.elementConfig || {};
   const status = getTimingStatus(el);
+  const site = el.siteId ? cachedSites.find(s => String(s._id) === String(el.siteId)) : null;
+  const siteBadge = site ? `<span style="font-size:10px;color:#3b82f6;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;padding:1px 6px;margin-left:6px">🌐 ${escHtml(site.name)}</span>` : '';
   let subtitle = '';
   if (type === 'sticky_bar') subtitle = cfg.barText ? cfg.barText.substring(0, 50) + (cfg.barText.length > 50 ? '…' : '') : '';
   else if (type === 'fab') subtitle = (cfg.fabPosition || '') + (cfg.fabAction ? ' · ' + cfg.fabAction : '');
@@ -154,9 +191,10 @@ function cardHTML(el) {
       <div class="element-card-header">
         <div class="el-drag-handle" title="Järjestä vetämällä" style="cursor:grab;color:#cbd5e1;padding:0 6px 0 0;font-size:18px;line-height:1;user-select:none">⠿</div>
         <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
             <span class="badge ${meta.badge}"><i class="fa ${meta.icon}"></i> ${meta.label}</span>
             <span style="font-size:11px;color:${status.color};font-weight:500">${status.label}</span>
+            ${siteBadge}
           </div>
           <div class="element-card-title">${escHtml(el.name)}</div>
           <div class="element-card-meta">${escHtml(subtitle)}</div>

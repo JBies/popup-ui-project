@@ -74,7 +74,8 @@ class PopupController {
       active,
       campaign,
       abTest,
-      frequency
+      frequency,
+      siteId
     } = req.body;
 
     try {
@@ -114,7 +115,8 @@ class PopupController {
         timing: timingData,
         active: active !== undefined ? active : true,
         campaign: campaign || '',
-        abTest: abTest || { enabled: false }
+        abTest: abTest || { enabled: false },
+        siteId: siteId || null
       });
       
       await newPopup.save();
@@ -191,7 +193,8 @@ class PopupController {
       active,
       campaign,
       abTest,
-      frequency
+      frequency,
+      siteId
     } = req.body;
 
     try {
@@ -272,6 +275,7 @@ class PopupController {
           ...(active !== undefined && { active }),
           ...(campaign !== undefined && { campaign }),
           ...(abTest !== undefined && { abTest }),
+          siteId: siteId || null,
         },
         { new: true }
       );
@@ -569,10 +573,24 @@ class PopupController {
    */
   static async getSiteElements(req, res) {
     try {
-      const user = await User.findOne({ siteToken: req.params.token }).lean();
-      if (!user) return res.status(404).json({ message: 'Site not found' });
+      const token = req.params.token;
+      // Tarkistetaan ensin globaali siteToken
+      let user = await User.findOne({ siteToken: token }).lean();
+      let siteFilter = null;
+
+      if (!user) {
+        // Etsitään per-sivusto-token User.sites-taulukosta
+        user = await User.findOne({ 'sites.token': token }).lean();
+        if (!user) return res.status(404).json({ message: 'Site not found' });
+        const site = user.sites.find(s => s.token === token);
+        siteFilter = site._id;
+      }
+
+      const query = { userId: user._id, active: true };
+      if (siteFilter) query.siteId = siteFilter;
+
       const now = new Date();
-      const elements = await Popup.find({ userId: user._id, active: true }).lean();
+      const elements = await Popup.find(query).lean();
       // Suodatetaan päättyneet/ei-alkaneet pois
       const visible = elements.filter(el => {
         const start = el.timing?.startDate ? new Date(el.timing.startDate) : null;

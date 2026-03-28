@@ -20,9 +20,9 @@ function renderHelp() {
         <div style="opacity:.85;font-size:14px;line-height:1.6">Luo konversioelementtejä verkkosivustollesi ilman koodausta.
         Lisää yksi skriptirivi sivustollesi ja aktivoi elementit tästä dashboardista.</div>
         <div style="margin-top:16px;background:rgba(0,0,0,.25);border-radius:8px;padding:12px 16px;font-family:monospace;font-size:12px">
-          &lt;script src="https://popupmanager.net/ui-embed.js"&gt;&lt;/script&gt;<br>
-          &lt;script&gt;ShowElement('ELEMENTIN_ID');&lt;/script&gt;
+          &lt;script src="https://popupmanager.net/ui-embed.js" data-site="SIVUSTO_TOKEN"&gt;&lt;/script&gt;
         </div>
+        <div style="margin-top:8px;font-size:12px;opacity:.75">Yksi rivi sivuston &lt;head&gt;-osioon – kaikki elementit latautuvat automaattisesti.</div>
       </div>
 
       <!-- Elementtityypit -->
@@ -114,34 +114,59 @@ function renderHelp() {
         ])
       ])}
 
-      <!-- Embed-koodi -->
-      ${section('fa-code','Embed-koodi','Miten lisäät elementin sivustollesi', [
-        `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:#0f172a">3 askelta:</div>
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <div style="width:24px;height:24px;border-radius:50%;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</div>
-              <div>
-                <div style="font-size:13px;font-weight:600;margin-bottom:4px">Lisää pääskripti sivustollesi (kerran)</div>
-                <code style="display:block;background:#1e293b;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:11px">&lt;script src="https://popupmanager.net/ui-embed.js"&gt;&lt;/script&gt;</code>
-              </div>
+      <!-- Sivustot & asennuskoodi -->
+      ${section('fa-code','Asennuskoodi','Miten lisäät elementit sivustollesi', [
+        `<div style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- Tapa 1: Sivustokohtainen koodi (suositeltava) -->
+          <div style="border:2px solid #3b82f6;border-radius:10px;overflow:hidden">
+            <div style="background:#eff6ff;padding:12px 16px;display:flex;align-items:center;gap:8px">
+              <span style="font-size:16px">⭐</span>
+              <span style="font-size:13px;font-weight:700;color:#1d4ed8">Tapa 1: Sivustokohtainen koodi (suositeltava)</span>
             </div>
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <div style="width:24px;height:24px;border-radius:50%;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</div>
-              <div>
-                <div style="font-size:13px;font-weight:600;margin-bottom:4px">Luo elementti dashboardissa ja kopioi sen ID</div>
-                <div style="font-size:12px;color:#64748b">Elementtikortin "Tilastot"-napista löydät valmiin embed-koodin</div>
-              </div>
-            </div>
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <div style="width:24px;height:24px;border-radius:50%;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">3</div>
-              <div>
-                <div style="font-size:13px;font-weight:600;margin-bottom:4px">Aktivoi elementti sivullasi</div>
-                <code style="display:block;background:#1e293b;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:11px">&lt;script&gt;ShowElement('SINUN_ID');&lt;/script&gt;</code>
-              </div>
+            <div style="padding:14px 16px;background:#fff">
+              <p style="font-size:13px;color:#475569;margin:0 0 10px">Luo sivusto <strong>Asennuskoodi</strong>-välilehdellä → saat oman koodin jokaiselle sivustolle. Yksi rivi per sivusto, ei mitään muuta tarvita.</p>
+              <code style="display:block;background:#1e293b;color:#e2e8f0;padding:10px 14px;border-radius:6px;font-size:11px">&lt;script src="https://popupmanager.net/ui-embed.js" data-site="SIVUSTO_TOKEN"&gt;&lt;/script&gt;</code>
+              <p style="font-size:12px;color:#64748b;margin:8px 0 0">✓ Lataa automaattisesti kaikki kyseiselle sivustolle kuuluvat aktiiviset elementit. Ei muita koodirivejä tarvita.</p>
             </div>
           </div>
+
+          <!-- Tapa 2: Yksittäinen elementtikoodi -->
+          <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">
+            <div style="background:#f8fafc;padding:12px 16px;display:flex;align-items:center;gap:8px">
+              <span style="font-size:16px">📌</span>
+              <span style="font-size:13px;font-weight:700;color:#374151">Tapa 2: Yksittäinen elementtikoodi</span>
+            </div>
+            <div style="padding:14px 16px;background:#fff">
+              <p style="font-size:13px;color:#475569;margin:0 0 10px">Lisää ensin pääskripti kerran sivuston &lt;head&gt;-osioon, sen jälkeen kutsu <code style="background:#e0f2fe;color:#0369a1;padding:1px 4px;border-radius:3px;font-size:10px">ShowElement()</code> haluamassasi kohdassa.</p>
+              <code style="display:block;background:#1e293b;color:#e2e8f0;padding:10px 14px;border-radius:6px;font-size:11px">&lt;!-- 1. Lisää head-osioon (kerran) --&gt;<br>&lt;script src="https://popupmanager.net/ui-embed.js"&gt;&lt;/script&gt;<br><br>&lt;!-- 2. Aktivoi elementti --&gt;<br>&lt;script&gt;ShowElement('ELEMENTIN_ID');&lt;/script&gt;</code>
+              <p style="font-size:12px;color:#64748b;margin:8px 0 0">Valmis embed-koodi löytyy jokaisen elementtikortin 📊 <strong>Tilastot</strong>-painikkeesta.</p>
+            </div>
+          </div>
+
+          <!-- Useampi sivusto -->
+          <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;background:#fffbeb">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <span style="font-size:15px">🌐</span>
+              <span style="font-size:13px;font-weight:700;color:#92400e">Useampi nettisivu?</span>
+            </div>
+            <p style="font-size:12px;color:#78350f;margin:0">Luo jokaiselle sivustolle oma "sivusto" <strong>Asennuskoodi</strong>-välilehdellä. Saat erillisen token-koodin per sivusto → sama dashboard hallitsee kaikkia. Elementin editorissa voit valita mille sivustolle elementti kuuluu.</p>
+          </div>
+
         </div>`
+      ])}
+
+      <!-- Liidit -->
+      ${section('fa-inbox','Liidit','Kerätyt yhteystiedot ja lomakelähetykset', [
+        infoBlock('Lead Form -elementti tallentaa kaikki lomakelähetykset automaattisesti. Voit tarkastella niitä Liidit-välilehdellä dashboardissa.',
+        [
+          ['Missä liidit näkyvät','Dashboard → Liidit-välilehti. Näet kaikki yhteystiedot taulukossa.'],
+          ['Suodatus','Suodata elementin tai päivämäärän mukaan'],
+          ['A/B-variantti','Taulukossa näkyy kumpi variantti (A/B) liidi lähetti'],
+          ['CSV-vienti','Lataa kaikki liidit Excel/CSV-tiedostona yhdellä napin painalluksella'],
+          ['Webhook','Lähetä liidi reaaliajassa Zapieriin tai Make.comiin Webhooks-välilehdeltä'],
+          ['Kentät','Lomakkeen kentät määritetään Lead Form -editorissa (teksti, email, puhelin, textarea)'],
+        ])
       ])}
 
     </div>`;
