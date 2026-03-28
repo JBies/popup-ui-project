@@ -80,7 +80,7 @@ export async function openEditor(data = {}) {
   updatePreview();
 
   // Event-kuuntelijat
-  panel.querySelector('#editor-cancel')?.addEventListener('click', closeEditor);
+  panel.querySelectorAll('#editor-cancel').forEach(btn => btn.addEventListener('click', closeEditor));
   panel.querySelector('#editor-save')?.addEventListener('click', saveElement);
   panel.addEventListener('change', () => setTimeout(updatePreview, 50));
   panel.addEventListener('input',  () => setTimeout(updatePreview, 200));

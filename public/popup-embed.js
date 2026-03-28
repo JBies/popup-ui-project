@@ -149,7 +149,9 @@
         
         // Käsittele "image"-popup-tyyppi erikseen
         if (popup.popupType === 'image' && popup.imageUrl) {
-            const imageUrl = popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');
+            // Firebase signed URL:eihin ei lisätä ?v= parametria (rikkoo allekirjoituksen)
+            const isFirebaseUrl = popup.imageUrl.includes('storage.googleapis.com') || popup.imageUrl.includes('X-Goog-');
+            const imageUrl = isFirebaseUrl ? popup.imageUrl : popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');
             popupElement.style.background = `url("${imageUrl}") no-repeat center center`;
             popupElement.style.backgroundSize = 'contain';
             popupElement.style.padding = '0';
@@ -289,13 +291,14 @@
             // Lisää kuva, jos on
             if (popup.imageUrl) {
                 const imageElement = document.createElement('img');
-                imageElement.src = popup.imageUrl;
+                // Firebase signed URL:eihin ei lisätä ?v= parametria (rikkoo allekirjoituksen)
+                const isFirebaseUrl = popup.imageUrl.includes('storage.googleapis.com') || popup.imageUrl.includes('X-Goog-');
+                const imageUrl = isFirebaseUrl ? popup.imageUrl : popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');
+                imageElement.src = imageUrl;
                 imageElement.style.maxWidth = '100%';
                 imageElement.style.maxHeight = '70%';
                 imageElement.style.objectFit = 'contain';
                 contentContainer.appendChild(imageElement);
-                const imageUrl = popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');
-                imageElement.src = imageUrl;
             }
     
             // Lisää sulkunappi
