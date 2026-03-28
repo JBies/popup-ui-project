@@ -242,7 +242,7 @@ function buildPayload() {
   const abSection = document.getElementById('ab-test-section');
   const abTest = abSection ? getAbTestData(abSection) : { enabled: false };
 
-  return {
+  const payload = {
     name,
     elementType: currentType,
     popupType: typeData.popupType || 'rectangle',
@@ -254,6 +254,14 @@ function buildPayload() {
     ...(endDate && { endDate }),
     ...typeData
   };
+
+  // Säilytä imageFirebasePath jos kuva ei ole muuttunut (URL sama kuin tallennettu)
+  if (currentElement?.imageFirebasePath && typeData.imageUrl &&
+      typeData.imageUrl === currentElement.imageUrl) {
+    payload.imageFirebasePath = currentElement.imageFirebasePath;
+  }
+
+  return payload;
 }
 
 async function saveElement() {

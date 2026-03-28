@@ -6,6 +6,40 @@ const Image = require('../models/Image');
 const User = require('../models/User');
 const { triggerWebhooks } = require('../utils/webhooks');
 
+const { bucket } = require('../firebase');
+
+/**
+ * Generoi allekirjoitetun URL:in Firebase Storagesta firebasePath:n perusteella.
+ * Jos generointi epäonnistuu, palautetaan alkuperäinen URL.
+ */
+async function refreshImageUrl(imageUrl, imageFirebasePath) {
+  if (!imageFirebasePath) return imageUrl;
+  try {
+    const [signedUrl] = await bucket.file(imageFirebasePath).getSignedUrl({
+      action: 'read',
+      expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 päivää
+      version: 'v4'
+    });
+    return signedUrl;
+  } catch (e) {
+    console.error('Image URL refresh failed:', e.message);
+    return imageUrl;
+  }
+}
+
+/**
+ * Hakee popup-dokumentille Image-tietueen firebasePath:n perusteella imageUrl:lla.
+ */
+async function getImageFirebasePath(userId, imageUrl) {
+  if (!imageUrl) return '';
+  try {
+    const img = await Image.findOne({ userId, firebasePath: { $exists: true, $ne: '' } }).where('url').in([imageUrl]).lean();
+    return img?.firebasePath || '';
+  } catch (e) {
+    return '';
+  }
+}
+
 /**
  * PopupController luokka sisältää popup CRUD-toimintojen logiikan
  */
@@ -66,6 +100,7 @@ class PopupController {
       backgroundColor,
       textColor,
       imageUrl,
+      imageFirebasePath,
       linkUrl,
       delay,
       showDuration,
@@ -111,6 +146,7 @@ class PopupController {
         backgroundColor,
         textColor,
         imageUrl,
+        imageFirebasePath: imageFirebasePath || '',
         linkUrl,
         timing: timingData,
         active: active !== undefined ? active : true,
@@ -144,7 +180,13 @@ class PopupController {
     }
 
     try {
-      const popups = await Popup.find({ userId: req.user._id });
+      const popups = await Popup.find({ userId: req.user._id }).lean();
+      // Päivitä kuvan URL:it jos firebasePath on tallennettu
+      await Promise.all(popups.map(async p => {
+        if (p.imageUrl && p.imageFirebasePath) {
+          p.imageUrl = await refreshImageUrl(p.imageUrl, p.imageFirebasePath);
+        }
+      }));
       res.json(popups);
     } catch (err) {
       console.error('Error fetching popups:', err);
@@ -185,6 +227,7 @@ class PopupController {
       backgroundColor,
       textColor,
       imageUrl,
+      imageFirebasePath,
       linkUrl,
       delay,
       showDuration,
@@ -270,6 +313,7 @@ class PopupController {
           backgroundColor,
           textColor,
           imageUrl,
+          imageFirebasePath: imageFirebasePath || '',
           linkUrl,
           timing: timingData,
           ...(active !== undefined && { active }),
@@ -368,6 +412,11 @@ class PopupController {
         if (cleanPopup.timing.endDate === 'default') {
           delete cleanPopup.timing.endDate;
         }
+      }
+
+      // Päivitä kuvan URL jos firebasePath on tallennettu
+      if (cleanPopup.imageUrl && cleanPopup.imageFirebasePath) {
+        cleanPopup.imageUrl = await refreshImageUrl(cleanPopup.imageUrl, cleanPopup.imageFirebasePath);
       }
 
       // Add no-cache headers
@@ -599,6 +648,12 @@ class PopupController {
         if (end   && now > end)   return false;
         return true;
       });
+      // Päivitä kuvan URL:it jos firebasePath on tallennettu
+      await Promise.all(visible.map(async el => {
+        if (el.imageUrl && el.imageFirebasePath) {
+          el.imageUrl = await refreshImageUrl(el.imageUrl, el.imageFirebasePath);
+        }
+      }));
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.json(visible);
     } catch (err) {

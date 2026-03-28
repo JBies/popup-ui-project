@@ -37,7 +37,9 @@
       "Bash(node -e \"const fs = require\\(''fs''\\); const content = fs.readFileSync\\(''D:/popup-ui-project/js/dashboard/help-panel.js'', ''utf8''\\); console.log\\(''Lines:'', content.split\\(''\\\\n''\\).length\\); console.log\\(''Has Sivustot section:'', content.includes\\(''Sivustokohtainen koodi''\\)\\); console.log\\(''Has Liidit section:'', content.includes\\(''Kerätyt yhteystiedot''\\)\\); console.log\\(''Has updated intro code:'', content.includes\\(''data-site=\"\"SIVUSTO_TOKEN\"\"''\\)\\); console.log\\(''Old single ShowElement in intro:'', content.indexOf\\(''ShowElement\\(''\\) < 300\\);\")",
       "Bash(grep -r \"SECRET\\\\|PASSWORD\\\\|API_KEY\\\\|CREDENTIAL\" /d/popup-ui-project --include=*.js --include=*.env -n)",
       "Bash(npm install:*)",
-      "Bash(node -e \"require\\(''express-rate-limit''\\); console.log\\(''OK''\\)\")"
+      "Bash(node -e \"require\\(''express-rate-limit''\\); console.log\\(''OK''\\)\")",
+      "Bash(node -e \"require\\(''dotenv''\\).config\\(\\); console.log\\(''URI starts with:'', process.env.MONGODB_URI?.substring\\(0,30\\)\\)\")",
+      "Bash(timeout /t 12 /nobreak)"
     ]
   }
 }

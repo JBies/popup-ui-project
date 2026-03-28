@@ -100,11 +100,11 @@ class ImageController {
           contentType: req.file.mimetype,
         }
       });
-  
-      // Generoi allekirjoitettu URL joka vanhenee 24 tunnissa
+
+      // Generoi 7 vuorokauden allekirjoitettu URL
       const [signedUrl] = await bucket.file(firebasePath).getSignedUrl({
         action: 'read',
-        expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 päivää
         version: 'v4'
       });
 
@@ -120,14 +120,15 @@ class ImageController {
         url: signedUrl,
         size: req.file.size,
         mimeType: req.file.mimetype,
-        firebasePath: firebasePath // Store path for future URL regeneration
+        firebasePath: firebasePath
       });
-  
+
       await newImage.save();
-      
+
       // Tallenna tulos väliaikaismuistiin
-      const result = { 
+      const result = {
         imageUrl: signedUrl,
+        imageFirebasePath: firebasePath,
         imageId: newImage._id,
         name: newImage.name,
         size: newImage.size
@@ -174,29 +175,22 @@ class ImageController {
         .sort({ createdAt: -1 }) // Uusimmat ensin
         .select('name url size createdAt firebasePath'); // Valitse vain tarvittavat kentät
 
-      // Regenerate signed URLs for each image
+      // Regeneroi allekirjoitettu URL jokaiselle kuvalle firebasePath:n perusteella
       const imagesWithUrls = await Promise.all(images.map(async (image) => {
-        // Jos firebasePath on määritelty ja ei tyhjä, generoi uusi allekirjoitettu URL
         if (image.firebasePath && image.firebasePath.trim() !== '') {
           try {
             const [signedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
               action: 'read',
-              expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+              expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 päivää
               version: 'v4'
             });
-            return {
-              ...image.toObject(),
-              url: signedUrl
-            };
+            return { ...image.toObject(), url: signedUrl };
           } catch (firebaseError) {
             console.error('Firebase signed URL generation error:', firebaseError);
-            // Palauta vanha URL jos uuden generointi epäonnistuu
             return image.toObject();
           }
-        } else {
-          // Vanhoille kuville ilman firebasePath:tä, käytä olemassa olevaa URL:ia
-          return image.toObject();
         }
+        return image.toObject();
       }));
       
       res.json(imagesWithUrls);
@@ -235,26 +229,25 @@ class ImageController {
         }).select('_id popupType content createdAt');
       }
   
-      // Generate new signed URL for the image if firebasePath exists and is not empty
-      let signedUrl = image.url; // Use existing URL as fallback
+      // Regeneroi allekirjoitettu URL
+      let finalUrl = image.url;
       if (image.firebasePath && image.firebasePath.trim() !== '') {
         try {
           const [newSignedUrl] = await bucket.file(image.firebasePath).getSignedUrl({
             action: 'read',
-            expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+            expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 päivää
             version: 'v4'
           });
-          signedUrl = newSignedUrl;
+          finalUrl = newSignedUrl;
         } catch (firebaseError) {
           console.error('Firebase signed URL generation error:', firebaseError);
-          // Keep existing URL if generation fails
         }
       }
 
       res.json({
         image: {
           ...image.toObject(),
-          url: signedUrl
+          url: finalUrl
         },
         popups
       });

@@ -26,13 +26,6 @@ admin.initializeApp({
 // Luodaan bucket-viittaus tallennus-operaatioita varten
 const bucket = admin.storage().bucket();
 
-// Määritellään bucketin konfiguraatio
-bucket.setMetadata({
-  iamConfiguration: {
-    publicAccessPrevention: 'enforced'
-  }
-});
-
 module.exports = {
   admin,
   bucket

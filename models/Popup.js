@@ -15,8 +15,13 @@ const popupSchema = new mongoose.Schema({
     animation: { type: String, default: 'none' },
     backgroundColor: { type: String, default: '#ffffff' },
     textColor: { type: String, default: '#000000' },
-    imageUrl: { 
-        type: String, 
+    imageUrl: {
+        type: String,
+        default: ''
+    },
+    // Firebase Storage polku allekirjoitettujen URL:ien uudelleengenerointia varten
+    imageFirebasePath: {
+        type: String,
         default: ''
     },
     // Linkki-kenttä
