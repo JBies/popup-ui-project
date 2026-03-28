@@ -40,6 +40,11 @@ const allowedOrigins = process.env.CORS_ORIGIN
 // Alustetaan Express
 const app = express();
 
+// Luota reverse proxyn (Nginx/Cloudflare) asettamiin X-Forwarded-For -headereihin.
+// Tarvitaan kun sovellus pyörii proxyn takana – ilman tätä rate-limiter kaatuu.
+// Arvo 1 = luota yhteen proxy-tasoon (Nginx). Jos Cloudflaren takana, vaihda 2:ksi.
+app.set('trust proxy', 1);
+
 // Yhdistetään tietokantaan
 connectDB();
 
