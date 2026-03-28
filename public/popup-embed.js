@@ -282,7 +282,7 @@
                     animationName = 'fadeIn';
                 }
 
-                previewPopup.style.animation = `${animationName} 0.5s`;
+                popupElement.style.animation = `${animationName} 0.5s`;
                 console.log(`Applied animation: ${animationName}`);
             }
     
