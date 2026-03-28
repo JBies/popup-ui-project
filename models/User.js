@@ -100,7 +100,12 @@ const userSchema = new mongoose.Schema({
         url:    { type: String, required: true },
         events: { type: [String], default: ['click'] },
         active: { type: Boolean, default: true }
-    }]
+    }],
+    emailNotifications: {
+        leadAlert:    { type: Boolean, default: true },   // Ilmoitus uudesta liidistä
+        weeklyReport: { type: Boolean, default: true },   // Viikkoraportti maanantaisin
+        notifyEmail:  { type: String,  default: '' }      // Tyhjä = käytetään tili-emailia
+    }
 });
 
 // Luo User-malli

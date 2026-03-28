@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Website UI & Conversion Manager</title>
+  <title>UI Manager – Muuta kävijät asiakkaiksi ilman koodausta</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -14,188 +14,1245 @@
         extend: {
           fontFamily: { sans: ['Inter', 'sans-serif'] },
           colors: {
-            brand: { 50:'#eff6ff', 100:'#dbeafe', 500:'#3b82f6', 600:'#2563eb', 700:'#1d4ed8' }
+            brand: {
+              50:  '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
           }
         }
       }
     }
   </script>
   <style>
+    /* ── Base ─────────────────────────────── */
     body { font-family: 'Inter', sans-serif; }
-    .hero-gradient { background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 50%, #2563eb 100%); }
-    .feature-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.10); }
-    .feature-card { transition: transform 0.2s, box-shadow 0.2s; }
-    .step-line::after { content:''; position:absolute; top:24px; left:calc(50% + 28px); width:calc(100% - 56px); height:2px; background:#e2e8f0; }
-    @media (max-width:768px) { .step-line::after { display:none; } }
+
+    /* ── Hero gradient ────────────────────── */
+    .hero-gradient {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #1d4ed8 75%, #2563eb 100%);
+    }
+
+    /* ── Animated glow blobs in hero ─────── */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+      animation: float 8s ease-in-out infinite;
+    }
+    .blob-1 { width: 420px; height: 420px; background: #3b82f6; top: -100px; left: -120px; animation-delay: 0s; }
+    .blob-2 { width: 320px; height: 320px; background: #6d28d9; top: 60px; right: -60px; animation-delay: 3s; }
+    .blob-3 { width: 260px; height: 260px; background: #0ea5e9; bottom: -40px; left: 50%; animation-delay: 1.5s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50%       { transform: translateY(-24px) scale(1.04); }
+    }
+
+    /* ── Fake browser / dashboard mockup ─── */
+    .browser-window {
+      background: #1e293b;
+      border-radius: 12px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .browser-bar {
+      background: #0f172a;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .browser-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .browser-url {
+      flex: 1;
+      background: #1e293b;
+      border-radius: 5px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: #94a3b8;
+      font-family: monospace;
+    }
+
+    /* Sticky bar mock */
+    .mock-sticky {
+      background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+      color: #fff;
+      padding: 6px 14px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mock-sticky-btn {
+      background: #fff;
+      color: #1d4ed8;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* Mock page content */
+    .mock-page {
+      background: #f8fafc;
+      padding: 14px;
+      position: relative;
+      min-height: 160px;
+    }
+    .mock-line { height: 8px; background: #e2e8f0; border-radius: 4px; margin-bottom: 8px; }
+    .mock-line.short { width: 60%; }
+    .mock-line.medium { width: 80%; }
+    .mock-line.title { width: 50%; height: 12px; background: #cbd5e1; margin-bottom: 14px; }
+
+    /* Floating button mock */
+    .mock-fab {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      box-shadow: 0 4px 16px rgba(109,40,217,0.5);
+      animation: pulse-fab 2s ease-in-out infinite;
+    }
+    @keyframes pulse-fab {
+      0%, 100% { box-shadow: 0 4px 16px rgba(109,40,217,0.5); }
+      50%       { box-shadow: 0 4px 28px rgba(109,40,217,0.8), 0 0 0 8px rgba(139,92,246,0.15); }
+    }
+
+    /* Slide-in mock */
+    .mock-slidein {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      width: 150px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border-left: 3px solid #16a34a;
+      animation: slide-in-anim 3s ease-in-out infinite;
+    }
+    @keyframes slide-in-anim {
+      0%   { transform: translateX(-180px); opacity: 0; }
+      15%  { transform: translateX(0); opacity: 1; }
+      75%  { transform: translateX(0); opacity: 1; }
+      90%  { transform: translateX(-180px); opacity: 0; }
+      100% { transform: translateX(-180px); opacity: 0; }
+    }
+    .mock-slidein-title { font-size: 10px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .mock-slidein-text  { font-size: 9px; color: #64748b; margin-bottom: 6px; }
+    .mock-slidein-btn   { background: #16a34a; color: #fff; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+
+    /* ── Feature cards ───────────────────── */
+    .feature-card {
+      transition: transform 0.22s cubic-bezier(.4,0,.2,1), box-shadow 0.22s cubic-bezier(.4,0,.2,1);
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.10);
+    }
+
+    /* ── Element type visual previews ───── */
+    .elem-preview {
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 14px;
+      border: 1px solid rgba(0,0,0,0.07);
+    }
+
+    /* Sticky bar preview */
+    .prev-sticky-bar {
+      background: #1d4ed8;
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .prev-sticky-bar span { font-size: 9px; color: #fff; }
+    .prev-sticky-bar button { background: #fff; color: #1d4ed8; font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 3px; border: none; }
+    .prev-sticky-body { background: #f0f9ff; padding: 8px; }
+    .prev-line { height: 6px; background: #bfdbfe; border-radius: 3px; margin-bottom: 5px; }
+    .prev-line.s { width: 55%; }
+
+    /* Floating btn preview */
+    .prev-fab-body { background: #f5f3ff; padding: 8px; position: relative; min-height: 56px; }
+    .prev-fab-btn {
+      position: absolute; bottom: 8px; right: 8px;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg,#6d28d9,#8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 11px;
+      box-shadow: 0 3px 10px rgba(109,40,217,0.45);
+    }
+
+    /* Slide-in preview */
+    .prev-slidein-body { background: #f0fdf4; padding: 8px; position: relative; min-height: 60px; }
+    .prev-slidein-box {
+      position: absolute; bottom: 6px; left: 6px;
+      background: #fff; border-radius: 6px; padding: 6px 8px;
+      border-left: 3px solid #16a34a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100px;
+    }
+    .prev-slidein-box .t { font-size: 8px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+    .prev-slidein-box .b { background: #16a34a; color: #fff; font-size: 7px; font-weight: 700; padding: 2px 5px; border-radius: 3px; display:inline-block; }
+
+    /* Popup preview */
+    .prev-popup-body { background: #fff7ed; padding: 8px; position: relative; min-height: 68px; }
+    .prev-popup-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+    .prev-popup-box {
+      background: #fff; border-radius: 6px; padding: 8px 10px;
+      text-align: center; width: 90px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .prev-popup-box .t { font-size: 8px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .prev-popup-box .b { background: #ea580c; color: #fff; font-size: 7px; font-weight: 700; padding: 2px 6px; border-radius: 3px; display:inline-block; }
+
+    /* Social proof preview */
+    .prev-social-body { background: #fdf2f8; padding: 8px; position: relative; min-height: 60px; }
+    .prev-social-box {
+      position: absolute; bottom: 8px; left: 6px;
+      background: #fff; border-radius: 6px; padding: 5px 8px;
+      display: flex; align-items: center; gap: 5px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+    .prev-social-dot { width: 8px; height: 8px; border-radius: 50%; background: #ec4899; }
+    .prev-social-text { font-size: 8px; color: #0f172a; font-weight: 600; }
+
+    /* Scroll progress preview */
+    .prev-progress-body { background: #f0fdfa; padding: 8px; }
+    .prev-progress-bar { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+    .prev-progress-fill { height: 100%; width: 62%; background: linear-gradient(90deg,#0d9488,#14b8a6); border-radius: 3px; }
+
+    /* Lead form preview */
+    .prev-leadform-body { background: #f0fdf4; padding: 8px; }
+    .prev-input { height: 12px; background: #fff; border: 1px solid #d1fae5; border-radius: 3px; margin-bottom: 5px; }
+    .prev-submit { background: #059669; height: 14px; border-radius: 3px; display: flex; align-items: center; justify-content: center; }
+    .prev-submit span { font-size: 7px; color: #fff; font-weight: 700; }
+
+    /* ── Power features grid ─────────────── */
+    .power-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 28px;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .power-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+      border-color: #bfdbfe;
+    }
+    .power-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Steps ───────────────────────────── */
+    .step-connector {
+      position: absolute;
+      top: 26px;
+      left: calc(50% + 32px);
+      width: calc(100% - 64px);
+      height: 2px;
+      background: linear-gradient(90deg, #bfdbfe, #e2e8f0);
+    }
+    @media (max-width: 768px) { .step-connector { display: none; } }
+
+    /* ── Email mockups ───────────────────── */
+    .email-mock {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      border: 1px solid #e2e8f0;
+    }
+    .email-header {
+      padding: 14px 18px;
+      font-size: 11px;
+      color: #64748b;
+      border-bottom: 1px solid #f1f5f9;
+      background: #f8fafc;
+    }
+    .email-subject { font-weight: 700; color: #0f172a; font-size: 13px; margin-bottom: 2px; }
+    .email-body { padding: 16px 18px; }
+    .email-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+
+    /* ── CTA gradient ────────────────────── */
+    .cta-gradient {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%);
+    }
+
+    /* ── Stats bar ───────────────────────── */
+    .stats-bar-item:not(:last-child) {
+      border-right: 1px solid #e2e8f0;
+    }
+    @media (max-width: 640px) {
+      .stats-bar-item:not(:last-child) { border-right: none; border-bottom: 1px solid #e2e8f0; }
+    }
+
+    /* ── Scroll fade-in ──────────────────── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Code block ──────────────────────── */
+    .code-block {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 18px 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #e2e8f0;
+      overflow-x: auto;
+    }
+    .code-tag    { color: #f472b6; }
+    .code-attr   { color: #a5f3fc; }
+    .code-string { color: #86efac; }
+    .code-comment { color: #64748b; font-style: italic; }
+
+    /* ── Tag pills ───────────────────────── */
+    .tag-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #eff6ff; color: #1d4ed8;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body class="bg-white text-gray-900">
 
-  <!-- Header -->
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+  <!-- ═══════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════ -->
+  <header class="bg-white/95 backdrop-blur border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
+        <div class="w-9 h-9 bg-gradient-to-br from-brand-600 to-brand-800 rounded-xl flex items-center justify-center shadow-md">
           <i class="fa fa-layer-group text-white text-sm"></i>
         </div>
-        <span class="font-bold text-lg text-gray-900">UI Manager</span>
+        <div>
+          <span class="font-extrabold text-lg text-gray-900 leading-none">UI Manager</span>
+          <div class="text-xs text-gray-400 leading-none mt-0.5">Conversion Platform</div>
+        </div>
       </div>
-      <div id="header-cta">
-        <a href="/auth/google" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm">
-          <i class="fab fa-google"></i> Kirjaudu Google-tilillä
-        </a>
-      </div>
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
+        <a href="#elementit" class="hover:text-gray-900 transition-colors">Elementit</a>
+        <a href="#ominaisuudet" class="hover:text-gray-900 transition-colors">Ominaisuudet</a>
+        <a href="#kayttoonotto" class="hover:text-gray-900 transition-colors">Käyttöönotto</a>
+      </nav>
+      <a href="/auth/google"
+         class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm shadow-md hover:shadow-lg">
+        <i class="fab fa-google text-white/90"></i>
+        Kirjaudu Google-tilillä
+      </a>
     </div>
   </header>
 
-  <!-- Hero -->
-  <section class="hero-gradient text-white py-24 px-6">
-    <div class="max-w-4xl mx-auto text-center">
-      <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur rounded-full px-4 py-1.5 text-sm font-medium mb-6">
-        <i class="fa fa-bolt text-yellow-300"></i> Nosta konversiot uudelle tasolle
+
+  <!-- ═══════════════════════════════════════
+       HERO
+  ═══════════════════════════════════════ -->
+  <section class="hero-gradient text-white relative overflow-hidden py-24 md:py-32 px-6">
+    <!-- Animated blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="max-w-3xl mx-auto text-center mb-14">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm font-medium mb-8">
+          <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+          7 elementtityyppiä · Yksi koodirivi · Ei asennusta
+        </div>
+
+        <!-- Headline -->
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] mb-6 tracking-tight">
+          Muuta sivustosi<br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-sky-300 to-indigo-200">
+            kävijät asiakkaiksi
+          </span><br>
+          – ilman koodausta
+        </h1>
+
+        <!-- Subheadline -->
+        <p class="text-xl md:text-2xl text-blue-100/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+          Luo sticky bareja, ponnahdusviestejä, liidilomakkeita ja muita konversioelementtejä
+          dashboardista. Liitä <strong class="text-white font-semibold">yksi koodirivi</strong> sivullesi ja olet valmis.
+        </p>
+
+        <!-- CTAs -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
+          <a href="/auth/google"
+             class="inline-flex items-center gap-3 bg-white text-brand-800 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-all text-lg shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transform">
+            <i class="fab fa-google text-red-500 text-xl"></i>
+            Aloita Google-tilillä
+          </a>
+          <a href="#elementit"
+             class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/25 text-white font-semibold px-8 py-4 rounded-2xl transition-all text-lg backdrop-blur">
+            Katso ominaisuudet
+            <i class="fa fa-arrow-down text-sm"></i>
+          </a>
+        </div>
+        <p class="text-blue-300/80 text-sm">Ei luottokorttia. Ei asennusta. Vain yksi koodirivi.</p>
       </div>
-      <h1 class="text-5xl font-extrabold leading-tight mb-6">
-        Website UI &amp;<br>Conversion Manager
-      </h1>
-      <p class="text-xl text-blue-100 max-w-2xl mx-auto mb-10">
-        Luo sticky bareja, ponnahdusviestejä, liidilomakkeita ja muita konversioelementtejä – ilman koodausta. Liitä yksi skriptirivi sivullesi ja olet valmis.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/auth/google" class="inline-flex items-center justify-center gap-3 bg-white text-brand-700 font-bold px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors text-lg shadow-lg">
-          <i class="fab fa-google text-red-500"></i> Aloita ilmaiseksi Google-tilillä
-        </a>
+
+      <!-- Hero mockup – fake browser window -->
+      <div class="max-w-2xl mx-auto">
+        <div class="browser-window">
+          <!-- Browser chrome -->
+          <div class="browser-bar">
+            <div class="browser-dot" style="background:#ef4444"></div>
+            <div class="browser-dot" style="background:#f59e0b"></div>
+            <div class="browser-dot" style="background:#22c55e"></div>
+            <div class="browser-url">popupmanager.net/dashboard</div>
+          </div>
+          <!-- Simulated sticky bar on a page -->
+          <div class="mock-sticky">
+            <span>🎉 &nbsp;Erikoistarjous – käytä koodi <strong>TALVI25</strong> ja säästä!</span>
+            <span class="mock-sticky-btn">Tilaa nyt</span>
+          </div>
+          <!-- Simulated page -->
+          <div class="mock-page">
+            <div class="mock-line title"></div>
+            <div class="mock-line medium"></div>
+            <div class="mock-line"></div>
+            <div class="mock-line short"></div>
+            <div class="mock-line medium"></div>
+            <div class="mock-line short"></div>
+            <!-- Slide-in from left -->
+            <div class="mock-slidein">
+              <div class="mock-slidein-title">📩 Tilaa uutiskirje</div>
+              <div class="mock-slidein-text">Saat viikottaiset vinkit suoraan sähköpostiisi.</div>
+              <span class="mock-slidein-btn">Tilaa ilmaiseksi</span>
+            </div>
+            <!-- Floating button -->
+            <div class="mock-fab">
+              <i class="fa fa-comment" style="font-size:14px"></i>
+            </div>
+          </div>
+        </div>
+        <p class="text-center text-blue-200/60 text-xs mt-4">
+          Live-esikatselu dashboardissa · Muutokset näkyvät välittömästi
+        </p>
       </div>
-      <p class="text-blue-200 text-sm mt-5">Ei luottokorttia. Ei asennusta. Vain yksi koodirivi.</p>
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="py-20 px-6 bg-white">
-    <div class="max-w-6xl mx-auto">
-      <div class="text-center mb-14">
-        <h2 class="text-3xl font-bold text-gray-900 mb-3">Kaikki konversiotyökalut yhdessä paikassa</h2>
-        <p class="text-gray-500 text-lg">7 elementtityyppiä – valitse ja mukauta dashboardista</p>
+
+  <!-- ═══════════════════════════════════════
+       STATS BAR
+  ═══════════════════════════════════════ -->
+  <section class="bg-white border-b border-gray-100">
+    <div class="max-w-5xl mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100">
+        <div class="stats-bar-item text-center py-6 px-4">
+          <div class="text-3xl font-black text-brand-700 mb-1">7</div>
+          <div class="text-sm text-gray-500 font-medium">Elementtityyppiä</div>
+        </div>
+        <div class="stats-bar-item text-center py-6 px-4">
+          <div class="text-3xl font-black text-brand-700 mb-1">1</div>
+          <div class="text-sm text-gray-500 font-medium">Rivi koodia</div>
+        </div>
+        <div class="stats-bar-item text-center py-6 px-4">
+          <div class="text-3xl font-black text-brand-700 mb-1"><i class="fa fa-eye text-2xl"></i></div>
+          <div class="text-sm text-gray-500 font-medium">Reaaliaikainen esikatselu</div>
+        </div>
+        <div class="stats-bar-item text-center py-6 px-4">
+          <div class="text-3xl font-black text-brand-700 mb-1"><i class="fa fa-envelope text-2xl"></i></div>
+          <div class="text-sm text-gray-500 font-medium">Automaattiset sähköpostit</div>
+        </div>
       </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       7 ELEMENT TYPES
+  ═══════════════════════════════════════ -->
+  <section id="elementit" class="py-24 px-6 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16 fade-in">
+        <div class="tag-pill mb-4"><i class="fa fa-layer-group"></i> 7 elementtityyppiä</div>
+        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+          Kaikki konversiotyökalut<br class="hidden md:block"> yhdessä paikassa
+        </h2>
+        <p class="text-xl text-gray-500 max-w-2xl mx-auto">
+          Valitse tyyppi, mukauta dashboardissa, esikatsele reaaliajassa – aktivoituu yhdellä koodirivillä.
+        </p>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
-        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
-          <div class="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-            <i class="fa fa-minus text-blue-600 text-lg"></i>
+        <!-- Sticky Bar -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-minus text-blue-600 text-xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Sticky Bar</h3>
-          <p class="text-gray-500 text-sm">Kiinteä ilmoituspalkki sivun ylä- tai alareunassa. Kampanjat, tarjoukset, GDPR-banner.</p>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Sticky Bar</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1">
+            Kiinteä ilmoituspalkki joka pysyy näkyvissä scrollatessa. Ihanteellinen kampanjoille, tarjouksille ja GDPR-bannereille.
+          </p>
+          <!-- Visual preview -->
+          <div class="elem-preview">
+            <div class="prev-sticky-bar"><span>🎉 Erikoistarjous – koodi TALVI25</span><button>Tilaa</button></div>
+            <div class="prev-sticky-body">
+              <div class="prev-line"></div><div class="prev-line s"></div><div class="prev-line"></div>
+            </div>
+          </div>
         </div>
 
-        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
-          <div class="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
-            <i class="fa fa-circle text-purple-600 text-lg"></i>
+        <!-- Floating Button -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-circle text-purple-600 text-xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Floating Button</h3>
-          <p class="text-gray-500 text-sm">Kelluva toimintanappi sivun kulmassa. Chat-linkki, soittopyyntö, takaisin ylös.</p>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Floating Button</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1">
+            Kelluva toimintanappi sivun kulmassa – chat, puhelin, CTA. Näkyy aina kaikkialla, ei häiritse sisältöä.
+          </p>
+          <div class="elem-preview">
+            <div class="prev-fab-body">
+              <div class="prev-line"></div><div class="prev-line s"></div>
+              <div class="prev-fab-btn"><i class="fa fa-comment" style="font-size:11px"></i></div>
+            </div>
+          </div>
         </div>
 
-        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
-          <div class="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center mb-4">
-            <i class="fa fa-comment-dots text-green-600 text-lg"></i>
+        <!-- Slide-in -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-comment-dots text-green-600 text-xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Slide-in</h3>
-          <p class="text-gray-500 text-sm">Animoitu boksi ilmestyy sivun kulmasta. Triggeröi scrollin, ajastimen tai poistumisaikeen perusteella.</p>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Slide-in</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1">
+            Animoitu boksi liukuu esiin. Triggeröi scroll, aika tai exit intent. Sopii uutiskirjetilauksiin ja liidilomakkeisiin.
+          </p>
+          <div class="elem-preview">
+            <div class="prev-slidein-body">
+              <div class="prev-line medium"></div>
+              <div class="prev-slidein-box">
+                <div class="t">📩 Tilaa uutiskirje</div>
+                <span class="b">Tilaa ilmaiseksi</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
-          <div class="w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
-            <i class="fa fa-square text-orange-600 text-lg"></i>
+        <!-- Popup -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-square text-orange-500 text-xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Popup</h3>
-          <p class="text-gray-500 text-sm">Perinteinen ponnahdusviesti. Ilmoitus, tarjous, kuva tai exit intent.</p>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Popup</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1">
+            Ponnahdusviesti – ilmoitus, tarjous, kuvapopup tai exit intent. Neljä alatyyppiä, täysin muokattava.
+          </p>
+          <div class="elem-preview">
+            <div class="prev-popup-body">
+              <div class="prev-popup-overlay">
+                <div class="prev-popup-box">
+                  <div class="t">🎁 Erikoistarjous!</div>
+                  <span class="b">Lunasta nyt</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
-          <div class="w-11 h-11 bg-pink-100 rounded-xl flex items-center justify-center mb-4">
-            <i class="fa fa-users text-pink-600 text-lg"></i>
+        <!-- Social Proof -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-users text-pink-600 text-xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Social Proof</h3>
-          <p class="text-gray-500 text-sm">"5 henkilöä katsoo nyt" -ponnahdusviesti. Lisää luottamusta ja kiireellisyyttä.</p>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Social Proof</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1">
+            "12 henkilöä katsoo tätä nyt" – lisää luottamusta ja kiireellisyyttä. Konfiguroitavat luvut ja viesti.
+          </p>
+          <div class="elem-preview">
+            <div class="prev-social-body">
+              <div class="prev-line medium"></div>
+              <div class="prev-social-box">
+                <div class="prev-social-dot"></div>
+                <div class="prev-social-text">12 katsoo nyt</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
-          <div class="w-11 h-11 bg-teal-100 rounded-xl flex items-center justify-center mb-4">
-            <i class="fa fa-arrows-alt-v text-teal-600 text-lg"></i>
+        <!-- Scroll Progress -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-teal-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-arrows-alt-v text-teal-600 text-xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Scroll Progress</h3>
-          <p class="text-gray-500 text-sm">Ohut edistymispalkki sivun reunassa. Pitää lukijat engaged pidempään.</p>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Scroll Progress</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1">
+            Edistymispalkki pitää lukijat sivulla pidempään. Ohut palkki sivun yläreunassa kasvaa scrollatessa.
+          </p>
+          <div class="elem-preview">
+            <div class="prev-progress-body">
+              <div class="prev-progress-bar"><div class="prev-progress-fill"></div></div>
+              <div class="prev-line medium"></div><div class="prev-line s"></div>
+            </div>
+          </div>
         </div>
 
-        <div class="feature-card bg-gray-50 rounded-2xl p-6 border border-gray-100">
-          <div class="w-11 h-11 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
-            <i class="fa fa-envelope text-emerald-600 text-lg"></i>
+        <!-- Lead Form -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-envelope text-emerald-600 text-xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Lead Form</h3>
-          <p class="text-gray-500 text-sm">Kerää yhteystiedot suoraan – konfiguroi kentät, tallentuu automaattisesti tietokantaan.</p>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Lead Form</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1">
+            Kerää yhteystietoja suoraan – liidit tallentuvat automaattisesti. Konfiguroi kentät, saat sähköposti-ilmoituksen.
+          </p>
+          <div class="elem-preview">
+            <div class="prev-leadform-body">
+              <div class="prev-input"></div>
+              <div class="prev-input" style="width:75%"></div>
+              <div class="prev-submit"><span>Lähetä</span></div>
+            </div>
+          </div>
         </div>
 
-        <div class="feature-card bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl p-6 border border-brand-600 text-white">
-          <div class="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-            <i class="fa fa-sliders-h text-white text-lg"></i>
+        <!-- CTA card -->
+        <div class="feature-card bg-gradient-to-br from-brand-700 to-brand-900 rounded-2xl p-6 text-white shadow-sm fade-in flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center mb-4">
+              <i class="fa fa-bolt text-yellow-300 text-xl"></i>
+            </div>
+            <h3 class="font-bold text-lg mb-3">Plus paljon muuta</h3>
+            <div class="space-y-2 text-sm text-blue-100">
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> Targeting – 8 kohdennussääntöä</div>
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> A/B-testaus</div>
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> Sähköposti-ilmoitukset</div>
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> Webhooks & Zapier</div>
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> Multi-sivusto tuki</div>
+            </div>
           </div>
-          <h3 class="font-semibold mb-2">+ Targeting, A/B-testaus, Analytiikka, Webhooks</h3>
-          <p class="text-blue-100 text-sm">Kohdennus 8 säännöllä, automaattiset Zapier/Make-integraatiot ja kampanjointi.</p>
+          <a href="/auth/google" class="mt-6 block text-center bg-white text-brand-700 font-bold text-sm py-2.5 rounded-xl hover:bg-blue-50 transition-colors">
+            Aloita nyt →
+          </a>
         </div>
 
       </div>
     </div>
   </section>
 
-  <!-- How it works -->
-  <section class="py-20 px-6 bg-gray-50">
-    <div class="max-w-4xl mx-auto">
-      <div class="text-center mb-14">
-        <h2 class="text-3xl font-bold text-gray-900 mb-3">Kolme askelta käyttöönottoon</h2>
-        <p class="text-gray-500 text-lg">Ensimmäinen elementti on käytössä alle 5 minuutissa</p>
+
+  <!-- ═══════════════════════════════════════
+       POWER FEATURES
+  ═══════════════════════════════════════ -->
+  <section id="ominaisuudet" class="py-24 px-6 bg-white">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16 fade-in">
+        <div class="tag-pill mb-4"><i class="fa fa-star"></i> Älykkäät ominaisuudet</div>
+        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+          Älykkäät ominaisuudet<br class="hidden md:block"> jotka tekevät eron
+        </h2>
+        <p class="text-xl text-gray-500 max-w-2xl mx-auto">
+          Enemmän kuin pelkkiä popuppeja – täydellinen konversio- ja analytiikka-alusta.
+        </p>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-        <div class="relative text-center step-line">
-          <div class="w-12 h-12 bg-brand-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-5">1</div>
-          <h3 class="font-semibold text-gray-900 mb-2">Kirjaudu sisään</h3>
-          <p class="text-gray-500 text-sm">Google-tili riittää. Ei lomakkeita, ei sähköpostivahvistuksia.</p>
-        </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        <div class="relative text-center step-line">
-          <div class="w-12 h-12 bg-brand-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-5">2</div>
-          <h3 class="font-semibold text-gray-900 mb-2">Luo elementti</h3>
-          <p class="text-gray-500 text-sm">Valitse tyyppi, mukauta templatella tai tyhjästä, esikatsele reaaliajassa.</p>
-        </div>
-
-        <div class="relative text-center">
-          <div class="w-12 h-12 bg-brand-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-5">3</div>
-          <h3 class="font-semibold text-gray-900 mb-2">Liitä yksi koodi sivulle</h3>
-          <p class="text-gray-500 text-sm mb-3">Kopioi yksi rivi sivustosi &lt;head&gt;-osioon – <strong>kaikki</strong> luomasi elementit aktivoituvat automaattisesti.</p>
-          <div style="background:#1e293b;border-radius:8px;padding:10px 12px;text-align:left;font-family:monospace;font-size:10px;color:#e2e8f0;line-height:1.6;word-break:break-all">
-            &lt;script src="https://popupmanager.net/<br>&nbsp;&nbsp;ui-embed.js"<br>&nbsp;&nbsp;data-site="<span style="color:#86efac">sinun-token</span>"&gt;&lt;/script&gt;
+        <!-- Targeting -->
+        <div class="power-card fade-in lg:col-span-1">
+          <div class="power-icon bg-blue-100">
+            <i class="fa fa-crosshairs text-blue-600"></i>
           </div>
-          <p class="text-gray-400 text-xs mt-2">Sticky bar + popup + lead form – kaikki yhdellä rivillä ✓</p>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Targeting – 8 kohdennussääntöä</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Näytä oikealle henkilölle oikeaan aikaan. Yhdistele säännöt AND/OR-logiikalla rajattomasti.
+          </p>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+              <i class="fa fa-link text-blue-500 text-xs w-3"></i> URL-osoite
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+              <i class="fa fa-mobile-alt text-blue-500 text-xs w-3"></i> Laitetyyppi
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+              <i class="fa fa-arrows-alt-v text-blue-500 text-xs w-3"></i> Scroll-syvyys
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+              <i class="fa fa-clock text-blue-500 text-xs w-3"></i> Aika sivulla
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+              <i class="fa fa-user text-blue-500 text-xs w-3"></i> Uusi / palaava
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+              <i class="fa fa-external-link-alt text-blue-500 text-xs w-3"></i> Tulolähde
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+              <i class="fa fa-calendar text-blue-500 text-xs w-3"></i> Viikonpäivä
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+              <i class="fa fa-sun text-blue-500 text-xs w-3"></i> Kellonaika
+            </div>
+          </div>
+        </div>
+
+        <!-- A/B Testing -->
+        <div class="power-card fade-in">
+          <div class="power-icon bg-purple-100">
+            <i class="fa fa-flask text-purple-600"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">A/B-testaus</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Testaa kaksi versiota rinnakkain. Jaa liikenne haluamallasi prosentilla. Seuraa kumpaa versiota klikataan enemmän.
+          </p>
+          <!-- A/B visual -->
+          <div class="bg-purple-50 rounded-xl p-4">
+            <div class="flex gap-3 mb-3">
+              <div class="flex-1 bg-white rounded-lg p-3 border border-purple-200">
+                <div class="text-xs font-bold text-purple-700 mb-1">Variantti A</div>
+                <div class="text-xs text-gray-500">"Tilaa nyt"</div>
+                <div class="text-xs text-purple-600 font-semibold mt-1">CTR 3.2%</div>
+              </div>
+              <div class="flex items-center text-purple-400 font-bold text-sm">vs</div>
+              <div class="flex-1 bg-white rounded-lg p-3 border-2 border-purple-400">
+                <div class="text-xs font-bold text-purple-700 mb-1">Variantti B ✓</div>
+                <div class="text-xs text-gray-500">"Kokeile ilmaiseksi"</div>
+                <div class="text-xs text-purple-600 font-semibold mt-1">CTR 5.7%</div>
+              </div>
+            </div>
+            <div class="text-xs text-purple-600 font-medium text-center">B toimii 78% paremmin</div>
+          </div>
+        </div>
+
+        <!-- Email Notifications -->
+        <div class="power-card fade-in">
+          <div class="power-icon bg-amber-100">
+            <i class="fa fa-bell text-amber-600"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Sähköposti-ilmoitukset</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Saat heti tiedon uudesta liidistä sähköpostiin. Viikkoraportti joka maanantai – näyttökerrat, klikkaukset, liidit ja vertailu edelliseen viikkoon. Ei integraatiota tarvita.
+          </p>
+          <div class="space-y-2">
+            <div class="flex items-start gap-3 bg-amber-50 rounded-lg p-3">
+              <i class="fa fa-user-plus text-amber-500 mt-0.5 text-xs w-4"></i>
+              <div>
+                <div class="text-xs font-bold text-gray-900">Liidi-ilmoitus</div>
+                <div class="text-xs text-gray-500">Välitön sähköposti uudesta yhteystiedosta</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 bg-amber-50 rounded-lg p-3">
+              <i class="fa fa-chart-bar text-amber-500 mt-0.5 text-xs w-4"></i>
+              <div>
+                <div class="text-xs font-bold text-gray-900">Viikkoraportti</div>
+                <div class="text-xs text-gray-500">Maanantaisin: tilastot + top 3 elementtiä</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="power-card fade-in">
+          <div class="power-icon bg-teal-100">
+            <i class="fa fa-chart-line text-teal-600"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Tilastot & Analytiikka</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Näyttökerrat, klikkaukset ja liidit per elementti. Konversioaste. A/B-varianttien vertailu. Aikajana trendin seurantaan.
+          </p>
+          <!-- Mini stats visual -->
+          <div class="bg-teal-50 rounded-xl p-4">
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <div class="text-lg font-black text-teal-700">2.4k</div>
+                <div class="text-xs text-gray-500">Näyttöä</div>
+              </div>
+              <div>
+                <div class="text-lg font-black text-teal-700">187</div>
+                <div class="text-xs text-gray-500">Klikkausta</div>
+              </div>
+              <div>
+                <div class="text-lg font-black text-teal-700">7.8%</div>
+                <div class="text-xs text-gray-500">CTR</div>
+              </div>
+            </div>
+            <div class="mt-3 bg-white rounded-lg p-2">
+              <div class="flex items-end gap-1 h-8 justify-center">
+                <div class="w-3 bg-teal-200 rounded-sm" style="height:40%"></div>
+                <div class="w-3 bg-teal-300 rounded-sm" style="height:55%"></div>
+                <div class="w-3 bg-teal-400 rounded-sm" style="height:70%"></div>
+                <div class="w-3 bg-teal-500 rounded-sm" style="height:90%"></div>
+                <div class="w-3 bg-teal-600 rounded-sm" style="height:100%"></div>
+                <div class="w-3 bg-teal-500 rounded-sm" style="height:85%"></div>
+                <div class="w-3 bg-teal-400 rounded-sm" style="height:75%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leads & CRM -->
+        <div class="power-card fade-in">
+          <div class="power-icon bg-emerald-100">
+            <i class="fa fa-inbox text-emerald-600"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Liidit & CRM-vienti</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Kaikki Lead Form -lähetykset tallentuvat automaattisesti. Näytä, suodata, lataa CSV. Vastaa liidiin suoraan sähköpostista yhdellä klikkauksella.
+          </p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-emerald-50 rounded-lg px-3 py-2">
+              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> Automaattinen tallennus tietokantaan
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-emerald-50 rounded-lg px-3 py-2">
+              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> Suodata elementin tai päivämäärän mukaan
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-emerald-50 rounded-lg px-3 py-2">
+              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> Lataa CSV yhdellä napin painalluksella
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600 bg-emerald-50 rounded-lg px-3 py-2">
+              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> A/B-variantti näkyy jokaisella liidillä
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaigns -->
+        <div class="power-card fade-in">
+          <div class="power-icon bg-red-100">
+            <i class="fa fa-flag text-red-500"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Kampanjointi</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Ryhmittele elementit kampanjaksi (esim. "Black Friday"). Aktivoi tai pysäytä kaikki yhdellä napin painalluksella.
+          </p>
+          <!-- Campaign visual -->
+          <div class="bg-red-50 rounded-xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-xs font-bold text-gray-900">🛒 Black Friday 2025</div>
+              <div class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">Aktiivinen</div>
+            </div>
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-600">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full"></span> Sticky Bar – "BF2025"
+              </div>
+              <div class="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-600">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full"></span> Exit Intent Popup
+              </div>
+              <div class="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-600">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full"></span> Lead Form – "Varhainen tilaus"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Library -->
+        <div class="power-card fade-in">
+          <div class="power-icon bg-sky-100">
+            <i class="fa fa-images text-sky-600"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Kuvakirjasto</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Lataa ja hallinnoi kuvia pilvessä. Käytä kuvia suoraan popup-editorissa. Automaattinen pakkaus, turvalliset linkit.
+          </p>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="aspect-square bg-sky-100 rounded-lg flex items-center justify-center">
+              <i class="fa fa-image text-sky-400 text-lg"></i>
+            </div>
+            <div class="aspect-square bg-purple-100 rounded-lg flex items-center justify-center">
+              <i class="fa fa-image text-purple-400 text-lg"></i>
+            </div>
+            <div class="aspect-square bg-emerald-100 rounded-lg flex items-center justify-center">
+              <i class="fa fa-image text-emerald-400 text-lg"></i>
+            </div>
+            <div class="aspect-square bg-amber-100 rounded-lg flex items-center justify-center">
+              <i class="fa fa-image text-amber-400 text-lg"></i>
+            </div>
+            <div class="aspect-square bg-pink-100 rounded-lg flex items-center justify-center">
+              <i class="fa fa-image text-pink-400 text-lg"></i>
+            </div>
+            <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+              <i class="fa fa-plus text-gray-400 text-sm"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Webhooks -->
+        <div class="power-card fade-in">
+          <div class="power-icon bg-indigo-100">
+            <i class="fa fa-plug text-indigo-600"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Webhooks & Integraatiot</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Yhdistä Zapier, Make.com tai oma järjestelmä. Saa reaaliaikainen POST-kutsu jokaisesta näytöstä, klikkauksesta ja liidistä.
+          </p>
+          <div class="bg-indigo-50 rounded-xl p-3 font-mono text-xs text-indigo-800 leading-relaxed">
+            <div class="text-indigo-400 mb-1">// Webhook payload</div>
+            <div>{"event": "lead",</div>
+            <div>&nbsp;"data": {"{"}name, email{"}"}</div>
+            <div>&nbsp;"timestamp": "..."{"}"}</div>
+          </div>
+        </div>
+
+        <!-- Multi-site -->
+        <div class="power-card fade-in">
+          <div class="power-icon bg-orange-100">
+            <i class="fa fa-globe text-orange-600"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Multi-sivusto tuki</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Hallinnoi useita verkkosivustoja yhdestä dashboardista. Kullekin sivustolle oma asennuskoodi ja omat elementit.
+          </p>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3 bg-orange-50 rounded-lg px-3 py-2">
+              <i class="fa fa-globe text-orange-500 text-xs"></i>
+              <div>
+                <div class="text-xs font-bold text-gray-900">yritys.fi</div>
+                <div class="text-xs text-gray-500">5 elementtiä · 1.2k näyttöä/vk</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 bg-orange-50 rounded-lg px-3 py-2">
+              <i class="fa fa-globe text-orange-500 text-xs"></i>
+              <div>
+                <div class="text-xs font-bold text-gray-900">kauppa.fi</div>
+                <div class="text-xs text-gray-500">8 elementtiä · 3.4k näyttöä/vk</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
+              <i class="fa fa-plus text-gray-400 text-xs"></i>
+              <div class="text-xs text-gray-400">Lisää sivusto...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Preview – spans 2 columns on large screens -->
+        <div class="power-card fade-in md:col-span-2 lg:col-span-1">
+          <div class="power-icon bg-violet-100">
+            <i class="fa fa-eye text-violet-600"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Live-esikatselu</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Näet muutokset reaaliajassa editorissa. Desktop- ja mobiiliesikatselu rinnakkain. Ei tarvitse julkaista testataksesi.
+          </p>
+          <div class="flex gap-3">
+            <div class="flex-1 bg-gray-900 rounded-lg overflow-hidden">
+              <div class="bg-gray-800 px-2 py-1 flex items-center gap-1">
+                <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                <div class="flex-1 text-center text-gray-500" style="font-size:7px">Desktop</div>
+              </div>
+              <div class="p-2">
+                <div class="bg-blue-600 h-3 rounded-sm mb-1.5 text-center" style="font-size:7px;color:white;line-height:12px">Sticky Bar</div>
+                <div class="bg-gray-700 h-2 rounded-sm mb-1"></div>
+                <div class="bg-gray-700 h-2 rounded-sm w-4/5 mb-1"></div>
+              </div>
+            </div>
+            <div class="w-16 bg-gray-900 rounded-lg overflow-hidden">
+              <div class="bg-gray-800 px-2 py-1 text-center" style="font-size:7px;color:#94a3b8">Mobile</div>
+              <div class="p-1.5">
+                <div class="bg-blue-600 h-2.5 rounded-sm mb-1 text-center" style="font-size:6px;color:white;line-height:10px">Bar</div>
+                <div class="bg-gray-700 h-1.5 rounded-sm mb-1"></div>
+                <div class="bg-gray-700 h-1.5 rounded-sm mb-1"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
     </div>
   </section>
 
-  <!-- CTA bottom -->
-  <section class="hero-gradient py-20 px-6 text-white text-center">
-    <div class="max-w-2xl mx-auto">
-      <h2 class="text-3xl font-bold mb-4">Valmis nostamaan konversiot?</h2>
-      <p class="text-blue-100 mb-8 text-lg">Ilmainen käyttöönotto. Ei koodausta.</p>
-      <a href="/auth/google" class="inline-flex items-center gap-3 bg-white text-brand-700 font-bold px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors text-lg shadow-lg">
-        <i class="fab fa-google text-red-500"></i> Aloita Google-tilillä
+
+  <!-- ═══════════════════════════════════════
+       HOW IT WORKS
+  ═══════════════════════════════════════ -->
+  <section id="kayttoonotto" class="py-24 px-6 bg-gray-50">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16 fade-in">
+        <div class="tag-pill mb-4"><i class="fa fa-rocket"></i> Käyttöönotto</div>
+        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+          Kolme askelta käyttöönottoon
+        </h2>
+        <p class="text-xl text-gray-500">Ensimmäinen elementti on käytössä alle 5 minuutissa</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+
+        <!-- Step 1 -->
+        <div class="relative text-center fade-in">
+          <div class="step-connector hidden md:block"></div>
+          <div class="w-14 h-14 bg-gradient-to-br from-brand-600 to-brand-800 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-5 shadow-lg">1</div>
+          <h3 class="font-bold text-gray-900 text-lg mb-3">Kirjaudu sisään</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">
+            Google-tili riittää. Ei lomakkeita, ei sähköpostivahvistuksia, ei luottokorttia.
+            Tili on valmis sekunneissa.
+          </p>
+          <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 text-brand-700 text-xs font-semibold px-3 py-1.5 rounded-lg">
+            <i class="fab fa-google text-red-500"></i> Google OAuth
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="relative text-center fade-in">
+          <div class="step-connector hidden md:block"></div>
+          <div class="w-14 h-14 bg-gradient-to-br from-brand-600 to-brand-800 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-5 shadow-lg">2</div>
+          <h3 class="font-bold text-gray-900 text-lg mb-3">Luo elementti dashboardissa</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">
+            Valitse tyyppi, mukauta teksti, värit ja asetukset visuaalisessa editorissa.
+            Esikatsele reaaliajassa – desktop ja mobiili rinnakkain.
+          </p>
+          <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 text-brand-700 text-xs font-semibold px-3 py-1.5 rounded-lg">
+            <i class="fa fa-eye"></i> Live-esikatselu
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="relative text-center fade-in">
+          <div class="w-14 h-14 bg-gradient-to-br from-brand-600 to-brand-800 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-5 shadow-lg">3</div>
+          <h3 class="font-bold text-gray-900 text-lg mb-3">Liitä yksi koodi sivulle</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4">
+            Kopioi yksi rivi sivustosi <code class="bg-gray-100 px-1 rounded text-xs">&lt;head&gt;</code>-osioon –
+            <strong>kaikki</strong> luomasi elementit aktivoituvat automaattisesti.
+          </p>
+          <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 text-brand-700 text-xs font-semibold px-3 py-1.5 rounded-lg">
+            <i class="fa fa-check-circle text-emerald-500"></i> Kaikki elementit yhdellä rivillä
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Code snippet -->
+      <div class="max-w-2xl mx-auto fade-in">
+        <div class="code-block">
+          <div class="code-comment">&lt;!-- Lisää sivuston &lt;head&gt;-osioon kerran --&gt;</div>
+          <div>
+            <span class="code-tag">&lt;script</span>
+            <span class="code-attr"> src</span>=<span class="code-string">"https://popupmanager.net/ui-embed.js"</span>
+          </div>
+          <div>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-attr">data-site</span>=<span class="code-string">"sinun-token"</span><span class="code-tag">&gt;&lt;/script&gt;</span>
+          </div>
+        </div>
+        <p class="text-center text-gray-400 text-sm mt-3">
+          <i class="fa fa-check-circle text-emerald-500 mr-1"></i>
+          Sticky bar + popup + lead form + floating button – kaikki yhdellä rivillä
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       EMAIL NOTIFICATIONS HIGHLIGHT
+  ═══════════════════════════════════════ -->
+  <section class="py-24 px-6 bg-gray-900">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16 fade-in">
+        <div class="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/30 text-amber-300 rounded-full px-4 py-2 text-sm font-medium mb-6">
+          <i class="fa fa-bell"></i> Sähköposti-ilmoitukset
+        </div>
+        <h2 class="text-4xl md:text-5xl font-black text-white mb-4">
+          Liidit suoraan sähköpostiisi<br class="hidden md:block">
+          <span class="text-amber-300">– automaattisesti</span>
+        </h2>
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+          Ei integraatioita, ei IFTTT, ei Zapier – toimii suoraan ilman lisätyötä.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+
+        <!-- Lead notification email -->
+        <div class="email-mock fade-in">
+          <div class="email-header">
+            <div class="text-xs text-gray-400 mb-1">Saapuneet · juuri nyt</div>
+            <div class="email-subject">📩 Uusi liidi: Matti Meikäläinen – yhteydenotto</div>
+            <div class="text-xs text-gray-400 mt-1">noreply@uimanager.fi → sinun@yritys.fi</div>
+          </div>
+          <div class="email-body">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                <i class="fa fa-user text-emerald-600"></i>
+              </div>
+              <div>
+                <div class="font-bold text-gray-900 text-sm">Uusi liidi vastaanotettu</div>
+                <div class="text-xs text-gray-500">Lead Form "Yhteydenotto" · kotisivu.fi</div>
+              </div>
+              <span class="email-badge ml-auto bg-emerald-100 text-emerald-700">Uusi</span>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-3 mb-4 space-y-2">
+              <div class="flex gap-3 text-xs">
+                <span class="font-semibold text-gray-700 w-20 flex-shrink-0">Nimi:</span>
+                <span class="text-gray-900">Matti Meikäläinen</span>
+              </div>
+              <div class="flex gap-3 text-xs">
+                <span class="font-semibold text-gray-700 w-20 flex-shrink-0">Sähköposti:</span>
+                <span class="text-gray-900">matti@esimerkki.fi</span>
+              </div>
+              <div class="flex gap-3 text-xs">
+                <span class="font-semibold text-gray-700 w-20 flex-shrink-0">Puhelin:</span>
+                <span class="text-gray-900">040 123 4567</span>
+              </div>
+              <div class="flex gap-3 text-xs">
+                <span class="font-semibold text-gray-700 w-20 flex-shrink-0">Viesti:</span>
+                <span class="text-gray-900">Haluaisin tietoa palveluistanne...</span>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <div class="flex-1 bg-brand-600 text-white text-xs font-bold text-center py-2.5 rounded-lg">
+                ✉️ Vastaa liidiin
+              </div>
+              <div class="flex-1 bg-gray-100 text-gray-700 text-xs font-semibold text-center py-2.5 rounded-lg">
+                Avaa dashboard
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly report email -->
+        <div class="email-mock fade-in">
+          <div class="email-header">
+            <div class="text-xs text-gray-400 mb-1">Saapuneet · ma 8:00</div>
+            <div class="email-subject">📊 Viikkoraportti – vko 12 · UI Manager</div>
+            <div class="text-xs text-gray-400 mt-1">noreply@uimanager.fi → sinun@yritys.fi</div>
+          </div>
+          <div class="email-body">
+            <div class="bg-gradient-to-r from-brand-600 to-brand-800 rounded-xl p-4 mb-4 text-white">
+              <div class="text-sm font-bold mb-3">Viikon yhteenveto 17.–23. maaliskuuta</div>
+              <div class="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <div class="text-xl font-black">4 218</div>
+                  <div class="text-xs text-blue-200">Näyttöä</div>
+                  <div class="text-xs text-emerald-300 mt-0.5">↑ 12%</div>
+                </div>
+                <div>
+                  <div class="text-xl font-black">341</div>
+                  <div class="text-xs text-blue-200">Klikkausta</div>
+                  <div class="text-xs text-emerald-300 mt-0.5">↑ 8%</div>
+                </div>
+                <div>
+                  <div class="text-xl font-black">23</div>
+                  <div class="text-xs text-blue-200">Liidiä</div>
+                  <div class="text-xs text-emerald-300 mt-0.5">↑ 43%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-xs font-bold text-gray-700 mb-2">🏆 Top 3 elementtiä tällä viikolla</div>
+            <div class="space-y-2 mb-4">
+              <div class="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                <span class="text-sm">🥇</span>
+                <div class="flex-1 text-xs text-gray-900 font-semibold">Exit Intent Popup</div>
+                <span class="text-xs text-gray-500">8.4% CTR</span>
+              </div>
+              <div class="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                <span class="text-sm">🥈</span>
+                <div class="flex-1 text-xs text-gray-900 font-semibold">Sticky Bar – Tarjous</div>
+                <span class="text-xs text-gray-500">5.2% CTR</span>
+              </div>
+              <div class="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                <span class="text-sm">🥉</span>
+                <div class="flex-1 text-xs text-gray-900 font-semibold">Lead Form – Yhteydenotto</div>
+                <span class="text-xs text-gray-500">12 liidiä</span>
+              </div>
+            </div>
+
+            <div class="bg-brand-600 text-white text-xs font-bold text-center py-2.5 rounded-lg">
+              Avaa täydet tilastot →
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       CTA BOTTOM
+  ═══════════════════════════════════════ -->
+  <section class="cta-gradient py-28 px-6 text-white text-center">
+    <div class="max-w-3xl mx-auto fade-in">
+      <div class="text-6xl mb-6">🚀</div>
+      <h2 class="text-4xl md:text-5xl font-black mb-5">Valmis aloittamaan?</h2>
+      <p class="text-xl text-blue-200 mb-10 leading-relaxed">
+        Luo ensimmäinen konversioelementtisi tänään. Yksi koodirivi, kaikki toiminnot käytössä.
+      </p>
+      <a href="/auth/google"
+         class="inline-flex items-center gap-3 bg-white text-brand-800 font-extrabold px-10 py-5 rounded-2xl hover:bg-blue-50 transition-all text-xl shadow-2xl hover:-translate-y-1 transform">
+        <i class="fab fa-google text-red-500 text-2xl"></i>
+        Aloita Google-tilillä – ilmaiseksi
       </a>
+      <p class="text-blue-300 text-sm mt-6">Ei luottokorttia · Ei asennusta · Yksi koodirivi</p>
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="bg-gray-900 text-gray-400 py-8 px-6 text-center text-sm">
-    <p>&copy; 2026 Website UI &amp; Conversion Manager · <a href="mailto:tuki@uimanager.fi" class="hover:text-white">tuki@uimanager.fi</a></p>
+
+  <!-- ═══════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════ -->
+  <footer class="bg-gray-950 text-gray-500 py-10 px-6">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center">
+          <i class="fa fa-layer-group text-white" style="font-size:11px"></i>
+        </div>
+        <span class="font-bold text-gray-300">UI Manager</span>
+      </div>
+      <p class="text-sm text-center">
+        &copy; 2026 UI Manager ·
+        <a href="mailto:tuki@uimanager.fi" class="hover:text-white transition-colors">tuki@uimanager.fi</a>
+      </p>
+      <div class="flex items-center gap-4 text-xs">
+        <span class="text-gray-600">Powered by</span>
+        <span class="text-gray-500">popupmanager.net</span>
+      </div>
+    </div>
   </footer>
+
+
+  <!-- ═══════════════════════════════════════
+       SCRIPTS
+  ═══════════════════════════════════════ -->
+  <script>
+    // ── Scroll fade-in ────────────────────
+    const fadeEls = document.querySelectorAll('.fade-in');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    fadeEls.forEach(el => observer.observe(el));
+  </script>
 
   <script>
     // Kirjautunut käyttäjä → ohjaa suoraan dashboardiin

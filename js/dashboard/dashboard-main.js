@@ -40,6 +40,7 @@ async function init() {
 
   // Asennuskoodi – site token + selkeä ohjeistus
   renderInstallSection(user);
+  renderNotificationSettings(user);
 
   window.__currentUser__ = user;  // tarvitaan editor + list komponenteissa
   initSidebar(user);
@@ -323,6 +324,111 @@ async function renderInstallSection(user) {
     navigator.clipboard.writeText(code).then(() => showToast('Koodi kopioitu!'));
   };
   window.copyInstallCode = window.copyUniversal;
+}
+
+async function renderNotificationSettings(user) {
+  const container = document.getElementById('notifications-section');
+  if (!container) return;
+
+  const n = user.emailNotifications || {};
+  const leadAlert    = n.leadAlert    !== false;
+  const weeklyReport = n.weeklyReport !== false;
+  const notifyEmail  = n.notifyEmail  || '';
+
+  container.innerHTML = `
+    <div style="border-top:1px solid #e2e8f0;padding-top:28px">
+      <h3 style="font-size:15px;font-weight:700;color:#1e293b;margin:0 0 4px">📧 Sähköposti-ilmoitukset</h3>
+      <p style="font-size:13px;color:#64748b;margin:0 0 18px">Hallinnoi mitä sähköpostiviestejä haluat vastaanottaa.</p>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
+          <input type="checkbox" id="notif-lead-alert" ${leadAlert ? 'checked' : ''}
+            style="width:16px;height:16px;cursor:pointer;accent-color:#3b82f6">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1e293b">Ilmoitus uudesta liidistä</div>
+            <div style="font-size:12px;color:#64748b">Saat sähköpostin heti kun lomakkeelle saapuu uusi täyttö</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
+          <input type="checkbox" id="notif-weekly-report" ${weeklyReport ? 'checked' : ''}
+            style="width:16px;height:16px;cursor:pointer;accent-color:#3b82f6">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1e293b">Viikkoraportti</div>
+            <div style="font-size:12px;color:#64748b">Yhteenveto viikon tilastoista — joka maanantai klo 8:00</div>
+          </div>
+        </label>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">
+          Ilmoitusosoite
+          <span style="font-weight:400;color:#94a3b8;margin-left:4px">(tyhjä = käytetään tili-sähköpostia: ${escHtml(user.email)})</span>
+        </label>
+        <input type="email" id="notif-email" value="${escHtml(notifyEmail)}" placeholder="${escHtml(user.email)}"
+          style="width:100%;max-width:360px;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box">
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="notif-save-btn" class="btn btn-primary btn-sm">
+          <i class="fa fa-save"></i> Tallenna asetukset
+        </button>
+        <button id="notif-test-btn" class="btn btn-secondary btn-sm">
+          <i class="fa fa-envelope"></i> Lähetä testisähköposti
+        </button>
+      </div>
+      <div id="notif-feedback" style="margin-top:10px;font-size:13px;display:none"></div>
+    </div>`;
+
+  function showFeedback(msg, ok = true) {
+    const el = document.getElementById('notif-feedback');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color  = ok ? '#16a34a' : '#dc2626';
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3500);
+  }
+
+  document.getElementById('notif-save-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('notif-save-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Tallennetaan…';
+    try {
+      const body = {
+        leadAlert:    document.getElementById('notif-lead-alert')?.checked,
+        weeklyReport: document.getElementById('notif-weekly-report')?.checked,
+        notifyEmail:  document.getElementById('notif-email')?.value?.trim() || '',
+      };
+      const r = await fetch('/api/user/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Virhe'); }
+      showFeedback('✓ Asetukset tallennettu');
+    } catch (e) {
+      showFeedback(e.message || 'Tallennus epäonnistui', false);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa fa-save"></i> Tallenna asetukset';
+    }
+  });
+
+  document.getElementById('notif-test-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('notif-test-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Lähetetään…';
+    try {
+      const r = await fetch('/api/user/notifications/test', { method: 'POST' });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Virhe'); }
+      const data = await r.json();
+      showFeedback(`✓ Testisähköposti lähetetty osoitteeseen ${data.to}`);
+    } catch (e) {
+      showFeedback(e.message || 'Lähetys epäonnistui — tarkista SMTP-asetukset', false);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa fa-envelope"></i> Lähetä testisähköposti';
+    }
+  });
 }
 
 function escHtml(s) {

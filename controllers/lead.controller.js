@@ -1,7 +1,10 @@
 // controllers/lead.controller.js
 const Lead = require('../models/Lead');
 const Popup = require('../models/Popup');
+const User = require('../models/User');
 const { triggerWebhooks } = require('../utils/webhooks');
+const { sendMail } = require('../utils/email');
+const { buildLeadNotification } = require('../utils/email-templates');
 
 class LeadController {
   static async submitLead(req, res) {
@@ -14,6 +17,23 @@ class LeadController {
       await lead.save();
       await Popup.findByIdAndUpdate(popupId, { $inc: { 'statistics.leads': 1 } });
       triggerWebhooks(popup.userId, 'lead', { popupId, data });
+
+      // Sähköposti-ilmoitus liidistä (asynkroninen – ei viivästytä vastausta)
+      (async () => {
+        try {
+          const user = await User.findById(popup.userId)
+            .select('email emailNotifications displayName').lean();
+          if (!user) return;
+          if (user.emailNotifications?.leadAlert === false) return;
+          const toEmail = user.emailNotifications?.notifyEmail?.trim() || user.email;
+          if (!toEmail) return;
+          const { subject, html } = buildLeadNotification(popup, lead);
+          await sendMail(toEmail, subject, html);
+        } catch (e) {
+          console.error('[lead] Sähköposti-ilmoitusvirhe:', e.message);
+        }
+      })();
+
       res.status(201).json({ success: true });
     } catch (err) {
       res.status(500).json({ message: 'Error saving lead' });

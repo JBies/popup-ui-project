@@ -39,7 +39,9 @@
       "Bash(npm install:*)",
       "Bash(node -e \"require\\(''express-rate-limit''\\); console.log\\(''OK''\\)\")",
       "Bash(node -e \"require\\(''dotenv''\\).config\\(\\); console.log\\(''URI starts with:'', process.env.MONGODB_URI?.substring\\(0,30\\)\\)\")",
-      "Bash(timeout /t 12 /nobreak)"
+      "Bash(timeout /t 12 /nobreak)",
+      "Read(//d D:/**)",
+      "Bash(node -e \"require\\(''node-cron''\\); require\\(''nodemailer''\\); console.log\\(''OK''\\)\")"
     ]
   }
 }

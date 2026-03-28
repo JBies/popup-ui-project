@@ -10,6 +10,7 @@ export function initHelpPanel() {
 function renderHelp() {
   const container = document.getElementById('help-content');
   if (!container) return;
+  const isAdmin = window.__currentUser__?.role === 'admin';
 
   container.innerHTML = `
     <div style="max-width:820px;font-family:system-ui,sans-serif">
@@ -181,6 +182,36 @@ function renderHelp() {
           ['Webhook','Lähetä liidi reaaliajassa Zapieriin tai Make.comiin Webhooks-välilehdeltä'],
           ['Kentät','Lomakkeen kentät määritetään Lead Form -editorissa (teksti, email, puhelin, textarea)'],
         ])
+      ])}
+
+      <!-- Sähköposti-ilmoitukset -->
+      ${section('fa-envelope','Sähköposti-ilmoitukset','Automaattiset ilmoitukset ja viikkoraportti', [
+        infoBlock('Asetukset löytyvät Dashboard → Asennuskoodi → Sähköposti-ilmoitukset -osiosta. Ei erillistä integraatiota tarvita – toimii suoraan SMTP-palvelimen kautta.',
+        [
+          ['Liidi-ilmoitus','Saat sähköpostin heti kun Lead Form -elementtiin tulee uusi lähetys. Viesti sisältää kaikki lomakkeen kentät ja suoran "Vastaa liidiin" -napin.'],
+          ['Viikkoraportti','Joka maanantai klo 8:00 saat yhteenvedon: näyttökerrat, klikkaukset ja liidit + vertailu edelliseen viikkoon. Top 3 parhaiten suoriutunutta elementtiä.'],
+          ['Ilmoitusosoite','Oletuksena käytetään tili-sähköpostiosoitetta. Voit asettaa erillisen osoitteen esim. tiimisähköpostille.'],
+          ['Testisähköposti','Klikkaa "Lähetä testisähköposti" -nappia asetuksissa – näet heti miltä sähköposti näyttää.'],
+          ['Ilmoitusten sammutus','Poista rasti "Liidi-ilmoitus" tai "Viikkoraportti" -ruudusta ja tallenna – ilmoitukset lakkaa välittömästi.'],
+        ]),
+
+        // SMTP-konfiguraatio vain adminille – tavallinen käyttäjä ei aseta .env-tietoja
+        isAdmin ? infoBlock('SMTP-asetukset (palvelimen ylläpitäjälle) – konfiguroidaan kerran palvelimen .env-tiedostoon, pätee kaikille käyttäjille:',
+        [
+          ['Gmail (helpoin tapa)','SMTP_HOST=smtp.gmail.com · SMTP_PORT=587 · SMTP_USER=sinun@gmail.com · SMTP_PASS=sovellussalasana. Sovellussalasana luodaan: Google-tili → Turvallisuus → Kaksivaiheinen todentaminen (ensin päälle) → Sovellussalasanat → Luo uusi.'],
+          ['Brevo (SendinBlue)','Ilmainen tili: 300 sähköpostia/vrk. SMTP_HOST=smtp-relay.brevo.com · SMTP_PORT=587 · SMTP_USER=sinun@email.com · SMTP_PASS=brevo-api-avain. Luo API-avain Brecon dashboardista.'],
+          ['Mailgun','SMTP_HOST=smtp.mailgun.org · SMTP_PORT=587 · SMTP_USER=postmaster@sandbox.mailgun.org · SMTP_PASS=mailgun-salasana. Hyvä vaihtoehto tuotantokäyttöön.'],
+          ['Zoho Mail','SMTP_HOST=smtp.zoho.eu · SMTP_PORT=587 · SMTP_USER=noreply@sinundomain.fi · SMTP_PASS=salasana. Hyvä jos haluat oman domainin sähköpostiosoitteen.'],
+          ['Hosting-palvelun SMTP','Useimmat hosting-palvelut (cPanel, Plesk) tarjoavat SMTP-palvelimen ilmaiseksi. Löydät tiedot hosting-palvelusi hallintapaneelista tai asiakaspalvelusta.'],
+          ['APP_URL','Aseta myös APP_URL=https://sinundomain.fi – käytetään sähköpostien linkeissä (esim. "Avaa dashboard" -nappi).'],
+        ]) : '',
+
+        isAdmin ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:10px">
+  <span style="font-size:18px;flex-shrink:0">💡</span>
+  <div style="font-size:13px;color:#78350f">
+    <strong>Vinkki – Testaa ensin Etherealilla:</strong> Jos et halua käyttää oikeaa sähköpostitiliä testaukseen, luo ilmainen testitili osoitteessa <strong>ethereal.email</strong>. Sähköpostit "lähetetään" mutta näkyvät vain Etherealin web-käyttöliittymässä – ei päädy oikeaan postilaatikkoon.
+  </div>
+</div>` : ''
       ])}
 
     </div>`;

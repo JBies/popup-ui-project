@@ -48,6 +48,10 @@ app.set('trust proxy', 1);
 // Yhdistetään tietokantaan
 connectDB();
 
+// Ajoitetut tehtävät (viikkoraportti ym.)
+const { initScheduler } = require('./utils/scheduler');
+initScheduler();
+
 // Tärkeä: Määritellään popup-embed.js reitti ENNEN mitään muita middleware-määrityksiä
 // Tämä varmistaa, että se käsitellään ennen CORS ja muita middlewareja
 // ui-embed.js – uusi embed-skripti kaikille elementtityypeille

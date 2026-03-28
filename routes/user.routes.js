@@ -13,6 +13,9 @@ const router = express.Router();
  */
 router.get('/', UserController.getCurrentUser);
 
+router.put('/notifications', UserController.updateNotificationSettings);
+router.post('/notifications/test', UserController.sendTestEmail);
+
 router.get('/webhooks', UserController.getWebhooks);
 router.post('/webhooks', UserController.addWebhook);
 router.delete('/webhooks/:id', UserController.deleteWebhook);

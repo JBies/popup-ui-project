@@ -2,6 +2,8 @@
 
 const User = require('../models/User');
 const { logAudit } = require('../utils/audit');
+const { sendMail } = require('../utils/email');
+const { buildWelcomeEmail } = require('../utils/email-templates');
 
 /**
  * UserController vastaa käyttäjien hallinnan toimintalogiikasta
@@ -63,6 +65,18 @@ class UserController {
           }
 
           await user.save();
+
+          // Tervetulosähköposti uudelle käyttäjälle
+          if (previousRole === 'pending' && role === 'user') {
+            (async () => {
+              try {
+                const { subject, html } = buildWelcomeEmail(user.displayName);
+                await sendMail(user.email, subject, html);
+              } catch (e) {
+                console.error('[user] Tervetulosähköpostivirhe:', e.message);
+              }
+            })();
+          }
 
           // Audit-loki
           const auditAction = (previousRole === 'pending' && role === 'user')
@@ -225,6 +239,59 @@ static async updateUserPopupLimit(req, res) {
       }
       res.redirect('/');
     });
+  }
+
+  /**
+   * Päivittää kirjautuneen käyttäjän sähköposti-ilmoitusasetukset
+   */
+  static async updateNotificationSettings(req, res) {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    try {
+      const { leadAlert, weeklyReport, notifyEmail } = req.body;
+
+      // Validoi sähköpostiosoite jos annettu
+      if (notifyEmail && notifyEmail.trim()) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(notifyEmail.trim())) {
+          return res.status(400).json({ message: 'Virheellinen sähköpostiosoite' });
+        }
+      }
+
+      const update = {};
+      if (leadAlert    !== undefined) update['emailNotifications.leadAlert']    = !!leadAlert;
+      if (weeklyReport !== undefined) update['emailNotifications.weeklyReport'] = !!weeklyReport;
+      if (notifyEmail  !== undefined) update['emailNotifications.notifyEmail']  = (notifyEmail || '').trim();
+
+      const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: update },
+        { new: true }
+      ).select('emailNotifications email displayName');
+
+      res.json({ success: true, emailNotifications: user.emailNotifications });
+    } catch (err) {
+      res.status(500).json({ message: 'Asetuksien tallennus epäonnistui', error: err.toString() });
+    }
+  }
+
+  /**
+   * Lähettää testisähköpostin käyttäjälle
+   */
+  static async sendTestEmail(req, res) {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    try {
+      const { sendMail } = require('../utils/email');
+      const { buildTestEmail } = require('../utils/email-templates');
+      const user = await User.findById(req.user._id).select('email emailNotifications displayName').lean();
+      const toEmail = user.emailNotifications?.notifyEmail?.trim() || user.email;
+      if (!toEmail) return res.status(400).json({ message: 'Ei sähköpostiosoitetta' });
+      const { subject, html } = buildTestEmail(user.displayName);
+      const ok = await sendMail(toEmail, subject, html);
+      if (ok) res.json({ success: true, to: toEmail });
+      else res.status(500).json({ message: 'Sähköpostin lähetys epäonnistui. Tarkista SMTP-asetukset.' });
+    } catch (err) {
+      res.status(500).json({ message: 'Virhe testisähköpostin lähetyksessä', error: err.toString() });
+    }
   }
 
   static async getWebhooks(req, res) {
