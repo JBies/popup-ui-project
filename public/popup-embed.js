@@ -92,8 +92,9 @@
  
     // Apufunktio popupin luomiseen ja näyttämiseen
     function createAndShowPopup(popup) {
-        // Hae animaatio-asetus (korjaus: puuttuva muuttuja aiheutti "animation is not defined")
+        // Hae animaatio- ja sijaintiasetus (puuttuvat muuttujat aiheuttivat ReferenceError)
         const animation = popup.animation || 'none';
+        const position  = popup.position  || 'center';
 
         // Hae ja loki timing-tiedot
         const timing = popup.timing || {};
