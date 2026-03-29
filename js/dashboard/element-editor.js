@@ -130,7 +130,7 @@ function buildEditorHTML(type, data = {}, sites = []) {
 
         <div class="section-title" style="margin-top:20px">Ajoitus</div>
         <div class="form-row">
-          <div class="form-group">
+          <div class="form-group" ${type === 'slide_in' ? 'style="display:none"' : ''}>
             <label>Viive (sekuntia)</label>
             <input type="number" id="el-delay" min="0" value="${timing.delay || 0}">
           </div>

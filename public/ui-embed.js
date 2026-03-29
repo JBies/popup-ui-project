@@ -292,9 +292,12 @@
     var w = cfg.slideInWidth || 320;
     var box = document.createElement('div');
     box.id = 'ue-slidein-' + el._id;
-    var posStyle = pos === 'bottom-left'
-      ? { bottom: '24px', left: '24px' }
-      : { bottom: '24px', right: '24px' };
+    var isTop = pos === 'top-left' || pos === 'top-right';
+    var posStyle = pos === 'top-left'    ? { top: '24px',    left: '24px'  }
+                 : pos === 'top-right'   ? { top: '24px',    right: '24px' }
+                 : pos === 'bottom-left' ? { bottom: '24px', left: '24px'  }
+                 :                         { bottom: '24px', right: '24px' };
+    var hideTransform = isTop ? 'translateY(-120%)' : 'translateY(120%)';
     Object.assign(box.style, Object.assign({
       position: 'fixed', zIndex: '999997',
       width: w + 'px', padding: '20px',
@@ -303,7 +306,7 @@
       borderRadius: '12px',
       boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
       fontFamily: 'system-ui, sans-serif',
-      transform: 'translateY(120%)',
+      transform: hideTransform,
       transition: 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)'
     }, posStyle));
 
@@ -318,7 +321,7 @@
         cursor: 'pointer', opacity: '0.5', color: el.textColor || '#1f2937'
       });
       x.addEventListener('click', function () {
-        box.style.transform = 'translateY(120%)';
+        box.style.transform = hideTransform;
         setTimeout(function () { box.remove(); }, 400);
         dismiss(el._id, 0);
       });

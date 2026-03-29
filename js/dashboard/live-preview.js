@@ -129,7 +129,10 @@ function previewSlideIn(container, el, cfg) {
     borderRadius: '10px',
     boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
     fontFamily: 'system-ui,sans-serif', fontSize: '11px',
-    ...(pos === 'bottom-left' ? { bottom: '12px', left: '12px' } : { bottom: '12px', right: '12px' })
+    ...(pos === 'top-left'    ? { top: '12px',    left: '12px'  } :
+        pos === 'top-right'   ? { top: '12px',    right: '12px' } :
+        pos === 'bottom-left' ? { bottom: '12px', left: '12px'  } :
+                                { bottom: '12px', right: '12px' })
   });
 
   if (el.content) {

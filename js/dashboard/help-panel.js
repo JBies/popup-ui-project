@@ -26,32 +26,51 @@ function renderHelp() {
         <div style="margin-top:8px;font-size:12px;opacity:.75">Yksi rivi sivuston &lt;head&gt;-osioon – kaikki elementit latautuvat automaattisesti.</div>
       </div>
 
+      <!-- Pikaohje -->
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px 24px;margin-bottom:24px">
+        <div style="font-size:14px;font-weight:800;color:#166534;margin-bottom:12px">🚀 Pikaohje – 3 askelta alkuun</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <div style="width:24px;height:24px;border-radius:50%;background:#16a34a;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+            <div style="font-size:13px;color:#166534"><strong>Lisää asennuskoodi</strong> – Asennuskoodi-välilehdeltä löydät yksirivisen skriptin joka lisätään sivustosi &lt;head&gt;-osioon. Tehdään vain kerran.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <div style="width:24px;height:24px;border-radius:50%;background:#16a34a;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+            <div style="font-size:13px;color:#166534"><strong>Luo elementti</strong> – Klikkaa "+ Uusi elementti" → valitse tyyppi → täytä tekstikentät (ei koodausta tarvita) → tallenna.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <div style="width:24px;height:24px;border-radius:50%;background:#16a34a;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+            <div style="font-size:13px;color:#166534"><strong>Aktivoi</strong> – Kytke elementtikortin kytkin päälle. Elementti alkaa näkyä sivustollasi välittömästi – ei tarvitse muuttaa sivuston koodia uudelleen.</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Elementtityypit -->
       ${section('fa-layer-group','Elementtityypit','Mitä voit rakentaa', [
         card('fa-minus','#1d4ed8','Sticky Bar',
-          'Kiinteä palkki sivun ylä- tai alareunassa. Pysyy näkyvissä vaikka käyttäjä scrollaa. Erinomainen ilmoituksiin, tarjouksiin ja GDPR-bannereihin.',
+          'Kiinteä palkki sivun ylä- tai alareunassa. Pysyy näkyvissä vaikka käyttäjä scrollaa. Valitse valmisviesti tai kirjoita oma.',
           ['Kampanjakoodi tai tarjous','Cookie/GDPR-ilmoitus','Varhaisen rekisteröinnin CTA','Tärkeä ilmoitus kaikille kävijöille'],
-          ['barText – teksti palkissa','ctaButtons – max 3 nappia (teksti + URL + tyyli)','barPosition – top tai bottom','showDismiss – voidaanko sulkea','dismissCookieDays – muista sulkeminen X päivää']),
+          ['6 valmisviestimallia – klikkaa tai kirjoita oma','Max 3 toimintanappia (teksti + URL + tyyli)','Sijainti ylös tai alas','Sulkemismuisti: sessio / 1pv / viikko / kuukausi']),
 
         card('fa-circle','#6d28d9','Floating Button (FAB)',
-          'Pyöreä kelluva nappi sivun kulmassa. Näkyy aina kaikilla sivuilla. Sopii chat-, puhelin- tai "takaisin ylös" -toiminnoille.',
+          'Pyöreä kelluva nappi sivun kulmassa. Sopii chat-, puhelin- tai "takaisin ylös" -toiminnoille. Ponnahdusikkuna sisältää selkeät tekstikentät – ei koodausta.',
           ['Live chat -avaus','Soittopyyntö','Varaa aika -nappi','Takaisin sivun alkuun'],
-          ['fabIcon – Font Awesome -ikoniluokka','fabColor – napin taustaväri','fabAction – link tai modal','fabUrl – mihin nappi vie','pulseAnimation – huomioanimaatio']),
+          ['12 ikonia valittavissa visuaalisesta ruudukosta','Toiminto: avaa linkki TAI ponnahdusikkuna','Ponnahdusikkuna: otsikko / teksti / nappi – selkeät kentät','Pulssi-animaatio, koko ja väri säädettävissä']),
 
         card('fa-comment-dots','#16a34a','Slide-in',
-          'Animoitu boksi, joka liukuu esiin sivun kulmasta. Triggeröityy automaattisesti scrollin, ajan tai exit intentin perusteella.',
+          'Animoitu boksi, joka liukuu esiin sivun kulmasta. Valitse valmis malli (5 eri pohjaa) ja täytä vain tekstit – ei koodausta.',
           ['Uutiskirjetilaus 50% scrollin jälkeen','Alennustarjous 30s viiveen jälkeen','Exit intent – viimeinen mahdollisuus','Mobiilioptimoitu CTA'],
-          ['slideInTrigger – scroll / time / exit_intent','slideInTriggerValue – scroll-% tai sekuntia','slideInPosition – bottom-right tai bottom-left','slideInWidth – boksin leveys pikseleinä']),
+          ['5 valmismallia – Ilmoitus / Tarjous / Kehotus / Exit Intent / Luottamus','Triggerit – aika / scroll / exit intent (omat arvot)','4 sijainta – kaikki kulmat','Leveys ja värit säädettävissä']),
 
         card('fa-square','#475569','Popup',
-          'Perinteinen modaali-popup, joka avautuu sivun päälle. Tukee neljää alatyyppiä eri käyttötarkoituksiin.',
+          'Perinteinen modaali-popup. Valitse tyyppi (📢 Ilmoitus / 🎉 Tarjous / 🖼️ Kuva / 🚪 Exit Intent) ja täytä tekstikentät – ei HTML-koodausta.',
           ['Tervetuloviesti uusille kävijöille','Exit intent – "Odota, tässä tarjous"','Kuva + CTA -mainospopup','Tarjouskoodi viiveen jälkeen'],
-          ['popupSubtype – announcement / offer / image / exit_intent','position – center, top, bottom','animation – none, fade, slide','Kuva – valitse Kuvakirjastosta tai lataa suoraan editorissa']),
+          ['4 popup-tyyppiä valittavissa korteilla','Otsikko / teksti / nappi – selkeät kentät','Kuvapopup – lataa kuva suoraan tai valitse kirjastosta','Animaatio, sijainti ja värit säädettävissä']),
 
         card('fa-users','#d97706','Social Proof',
-          'Ponnahdusviesti sivun kulmassa: "X henkilöä katsoo nyt tätä sivua". Kasvattaa luottamusta ja kiireellisyyden tunnetta.',
+          'Pieni vilahteleva ilmoitus sivun kulmassa: "12 henkilöä katsoo nyt tätä sivua". Kasvattaa luottamusta ja ostohalua.',
           ['E-commerce: "12 henkilöä katsoo tätä tuotetta"','Palvelu: "5 henkilöä varasi ajan tällä viikolla"','Reaaliaikaiset katsojamäärät','Aidon näköiset aktiviteetti-ilmoitukset'],
-          ['proofText – viesti ({count} = lukumäärä)','proofCount – 0 käyttää oikeita tilastoja','proofDuration – näyttöaika sekunteina','proofInterval – väli näyttöjen välillä (s)','proofIcon – emoji-ikoni']),
+          ['5 viestipohjaa – klikkaa malli tai kirjoita oma','{count} korvautuu automaattisesti numerolla','0 = käyttää oikeita sivustotilastoja','Ikoni, värit ja ajoitus säädettävissä']),
 
         card('fa-arrows-alt-v','#e11d48','Scroll Progress',
           'Ohut palkki sivun ylä- tai alareunassa, joka kasvaa sitä mukaa kun käyttäjä scrollaa. Pitää käyttäjän sivulla pidempään.',
@@ -91,29 +110,33 @@ function renderHelp() {
       ])}
 
       <!-- Targeting -->
-      ${section('fa-crosshairs','Targeting','Näytä oikealle henkilölle oikeaan aikaan', [
-        infoBlock('Targeting-paneeli löytyy jokaisen elementin editorista. Aktivoi se ja lisää yksi tai useampi sääntö.',
+      ${section('fa-crosshairs','Kohdennus','Näytä elementti juuri oikealle henkilölle oikeaan aikaan', [
+        infoBlock('Kohdennus-paneeli löytyy jokaisen elementin editorin alaosasta. Aktivoi se rastilla ja lisää ehtoja.',
         [
-          ['URL-osoite','Näytä vain tietyillä sivuilla. Esim. sisältää "/tuotteet"'],
-          ['Laitetyyppi','Vain mobiili, desktop tai tablet'],
-          ['Tulolähde (referrer)','Kävijä tuli Googlesta, Facebookista...'],
-          ['Scroll-syvyys','Näytä vasta kun kävijä on scrollannut 50%'],
-          ['Aika sivulla','Näytä 30 sekunnin jälkeen'],
-          ['Uusi / palaava','Eri viesti uusille vs. palaaviin kävijöihin'],
-          ['Viikonpäivä','Näytä vain arkisin tai viikonloppuisin'],
-          ['Kellonaika','Näytä vain aukioloaikoina 9–17'],
+          ['Pikavalinnat','Klikkaa valmista pikavalintalinkkiä (esim. "📱 Vain mobiili") – ehto lisätään automaattisesti ilman kirjoittamista'],
+          ['URL sisältää','Näytä vain tietyillä sivuilla. Kirjoita osa URL:ista, esim. <em>/tuotteet</em> tai <em>checkout</em>'],
+          ['Laite on','Valitse pudotusvalikosta: Mobiili / Desktop / Tabletti'],
+          ['Tulolähde sisältää','Kävijä tuli Googlesta → kirjoita <em>google</em>. Facebookista → <em>facebook.com</em>'],
+          ['Scrollattu (%)','Näytä vasta kun kävijä on scrollannut vähintään 50% – kirjoita <em>50</em>'],
+          ['Aika sivulla (s)','Näytä 30 sekunnin jälkeen – kirjoita <em>30</em>'],
+          ['Kävijätyyppi on','Valitse: Uusi kävijä tai Palaava kävijä'],
+          ['Viikonpäivä on','Valitse päivä pudotusvalikosta: Maanantai–Sunnuntai'],
+          ['Kellonaika (0–23)','Näytä vain aukioloaikoina: "jälkeen 9" JA "ennen 17" – lisää kaksi ehtoa'],
+          ['Useampi ehto','Oletuksena kaikki ehdot täyttyvät (AND). Vaihda "jokin ehto täyttyy" jos haluat OR-logiikan'],
         ])
       ])}
 
       <!-- A/B testaus -->
-      ${section('fa-flask','A/B-testaus','Testaa mikä toimii paremmin', [
-        infoBlock('A/B-testi löytyy jokaisen elementin editorista Targeting-paneelin alapuolelta. Variantti A on oletusasetus, Variantti B ylikirjoittaa valitut kentät.',
+      ${section('fa-flask','A/B-testi','Testaa kumpi versio toimii paremmin – automaattisesti', [
+        infoBlock('A/B-testi-paneeli löytyy jokaisen elementin editorin alareunasta. Luo kaksi versiota elementistäsi ilman mitään lisätyötä.',
         [
-          ['Liikennenjako','Slider 10–90%. Esim. 50% näkee A, 50% näkee B'],
-          ['Variantti B: otsikko','Ylikirjoittaa palkin tekstin tai popupin otsikon'],
-          ['Variantti B: CTA-teksti','Ylikirjoittaa ensimmäisen napin tekstin'],
-          ['Variantti B: taustaväri','Testaa eri värejä'],
-          ['Tulokset','Vertaa A:n ja B:n CTR:ää Tilastot-sivulla'],
+          ['Miten se toimii','Puolet kävijöistä näkee version A (nykyinen elementti), puolet version B. Dashboard näyttää automaattisesti kumpi voittaa.'],
+          ['Liikennejako','Visuaalinen palkki: siirrä slideria 10–90%. Esim. 50% näkee A, 50% näkee B. Voit myös testata 10/90-jaolla varovaisesti.'],
+          ['Versio B: otsikko / teksti','Vaihda pääotsikko tai viesti – testaa eri arvolupauksia: "Ilmainen toimitus" vs "Säästä 20%"'],
+          ['Versio B: napin teksti','Testaa CTA-nappia: "Tilaa nyt" vs "Osta heti" vs "Katso tarjous" – pienet sanat voivat tehdä ison eron'],
+          ['Versio B: värit','Testaa eri taustavärejä: punainen vs sininen vs vihreä – väri vaikuttaa konversioon'],
+          ['Tulokset','Dashboard → Tilastot → valitse elementti → näet A:n ja B:n CTR-prosentit vierekkäin. Valitse voittaja.'],
+          ['Päätös','Kun voittaja selvillä: poista A/B-testi käytöstä ja päivitä elementti voittajan asetuksiin.'],
         ])
       ])}
 
