@@ -227,32 +227,56 @@ function previewLeadForm(container, el, cfg) {
 
 // ── Popup preview ────────────────────────────────────────
 function previewPopup(container, el) {
+  const isImagePopup = el.popupType === 'image' || (el.config && el.config.popupSubtype === 'image');
+  const elementW     = el.width || 400;
+  const previewW     = container.offsetWidth || 300;
+  // Skaalaa esikatselu suhteessa – max 85% previewn leveydestä
+  const boxW = Math.min(Math.round(elementW * 0.55), Math.round(previewW * 0.82));
+
   const overlay = document.createElement('div');
   Object.assign(overlay.style, {
     position: 'absolute', inset: '0', zIndex: '10',
     background: 'rgba(0,0,0,0.35)',
     display: 'flex', alignItems: 'center', justifyContent: 'center'
   });
+
   const box = document.createElement('div');
   Object.assign(box.style, {
-    background: el.backgroundColor || '#fff',
-    color: el.textColor || '#000',
-    borderRadius: '10px', padding: '18px',
-    maxWidth: '85%', maxHeight: '80%',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+    borderRadius: '10px', overflow: 'hidden',
+    position: 'relative', width: boxW + 'px',
+    boxShadow: isImagePopup ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.2)',
     fontFamily: 'system-ui,sans-serif', fontSize: '11px',
-    overflow: 'hidden', position: 'relative'
   });
-  if (el.content) {
+
+  if (isImagePopup && el.imageUrl) {
+    // Näytä oikea kuva – leveys hallitsee kokoa
+    box.style.background = 'transparent';
+    const img = document.createElement('img');
+    img.src = el.imageUrl;
+    img.alt = '';
+    img.style.cssText = 'display:block;width:100%;height:auto;border-radius:10px';
+    box.appendChild(img);
+  } else if (el.content) {
+    box.style.background    = el.backgroundColor || '#fff';
+    box.style.color         = el.textColor || '#000';
+    box.style.padding       = '14px';
     const div = document.createElement('div');
-    div.innerHTML = el.content;
+    div.innerHTML           = el.content;
+    div.style.fontSize      = '10px';
+    div.style.lineHeight    = '1.4';
     box.appendChild(div);
   } else {
-    box.innerHTML = '<div style="height:12px;background:#e2e8f0;border-radius:3px;width:60%;margin-bottom:8px"></div><div style="height:8px;background:#e2e8f0;border-radius:3px;width:90%"></div>';
+    box.style.background = el.backgroundColor || '#fff';
+    box.style.padding    = '14px';
+    box.innerHTML = '<div style="height:10px;background:#e2e8f0;border-radius:3px;width:60%;margin-bottom:7px"></div><div style="height:7px;background:#e2e8f0;border-radius:3px;width:85%"></div>';
   }
+
   const x = document.createElement('span');
   x.textContent = '✕';
-  x.style.cssText = 'position:absolute;top:6px;right:8px;cursor:pointer;opacity:0.5;font-size:14px';
+  x.style.cssText = `position:absolute;top:5px;right:7px;cursor:pointer;font-size:12px;
+    ${isImagePopup
+      ? 'color:#fff;background:rgba(0,0,0,0.5);border-radius:50%;padding:1px 4px;line-height:1.4'
+      : 'opacity:0.4'}`;
   box.appendChild(x);
   overlay.appendChild(box);
   container.appendChild(overlay);

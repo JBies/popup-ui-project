@@ -122,14 +122,8 @@
         popupElement.id = `popup-${popup._id}`;
         popupElement.style.position = 'fixed';
         popupElement.style.width = `${popup.width || 300}px`;
-        if (popup.popupType === 'image') {
-          // Kuvapopupeille kiinteä korkeus (background-size: contain tarvitsee container-koon)
-          popupElement.style.height = `${popup.height || 300}px`;
-        } else {
-          // Tekstipopupeille sisältö määrää korkeuden — ei lukiteta 200px:iin
-          popupElement.style.minHeight = `${popup.height || 100}px`;
-          popupElement.style.height = 'auto';
-        }
+        // Korkeus määräytyy aina sisällöstä – ei lukita pikseliarvoon
+        popupElement.style.height = 'auto';
         popupElement.style.zIndex = '999999';
         popupElement.style.display = 'none'; // Piilotettu aluksi
         popupElement.style.opacity = '0';
@@ -138,53 +132,46 @@
         // Tulostusloki linkkiä varten
         console.log("Popup link URL:", popup.linkUrl);
         
-        // Lisää kursori-tyyli ja klikattavuuden ilmaisin jos linkki on määritetty
-        if (popup.linkUrl && popup.linkUrl.trim() !== '') {
-            console.log("This popup has a link - making it clickable");
+        // Lisää kursori-tyyli tekstipopupeille jossa on koko-popup-linkki
+        // (kuvapopupeille linkki käsitellään <a>-tagilla kuvan ympärillä)
+        if (popup.linkUrl && popup.linkUrl.trim() !== '' && popup.popupType !== 'image') {
             popupElement.style.cursor = 'pointer';
-            // Lisätään linkki-indikaattori (pieni ikoni)
-            const linkIndicator = document.createElement('div');
-            linkIndicator.innerHTML = '🔗';
-            linkIndicator.style.position = 'absolute';
-            linkIndicator.style.bottom = '5px';
-            linkIndicator.style.right = '5px';
-            linkIndicator.style.fontSize = '16px';
-            linkIndicator.style.opacity = '0.7';
-            linkIndicator.style.zIndex = '1000000';
-            popupElement.appendChild(linkIndicator);
         }
         
         // Käsittele "image"-popup-tyyppi erikseen
         if (popup.popupType === 'image' && popup.imageUrl) {
-            // Firebase signed URL:eihin ei lisätä ?v= parametria (rikkoo allekirjoituksen)
             const isFirebaseUrl = popup.imageUrl.includes('storage.googleapis.com') || popup.imageUrl.includes('X-Goog-');
             const imageUrl = isFirebaseUrl ? popup.imageUrl : popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');
-            popupElement.style.background = `url("${imageUrl}") no-repeat center center`;
-            popupElement.style.backgroundSize = 'contain';
+
+            // Käytetään <img> tagia taustagrafiikan sijaan – leveys hallitsee kokoa, korkeus skaalautuu automaattisesti
             popupElement.style.padding = '0';
-            
-            // Lisää vain sulkunappi
+            popupElement.style.overflow = 'hidden';
+            popupElement.style.background = 'transparent';
+            popupElement.style.boxShadow = 'none';
+
+            const imgEl = document.createElement('img');
+            imgEl.src = imageUrl;
+            imgEl.alt = '';
+            imgEl.style.cssText = 'display:block;width:100%;height:auto;border-radius:4px';
+
+            if (popup.linkUrl && popup.linkUrl.trim()) {
+                const linkWrap = document.createElement('a');
+                linkWrap.href = popup.linkUrl;
+                linkWrap.target = '_blank';
+                linkWrap.rel = 'noopener';
+                linkWrap.style.display = 'block';
+                linkWrap.appendChild(imgEl);
+                popupElement.appendChild(linkWrap);
+            } else {
+                popupElement.appendChild(imgEl);
+            }
+
+            // Sulkunappi kuvan yläpuolelle
             const closeButton = document.createElement('div');
-            closeButton.innerHTML = "×";
-            closeButton.style.position = 'absolute';
-            closeButton.style.top = '-30px';
-            closeButton.style.left = '50%';
-            closeButton.style.transform = 'translateX(-50%)';
-            closeButton.style.cursor = 'pointer';
-            closeButton.style.fontSize = '26px';
-            closeButton.style.width = '30px';
-            closeButton.style.height = '30px';
-            closeButton.style.display = 'flex';
-            closeButton.style.alignItems = 'center';
-            closeButton.style.justifyContent = 'center';
-            closeButton.style.fontWeight = 'bold';
-            closeButton.style.color = '#ffffff';
-            closeButton.style.backgroundColor = '#000000';
-            closeButton.style.borderRadius = '50%';
-            closeButton.style.border = '2px solid #000000';
-            closeButton.style.textShadow = '0 0 3px rgba(0,0,0,0.5)';
+            closeButton.innerHTML = '×';
+            closeButton.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);cursor:pointer;font-size:26px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;background:#000;border-radius:50%;border:2px solid #000';
             closeButton.addEventListener('click', function(e) {
-                e.stopPropagation(); // Estä klikkauksen leviäminen popupiin
+                e.stopPropagation();
                 closePopup(popup._id);
             });
             popupElement.appendChild(closeButton);

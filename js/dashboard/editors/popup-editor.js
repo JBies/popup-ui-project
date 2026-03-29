@@ -78,19 +78,13 @@ export function renderPopupFields(container, cfg = {}, el = {}) {
         <input type="number" name="width" value="${el.width || 400}" min="200" max="900">
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-group" id="popup-height-group" style="${subtype === 'image' ? '' : 'display:none'}">
-        <label>Korkeus (px) <span style="font-size:11px;color:#94a3b8;font-weight:400">kuvapopupille</span></label>
-        <input type="number" name="height" value="${el.height || 300}" min="100" max="900">
-      </div>
-      <div class="form-group" id="popup-animation-group" style="${subtype === 'image' ? 'display:none' : ''}">
-        <label>Animaatio</label>
-        <select name="animation">
-          <option value="none"  ${(el.animation||'none') === 'none' ? 'selected':''}>Ei animaatiota</option>
-          <option value="fade"  ${el.animation === 'fade'  ? 'selected':''}>Häivytys</option>
-          <option value="slide" ${el.animation === 'slide' ? 'selected':''}>Liu'utus</option>
-        </select>
-      </div>
+    <div class="form-group" id="popup-animation-group" style="${subtype === 'image' ? 'display:none' : ''}">
+      <label>Animaatio</label>
+      <select name="animation">
+        <option value="none"  ${(el.animation||'none') === 'none' ? 'selected':''}>Ei animaatiota</option>
+        <option value="fade"  ${el.animation === 'fade'  ? 'selected':''}>Häivytys</option>
+        <option value="slide" ${el.animation === 'slide' ? 'selected':''}>Liu'utus</option>
+      </select>
     </div>
     <div class="form-group">
       <label>Linkki-URL <span style="font-size:11px;color:#94a3b8;font-weight:400">(koko popup klikattavaksi)</span></label>
@@ -216,7 +210,6 @@ export function renderPopupFields(container, cfg = {}, el = {}) {
       const isImg = v === 'image';
       container.querySelector('#popup-image-group').style.display      = isImg ? '' : 'none';
       container.querySelector('#popup-content-section').style.display  = isImg ? 'none' : '';
-      container.querySelector('#popup-height-group').style.display     = isImg ? '' : 'none';
       container.querySelector('#popup-animation-group').style.display  = isImg ? 'none' : '';
       container.querySelector('#pf-bigtext-wrap').style.display        = v === 'offer' ? '' : 'none';
       // Täytä oletukset tyhjille kentille
@@ -337,7 +330,6 @@ export function getPopupData(container) {
     position:          g('position')?.value           || 'center',
     animation:         g('animation')?.value          || 'none',
     width:             parseInt(g('width')?.value)    || 400,
-    height:            parseInt(g('height')?.value)   || 300,
     content:           container.querySelector('#popup-content-final')?.value || '',
     imageUrl:          g('imageUrl')?.value?.trim()           || '',
     imageFirebasePath: g('imageFirebasePath')?.value?.trim()  || '',

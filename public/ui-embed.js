@@ -348,18 +348,47 @@
         background: 'rgba(0,0,0,0.4)'
       });
       var box = document.createElement('div');
+      var isImagePopup = el.popupType === 'image' || (el.config && el.config.popupSubtype === 'image');
       Object.assign(box.style, {
-        position: 'relative', backgroundColor: el.backgroundColor || '#fff',
-        color: el.textColor || '#000', borderRadius: '12px',
-        padding: '24px', maxWidth: '90vw', width: (el.width || 400) + 'px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.2)', fontFamily: 'system-ui, sans-serif'
+        position: 'relative', borderRadius: '12px',
+        maxWidth: '90vw', width: (el.width || 400) + 'px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.2)', fontFamily: 'system-ui, sans-serif',
+        overflow: 'hidden'
       });
-      if (el.content) box.innerHTML = el.content;
+
+      if (isImagePopup && el.imageUrl) {
+        // Kuvapopup: <img> tag täyttää leveyden, korkeus skaalautuu automaattisesti
+        box.style.padding = '0';
+        box.style.background = 'transparent';
+        var imgEl = document.createElement('img');
+        imgEl.src = el.imageUrl;
+        imgEl.alt = '';
+        imgEl.style.cssText = 'display:block;width:100%;height:auto;border-radius:12px';
+        if (el.linkUrl && el.linkUrl.trim()) {
+          var linkWrap = document.createElement('a');
+          linkWrap.href = el.linkUrl; linkWrap.target = '_blank'; linkWrap.rel = 'noopener';
+          linkWrap.style.display = 'block';
+          linkWrap.appendChild(imgEl);
+          box.appendChild(linkWrap);
+        } else {
+          box.appendChild(imgEl);
+        }
+      } else {
+        // Tekstipopup
+        box.style.backgroundColor = el.backgroundColor || '#fff';
+        box.style.color = el.textColor || '#000';
+        box.style.padding = '24px';
+        if (el.content) box.innerHTML = el.content;
+      }
+
       var x = document.createElement('button');
       x.textContent = '✕';
       Object.assign(x.style, {
         position: 'absolute', top: '10px', right: '12px',
-        background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer'
+        background: isImagePopup ? 'rgba(0,0,0,0.5)' : 'none',
+        color: isImagePopup ? '#fff' : 'inherit',
+        border: 'none', fontSize: '18px', cursor: 'pointer', borderRadius: '50%',
+        lineHeight: '1', padding: isImagePopup ? '2px 6px' : '0'
       });
       x.addEventListener('click', function () { overlay.remove(); });
       box.appendChild(x);
