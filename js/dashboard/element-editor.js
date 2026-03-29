@@ -17,7 +17,8 @@ let cachedSites = null;
 
 const TYPE_LABELS = {
   sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in', popup: 'Popup',
-  social_proof: 'Social Proof', scroll_progress: 'Scroll Progress', lead_form: 'Lead Form'
+  social_proof: 'Social Proof', scroll_progress: 'Scroll Progress', lead_form: 'Lead Form',
+  stats_only: 'Tilastojen kerääjä'
 };
 
 export function initEditor() {}
@@ -85,8 +86,8 @@ export async function openEditor(data = {}) {
   panel.addEventListener('change', () => setTimeout(updatePreview, 50));
   panel.addEventListener('input',  () => setTimeout(updatePreview, 200));
 
-  // Scroll editoriin
-  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Scroll sivun alkuun jotta sticky editor näkyy heti
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function buildEditorHTML(type, data = {}, sites = []) {
@@ -144,11 +145,11 @@ function buildEditorHTML(type, data = {}, sites = []) {
         <div class="form-row">
           <div class="form-group">
             <label>Aloituspäivä (vapaaehtoinen)</label>
-            <input type="date" id="el-start" value="${timing.startDate && timing.startDate !== 'default' ? timing.startDate.slice(0,10) : ''}">
+            <input type="date" id="el-start" value="${timing.startDate && timing.startDate !== 'default' ? (() => { try { return new Date(timing.startDate).toISOString().slice(0,10); } catch(e) { return ''; } })() : ''}">
           </div>
           <div class="form-group">
             <label>Lopetuspäivä (vapaaehtoinen)</label>
-            <input type="date" id="el-end" value="${timing.endDate && timing.endDate !== 'default' ? timing.endDate.slice(0,10) : ''}">
+            <input type="date" id="el-end" value="${timing.endDate && timing.endDate !== 'default' ? (() => { try { return new Date(timing.endDate).toISOString().slice(0,10); } catch(e) { return ''; } })() : ''}">
           </div>
         </div>
       </div>
@@ -195,6 +196,28 @@ function proLockHTML(feature) {
 function renderTypeFields(container, type, data) {
   const cfg = data.elementConfig || {};
   const user = window.__currentUser__;
+
+  // Tilastojen kerääjä – ei visuaalista elementtiä, vain tilastonkeruu
+  if (type === 'stats_only') {
+    container.innerHTML = `
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:20px 24px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <span style="font-size:24px">📊</span>
+          <div>
+            <div style="font-weight:700;font-size:15px;color:#14532d">Tilastojen kerääjä</div>
+            <div style="font-size:13px;color:#166534">Kerää kävijätilastoja näyttämättä mitään sivustolla</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:#15803d;line-height:1.6">
+          Tämä elementti <strong>ei näytä mitään</strong> sivustosi kävijöille — se ainoastaan rekisteröi näyttökerran kun skripti suoritetaan. Hyödyllinen kun haluat seurata tietyn sivun tai kohdan kävijämäärää ilman häiritseviä popupeja tai bannereitä.
+        </div>
+        <div style="margin-top:14px;padding:10px 14px;background:#dcfce7;border-radius:7px;font-size:12px;color:#14532d">
+          💡 <strong>Käyttö:</strong> Lisää asennuskoodi sivulle ja tilastot näkyvät dashboardissa normaalisti (näyttökerrat, klikkaukset).
+        </div>
+      </div>`;
+    return;
+  }
+
   // Lead Form – tarkista onko sallittu
   if (type === 'lead_form') {
     const leadLimit = user?.limits?.lead_form ?? 0;
@@ -216,6 +239,7 @@ function renderTypeFields(container, type, data) {
 function getTypeData() {
   const fieldsContainer = document.getElementById('type-fields');
   if (!fieldsContainer) return {};
+  if (currentType === 'stats_only') return { popupType: 'stats_only', content: '', width: 0, height: 0 };
   if (currentType === 'sticky_bar')     return { elementConfig: getStickyBarData(fieldsContainer) };
   if (currentType === 'fab')            return { elementConfig: getFabData(fieldsContainer) };
   if (currentType === 'social_proof')   return { elementConfig: getSocialProofData(fieldsContainer) };
@@ -250,8 +274,8 @@ function buildPayload() {
     targeting,
     abTest,
     siteId: siteId || null,
-    ...(startDate && { startDate }),
-    ...(endDate && { endDate }),
+    startDate: startDate || '',
+    endDate: endDate || '',
     ...typeData
   };
 }

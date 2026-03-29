@@ -37,7 +37,11 @@ export function renderPopupFields(container, cfg = {}, el = {}) {
         <label>Leveys (px)</label>
         <input type="number" name="width" value="${el.width || 400}" min="200" max="900">
       </div>
-      <div class="form-group">
+      <div class="form-group" id="popup-height-group" style="${subtype === 'image' ? '' : 'display:none'}">
+        <label>Korkeus (px) <span style="font-size:11px;color:#94a3b8;font-weight:400">kuvapopupille</span></label>
+        <input type="number" name="height" value="${el.height || 300}" min="100" max="900">
+      </div>
+      <div class="form-group" id="popup-animation-group" style="${subtype === 'image' ? 'display:none' : ''}">
         <label>Animaatio</label>
         <select name="animation">
           <option value="none"  ${(el.animation||'none') === 'none' ? 'selected':''}>Ei animaatiota</option>
@@ -47,7 +51,7 @@ export function renderPopupFields(container, cfg = {}, el = {}) {
       </div>
     </div>
 
-    <div class="section-title">Sisältö</div>
+    <div class="section-title" id="popup-content-title">Sisältö</div>
     <div class="form-group">
       <label>Sisältö (HTML)</label>
       <textarea name="content" rows="5" placeholder="<h2>Otsikko</h2><p>Teksti...</p>">${el.content || ''}</textarea>
@@ -96,10 +100,15 @@ export function renderPopupFields(container, cfg = {}, el = {}) {
       </div>
     </div>`;
 
-  // Tyyppivaihto → näytä/piilota kuvakenttä
+  // Tyyppivaihto → näytä/piilota kuvakenttä, korkeuskenttä ja animaatiovaihtoehto
   container.querySelector('[name="popupSubtype"]')?.addEventListener('change', e => {
-    const imgGrp = container.querySelector('#popup-image-group');
-    if (imgGrp) imgGrp.style.display = e.target.value === 'image' ? '' : 'none';
+    const isImage = e.target.value === 'image';
+    const imgGrp    = container.querySelector('#popup-image-group');
+    const heightGrp = container.querySelector('#popup-height-group');
+    const animGrp   = container.querySelector('#popup-animation-group');
+    if (imgGrp)    imgGrp.style.display    = isImage ? '' : 'none';
+    if (heightGrp) heightGrp.style.display = isImage ? '' : 'none';
+    if (animGrp)   animGrp.style.display   = isImage ? 'none' : '';
   });
 
   // ── Apufunktiot ──────────────────────────────────────────────────────────
@@ -183,6 +192,7 @@ export function getPopupData(container) {
     position:           g('position')?.value || 'center',
     animation:          g('animation')?.value || 'none',
     width:              parseInt(g('width')?.value) || 400,
+    height:             parseInt(g('height')?.value) || 300,
     content:            g('content')?.value || '',
     imageUrl:           g('imageUrl')?.value?.trim() || '',
     imageFirebasePath:  g('imageFirebasePath')?.value?.trim() || '',

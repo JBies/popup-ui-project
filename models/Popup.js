@@ -48,7 +48,7 @@ const popupSchema = new mongoose.Schema({
     // Uusi elementtityyppi (Phase 1+)
     elementType: {
         type: String,
-        enum: ['popup', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress', 'lead_form'],
+        enum: ['popup', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress', 'lead_form', 'stats_only'],
         default: 'popup'
     },
     // Targeting Engine v2

@@ -121,14 +121,21 @@ class PopupController {
         frequency: frequency || 'always'
       };
 
-      // Lisää päivämäärät vain jos ne ovat valideja
-      if (startDate && startDate !== 'default' && startDate !== 'null') {
-        timingData.startDate = new Date(startDate);
+      // Tallenna päivämäärät suoraan stringinä (ei new Date() — se rikkoo String-kentän)
+      if (startDate && startDate !== 'default' && startDate !== 'null' && startDate !== '') {
+        timingData.startDate = startDate;
+      } else {
+        timingData.startDate = 'default';
       }
 
-      if (endDate && endDate !== 'default' && endDate !== 'null') {
-        timingData.endDate = new Date(endDate);
+      if (endDate && endDate !== 'default' && endDate !== 'null' && endDate !== '') {
+        timingData.endDate = endDate;
+      } else {
+        timingData.endDate = 'default';
       }
+
+      // stats_only-tyyppi asettaa popupTypen automaattisesti
+      const resolvedPopupType = (elementType === 'stats_only') ? 'stats_only' : (popupType || 'rectangle');
 
       // Luo uusi popup
       const newPopup = new Popup({
@@ -137,7 +144,7 @@ class PopupController {
         elementType: elementType || 'popup',
         elementConfig: elementConfig || {},
         targeting: targeting || { enabled: false, matchType: 'all', rules: [] },
-        popupType: popupType || 'rectangle',
+        popupType: resolvedPopupType,
         content,
         width: parseInt(width) || 200,
         height: parseInt(height) || 150,
@@ -287,14 +294,21 @@ class PopupController {
         frequency: frequency || 'always'
       };
 
-      // Lisää päivämäärät vain jos ne ovat valideja
-      if (startDate && startDate !== 'default' && startDate !== 'null') {
-        timingData.startDate = new Date(startDate);
+      // Tallenna päivämäärät suoraan stringinä (ei new Date() — se rikkoo String-kentän)
+      if (startDate && startDate !== 'default' && startDate !== 'null' && startDate !== '') {
+        timingData.startDate = startDate;
+      } else {
+        timingData.startDate = 'default';
       }
 
-      if (endDate && endDate !== 'default' && endDate !== 'null') {
-        timingData.endDate = new Date(endDate);
+      if (endDate && endDate !== 'default' && endDate !== 'null' && endDate !== '') {
+        timingData.endDate = endDate;
+      } else {
+        timingData.endDate = 'default';
       }
+
+      // stats_only-tyyppi asettaa popupTypen automaattisesti
+      const resolvedPopupType = (elementType === 'stats_only') ? 'stats_only' : (popupType || 'rectangle');
 
       // Päivitä popup
       const updatedPopup = await Popup.findOneAndUpdate(
@@ -304,7 +318,7 @@ class PopupController {
           ...(elementType && { elementType }),
           ...(elementConfig && { elementConfig }),
           ...(targeting !== undefined && { targeting }),
-          popupType: popupType || 'rectangle',
+          popupType: resolvedPopupType,
           content,
           width: parseInt(width) || 200,
           height: parseInt(height) || 150,

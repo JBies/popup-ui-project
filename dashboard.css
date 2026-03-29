@@ -250,7 +250,14 @@ body {
   border-radius: var(--radius);
   overflow: hidden;
 }
-#editor-panel.open { display: flex; flex-direction: column; }
+#editor-panel.open {
+  display: flex;
+  flex-direction: column;
+  /* Rajoita korkeus viewporttiin: header + footer ovat aina näkyvissä */
+  max-height: calc(100vh - var(--topbar-h) - 48px);
+  position: sticky;
+  top: calc(var(--topbar-h) + 12px);
+}
 
 .editor-header {
   display: flex;
@@ -265,10 +272,16 @@ body {
 .editor-body {
   display: grid;
   grid-template-columns: 1fr 380px;
-  min-height: 540px;
+  min-height: 0;      /* sallii kutistumisen alle min-content */
+  flex: 1;            /* täyttää kaiken tilan headerin ja footerin välissä */
+  overflow: hidden;   /* rajaa, jotta lapset voivat scrollata */
 }
-.editor-form { padding: 24px; overflow-y: auto; border-right: 1px solid var(--border); }
-.editor-preview-pane { padding: 20px; background: #f8fafc; }
+.editor-form {
+  padding: 24px;
+  overflow-y: auto;   /* nyt toimii, koska korkeus on rajattu */
+  border-right: 1px solid var(--border);
+}
+.editor-preview-pane { padding: 20px; background: #f8fafc; overflow-y: auto; }
 
 /* Form-kentät */
 .form-group { margin-bottom: 18px; }

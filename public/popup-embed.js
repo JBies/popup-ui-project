@@ -122,7 +122,14 @@
         popupElement.id = `popup-${popup._id}`;
         popupElement.style.position = 'fixed';
         popupElement.style.width = `${popup.width || 300}px`;
-        popupElement.style.height = `${popup.height || 200}px`;
+        if (popup.popupType === 'image') {
+          // Kuvapopupeille kiinteä korkeus (background-size: contain tarvitsee container-koon)
+          popupElement.style.height = `${popup.height || 300}px`;
+        } else {
+          // Tekstipopupeille sisältö määrää korkeuden — ei lukiteta 200px:iin
+          popupElement.style.minHeight = `${popup.height || 100}px`;
+          popupElement.style.height = 'auto';
+        }
         popupElement.style.zIndex = '999999';
         popupElement.style.display = 'none'; // Piilotettu aluksi
         popupElement.style.opacity = '0';

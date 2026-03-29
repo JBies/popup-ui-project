@@ -61,7 +61,12 @@ function renderHelp() {
         card('fa-envelope','#065f46','Lead Form',
           'Liidilomake, joka kerää yhteystietoja suoraan tietokantaan. Kentät ovat täysin konfiguroitavissa. Liidit näkyvät tilastoissa.',
           ['Yhteydenottopyyntö','Uutiskirjetilaus','Varaa demo -lomake','Kilpailun osallistuminen'],
-          ['leadFields – lista kentistä (teksti/email/puhelin/textarea)','leadSubmitText – lähetä-napin teksti','leadSuccessMsg – onnistumisviesti','Kaikki liidit tallentuvat automaattisesti'])
+          ['leadFields – lista kentistä (teksti/email/puhelin/textarea)','leadSubmitText – lähetä-napin teksti','leadSuccessMsg – onnistumisviesti','Kaikki liidit tallentuvat automaattisesti']),
+
+        card('fa-chart-bar','#64748b','Tilastojen kerääjä',
+          'Näkymätön tilastopiste — ei näytä kävijöille mitään visuaalista elementtiä. Rekisteröi ainoastaan näyttökerran kun skripti suoritetaan sivulla. Hyödyllinen kun haluat seurata tietyn sivun kävijämäärää ilman häiritseviä popupeja tai bannereitä.',
+          ['Kävijämäärän seuranta tietylle sivulle','Funnel-analytiikka: kuinka moni saavuttaa tietyn kohdan','Sivuston suosituimpien osioiden kartoitus','A/B-testaus sivuston liikenteelle'],
+          ['Ei visuaalisia asetuksia – pelkkä nimi riittää','Tilastot näkyvät normaalisti dashboardissa','Asenna samalla skriptillä kuin muut elementit','Ei häiritse sivuston ulkoasua lainkaan'])
       ])}
 
       <!-- Kuvakirjasto -->
@@ -186,13 +191,14 @@ function renderHelp() {
 
       <!-- Sähköposti-ilmoitukset -->
       ${section('fa-envelope','Sähköposti-ilmoitukset','Automaattiset ilmoitukset ja viikkoraportti', [
-        infoBlock('Asetukset löytyvät Dashboard → Asennuskoodi → Sähköposti-ilmoitukset -osiosta. Ei erillistä integraatiota tarvita – toimii suoraan SMTP-palvelimen kautta.',
+        infoBlock('Asetukset löytyvät <strong>Dashboard → Asennuskoodi-välilehti → Sähköposti-ilmoitukset</strong> -osiosta. Ei erillistä integraatiota tarvita.',
         [
           ['Liidi-ilmoitus','Saat sähköpostin heti kun Lead Form -elementtiin tulee uusi lähetys. Viesti sisältää kaikki lomakkeen kentät ja suoran "Vastaa liidiin" -napin.'],
           ['Viikkoraportti','Joka maanantai klo 8:00 saat yhteenvedon: näyttökerrat, klikkaukset ja liidit + vertailu edelliseen viikkoon. Top 3 parhaiten suoriutunutta elementtiä.'],
-          ['Ilmoitusosoite','Oletuksena käytetään tili-sähköpostiosoitetta. Voit asettaa erillisen osoitteen esim. tiimisähköpostille.'],
-          ['Testisähköposti','Klikkaa "Lähetä testisähköposti" -nappia asetuksissa – näet heti miltä sähköposti näyttää.'],
-          ['Ilmoitusten sammutus','Poista rasti "Liidi-ilmoitus" tai "Viikkoraportti" -ruudusta ja tallenna – ilmoitukset lakkaa välittömästi.'],
+          ['Ilmoitusosoite','Oletuksena käytetään tili-sähköpostiosoitetta (<em>kirjautumiseen käytetty email</em>). Voit asettaa erillisen osoitteen esim. tiimisähköpostille tai myyntipostilaatikkoon — kirjoita osoite kenttään ja tallenna.'],
+          ['Testisähköposti','Klikkaa "Lähetä testisähköposti" -nappia asetuksissa – näet heti miltä ilmoitus näyttää ennen kuin ensimmäinen liidi saapuu.'],
+          ['Ilmoitusten sammutus','Poista rasti "Liidi-ilmoitus" tai "Viikkoraportti" -ruudusta ja klikkaa Tallenna – ilmoitukset lakkaa välittömästi.'],
+          ['Aktivointi','Ominaisuus aktivoituu automaattisesti kun palvelimen SMTP-asetukset on konfiguroitu. Jos et saa sähköposteja, ota yhteyttä ylläpitoon.'],
         ]),
 
         // SMTP-konfiguraatio vain adminille – tavallinen käyttäjä ei aseta .env-tietoja
