@@ -209,7 +209,7 @@ function renderTypeFields(container, type, data) {
           </div>
         </div>
         <div style="font-size:13px;color:#15803d;line-height:1.6">
-          Tämä elementti <strong>ei näytä mitään</strong> sivustosi kävijöille — se ainoastaan rekisteröi näyttökerran kun skripti suoritetaan. Hyödyllinen kun haluat seurata tietyn sivun tai kohdan kävijämäärää ilman häiritseviä popupeja tai bannereitä.
+          Tämä elementti <strong>ei näytä mitään</strong> sivustosi kävijöille — se ainoastaan rekisteröi näyttökerran kun skripti suoritetaan. Hyödyllinen kun haluat seurata tietyn sivun kävijämäärää ennen kuin aktivoit varsinaisen elementin, tai kun tarvitset puhdasta kävijädataa ilman visuaalisia elementtejä.
         </div>
         <div style="margin-top:14px;padding:10px 14px;background:#dcfce7;border-radius:7px;font-size:12px;color:#14532d">
           💡 <strong>Käyttö:</strong> Lisää asennuskoodi sivulle ja tilastot näkyvät dashboardissa normaalisti (näyttökerrat, klikkaukset).
