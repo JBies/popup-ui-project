@@ -285,6 +285,7 @@
             // Lisää kuva, jos on
             if (popup.imageUrl) {
                 const imageElement = document.createElement('img');
+                imageElement.alt = '';
                 // Firebase signed URL:eihin ei lisätä ?v= parametria (rikkoo allekirjoituksen)
                 const isFirebaseUrl = popup.imageUrl.includes('storage.googleapis.com') || popup.imageUrl.includes('X-Goog-');
                 const imageUrl = isFirebaseUrl ? popup.imageUrl : popup.imageUrl + (popup.version ? `?v=${popup.version}` : '');

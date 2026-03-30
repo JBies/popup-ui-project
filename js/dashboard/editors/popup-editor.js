@@ -212,6 +212,14 @@ export function renderPopupFields(container, cfg = {}, el = {}) {
       container.querySelector('#popup-content-section').style.display  = isImg ? 'none' : '';
       container.querySelector('#popup-animation-group').style.display  = isImg ? 'none' : '';
       container.querySelector('#pf-bigtext-wrap').style.display        = v === 'offer' ? '' : 'none';
+      // Tyhjennetään imageUrl kun vaihdetaan pois kuvatyypistä
+      if (!isImg) {
+        container.querySelector('[name="imageUrl"]').value = '';
+        container.querySelector('[name="imageFirebasePath"]').value = '';
+        container.querySelector('#popup-img-preview').style.display = 'none';
+        const removeBtn = container.querySelector('#popup-img-remove');
+        if (removeBtn) removeBtn.style.display = 'none';
+      }
       // Täytä oletukset tyhjille kentille
       const headEl = container.querySelector('#pf-heading');
       if (!headEl?.value) {

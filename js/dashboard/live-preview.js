@@ -228,17 +228,12 @@ function previewLeadForm(container, el, cfg) {
 // ── Popup preview ────────────────────────────────────────
 function previewPopup(container, el) {
   const isImagePopup = el.popupType === 'image' || (el.config && el.config.popupSubtype === 'image');
+  const pos          = el.position || 'center';
+  const isCenter     = pos === 'center';
   const elementW     = el.width || 400;
   const previewW     = container.offsetWidth || 300;
   // Skaalaa esikatselu suhteessa – max 85% previewn leveydestä
   const boxW = Math.min(Math.round(elementW * 0.55), Math.round(previewW * 0.82));
-
-  const overlay = document.createElement('div');
-  Object.assign(overlay.style, {
-    position: 'absolute', inset: '0', zIndex: '10',
-    background: 'rgba(0,0,0,0.35)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center'
-  });
 
   const box = document.createElement('div');
   Object.assign(box.style, {
@@ -278,6 +273,28 @@ function previewPopup(container, el) {
       ? 'color:#fff;background:rgba(0,0,0,0.5);border-radius:50%;padding:1px 4px;line-height:1.4'
       : 'opacity:0.4'}`;
   box.appendChild(x);
-  overlay.appendChild(box);
-  container.appendChild(overlay);
+
+  if (isCenter) {
+    // Keskitetty overlay (alkuperäinen käytös)
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: 'absolute', inset: '0', zIndex: '10',
+      background: 'rgba(0,0,0,0.35)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
+    });
+    overlay.appendChild(box);
+    container.appendChild(overlay);
+  } else {
+    // Näytetään popup oikeassa kulmassa ilman overlay-taustasuodinta
+    const posMap = {
+      'top-left':     { top: '10px',    left: '10px'  },
+      'top-right':    { top: '10px',    right: '10px' },
+      'bottom-left':  { bottom: '10px', left: '10px'  },
+      'bottom-right': { bottom: '10px', right: '10px' },
+    };
+    box.style.position = 'absolute';
+    box.style.zIndex   = '10';
+    Object.assign(box.style, posMap[pos] || posMap['bottom-right']);
+    container.appendChild(box);
+  }
 }
