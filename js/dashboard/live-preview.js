@@ -232,8 +232,9 @@ function previewPopup(container, el) {
   const isCenter     = pos === 'center';
   const elementW     = el.width || 400;
   const previewW     = container.offsetWidth || 300;
-  // Skaalaa esikatselu suhteessa – max 85% previewn leveydestä
-  const boxW = Math.min(Math.round(elementW * 0.55), Math.round(previewW * 0.82));
+  // Kulmissa max 60% leveydestä jotta popup mahtuu kulmaan, muuten 82%
+  const maxRatio = isCenter ? 0.82 : 0.60;
+  const boxW = Math.min(Math.round(elementW * 0.55), Math.round(previewW * maxRatio));
 
   const box = document.createElement('div');
   Object.assign(box.style, {

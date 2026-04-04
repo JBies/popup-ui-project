@@ -166,10 +166,10 @@
                 popupElement.appendChild(imgEl);
             }
 
-            // Sulkunappi kuvan yläpuolelle
+            // Sulkunappi kuvan sisäpuolelle yläoikealle
             const closeButton = document.createElement('div');
             closeButton.innerHTML = '×';
-            closeButton.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);cursor:pointer;font-size:26px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;background:#000;border-radius:50%;border:2px solid #000';
+            closeButton.style.cssText = 'position:absolute;top:10px;right:10px;cursor:pointer;font-size:20px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;background:rgba(0,0,0,0.5);border-radius:50%;line-height:1;z-index:1';
             closeButton.addEventListener('click', function(e) {
                 e.stopPropagation();
                 closePopup(popup._id);
@@ -186,12 +186,12 @@
             popupElement.style.alignItems = 'center';
             popupElement.style.justifyContent = 'center';
             popupElement.style.textAlign = 'center';
-            popupElement.style.overflow = 'auto';
-            
+            popupElement.style.overflow = 'hidden';
+
             // Luodaan sisältökontaineri
             const contentContainer = document.createElement('div');
             contentContainer.style.width = '100%';
-            contentContainer.style.height = '100%';
+            contentContainer.style.height = 'auto';
             contentContainer.style.display = 'flex';
             contentContainer.style.flexDirection = 'column';
             contentContainer.style.alignItems = 'center';
