@@ -141,11 +141,11 @@ function buildWeeklyReport(user, stats, topEls, leads, weekLabel) {
   const statsRow = `
     <table width="100%" cellpadding="6" cellspacing="0">
       <tr>
-        ${statBox('👁️', 'Näyttöä', stats.views, pct(stats.views, stats.prevViews))}
+        ${statBox('👁️', 'Näyttöä yhteensä', stats.views)}
         <td width="8"></td>
-        ${statBox('🖱️', 'Klikkausta', stats.clicks, pct(stats.clicks, stats.prevClicks))}
+        ${statBox('🖱️', 'Klikkausta yhteensä', stats.clicks)}
         <td width="8"></td>
-        ${statBox('📋', 'Liidiä', stats.leads, pct(stats.leads, stats.prevLeads))}
+        ${statBox('📋', 'Liidiä viikolla', stats.leads, pct(stats.leads, stats.prevLeads))}
       </tr>
     </table>`;
 

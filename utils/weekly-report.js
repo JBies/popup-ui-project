@@ -34,9 +34,8 @@ function getWeekRanges() {
   prevSunday.setMilliseconds(-1);
 
   // Viikkonumero viikkoraporttiviikkolle
-  const startOfYear = new Date(lastMonday.getFullYear(), 0, 1);
-  const weekNum = Math.ceil(((lastMonday - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
-  const weekLabel = `Viikko ${weekNum} / ${lastMonday.getFullYear()}`;
+  const fmt = (d) => d.toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric' });
+  const weekLabel = `${fmt(lastMonday)}–${fmt(lastSunday)} ${lastMonday.getFullYear()}`;
 
   return { lastMonday, lastSunday, prevMonday, prevSunday, weekLabel };
 }
@@ -70,7 +69,8 @@ async function getStatsForPeriod(userId, from, to) {
  * Hakee top-3 elementtiä konversion (clicks/views) perusteella
  */
 async function getTopElements(userId) {
-  const popups = await Popup.find({ userId }).select('name elementType statistics').lean();
+  const popups = await Popup.find({ userId, elementType: { $ne: 'stats_only' } })
+    .select('name elementType statistics').lean();
   return popups
     .map(p => ({
       name:  p.name || 'Nimetön',
@@ -129,19 +129,17 @@ async function sendWeeklyReports() {
       const toEmail = user.emailNotifications?.notifyEmail?.trim() || user.email;
       if (!toEmail) continue;
 
-      // Tilastot tältä viikolta ja edelliseltä
+      // Tilastot tältä viikolta ja edelliseltä (vain leads on viikkokohtainen)
       const [thisPeriod, prevPeriod] = await Promise.all([
         getStatsForPeriod(user._id, lastMonday, lastSunday),
         getStatsForPeriod(user._id, prevMonday, prevSunday),
       ]);
 
       const stats = {
-        views:      thisPeriod.views,
-        clicks:     thisPeriod.clicks,
-        leads:      thisPeriod.leads,
-        prevViews:  prevPeriod.views,
-        prevClicks: prevPeriod.clicks,
-        prevLeads:  prevPeriod.leads,
+        views:     thisPeriod.views,
+        clicks:    thisPeriod.clicks,
+        leads:     thisPeriod.leads,
+        prevLeads: prevPeriod.leads,
       };
 
       // Skipata jos viikolla ei tullut yhtään liidiä
