@@ -65,7 +65,7 @@ function delta(pct) {
 /**
  * Rakentaa liidi-ilmoitussähköpostin.
  * @param {Object} popup  – Popup-dokumentti (name, elementType)
- * @param {Object} lead   – Lead-dokumentti (data, submittedAt, variant)
+ * @param {Object} lead   – Lead-dokumentti (data, submittedAt)
  * @returns {{ subject: string, html: string }}
  */
 function buildLeadNotification(popup, lead) {
@@ -91,14 +91,9 @@ function buildLeadNotification(popup, lead) {
       </table>`
     : '<p style="color:#64748b;font-size:13px;margin-top:12px">Lomake lähetettiin ilman kenttiä.</p>';
 
-  const variantBadge = lead.variant && lead.variant !== 'A'
-    ? `<span style="background:#ede9fe;color:#6d28d9;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-left:8px">Variantti ${escHtml(lead.variant)}</span>`
-    : '';
-
   const body = `
     <div style="margin-bottom:6px">
       <span style="background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">UUSI LIIDI</span>
-      ${variantBadge}
     </div>
     <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:12px 0 4px">${escHtml(popup.name || 'Elementti')}</h1>
     <p style="font-size:13px;color:#64748b;margin:0 0 20px">${time}</p>
@@ -185,19 +180,11 @@ function buildWeeklyReport(user, stats, topEls, leads, weekLabel) {
       </div>`
     : '';
 
-  const noActivity = stats.views === 0 && stats.clicks === 0 && stats.leads === 0
-    ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px 16px;margin-top:20px;font-size:13px;color:#92400e">
-        💡 <strong>Vinkki:</strong> Ei vielä näyttöjä tällä viikolla? Tarkista että embed-koodi on asennettu sivustollesi oikein.
-        ${btn(`${APP_URL}/dashboard#settings`, 'Asennusohje →', '#d97706')}
-      </div>`
-    : '';
-
   const body = `
     <p style="font-size:16px;color:#374151;margin:0 0 20px">Hei ${escHtml(firstName)}! Tässä viikkosi yhteenveto <strong>${escHtml(weekLabel)}</strong>:</p>
     ${statsRow}
     ${topElsHtml}
     ${leadsHtml}
-    ${noActivity}
     <div style="margin-top:28px">
       ${btn(`${APP_URL}/dashboard`, '📊 Avaa dashboard')}
     </div>`;

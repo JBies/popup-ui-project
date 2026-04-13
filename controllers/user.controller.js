@@ -5,6 +5,9 @@ const { logAudit } = require('../utils/audit');
 const { sendMail } = require('../utils/email');
 const { buildWelcomeEmail } = require('../utils/email-templates');
 
+// Rate limit testisähköpostille: max 1 per tunti per käyttäjä (in-memory, nollautuu serverin käynnistyksellä)
+const testEmailCooldown = new Map();
+
 /**
  * UserController vastaa käyttäjien hallinnan toimintalogiikasta
  */
@@ -279,16 +282,29 @@ static async updateUserPopupLimit(req, res) {
    */
   static async sendTestEmail(req, res) {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+
+    // Rate limit: max 1 testisähköposti per tunti per käyttäjä
+    const userId = String(req.user._id);
+    const lastSent = testEmailCooldown.get(userId);
+    const ONE_HOUR = 60 * 60 * 1000;
+    if (lastSent && Date.now() - lastSent < ONE_HOUR) {
+      const minLeft = Math.ceil((ONE_HOUR - (Date.now() - lastSent)) / 60000);
+      return res.status(429).json({ message: `Odota vielä ${minLeft} minuuttia ennen uutta testiviestiä.` });
+    }
+
     try {
-      const { sendMail } = require('../utils/email');
       const { buildTestEmail } = require('../utils/email-templates');
       const user = await User.findById(req.user._id).select('email emailNotifications displayName').lean();
       const toEmail = user.emailNotifications?.notifyEmail?.trim() || user.email;
       if (!toEmail) return res.status(400).json({ message: 'Ei sähköpostiosoitetta' });
       const { subject, html } = buildTestEmail(user.displayName);
       const ok = await sendMail(toEmail, subject, html);
-      if (ok) res.json({ success: true, to: toEmail });
-      else res.status(500).json({ message: 'Sähköpostin lähetys epäonnistui. Tarkista SMTP-asetukset.' });
+      if (ok) {
+        testEmailCooldown.set(userId, Date.now());
+        res.json({ success: true, to: toEmail });
+      } else {
+        res.status(500).json({ message: 'Sähköpostin lähetys epäonnistui. Tarkista SMTP-asetukset.' });
+      }
     } catch (err) {
       res.status(500).json({ message: 'Virhe testisähköpostin lähetyksessä', error: err.toString() });
     }
