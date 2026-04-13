@@ -88,7 +88,6 @@ function render(container) {
             <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
               <th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151;white-space:nowrap">Päivämäärä</th>
               ${fieldKeys.map(k => `<th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151;text-transform:capitalize">${esc(k)}</th>`).join('')}
-              <th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151">A/B</th>
             </tr>
           </thead>
           <tbody>
@@ -96,8 +95,7 @@ function render(container) {
               <tr style="border-bottom:1px solid #f1f5f9;transition:background 0.1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
                 <td style="padding:10px 12px;color:#64748b;white-space:nowrap">${new Date(lead.submittedAt).toLocaleString('fi-FI')}</td>
                 ${fieldKeys.map(k => `<td style="padding:10px 12px;color:#0f172a;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(lead.data?.[k]||'')}">${esc(lead.data?.[k] || '–')}</td>`).join('')}
-                <td style="padding:10px 12px"><span style="background:${lead.variant==='B'?'#f5f3ff':'#f0fdf4'};color:${lead.variant==='B'?'#7c3aed':'#15803d'};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700">${lead.variant || 'A'}</span></td>
-              </tr>`).join('') : `<tr><td colspan="${fieldKeys.length + 2}" style="padding:40px;text-align:center;color:#94a3b8">Ei liidejä haulla.</td></tr>`}
+              </tr>`).join('') : `<tr><td colspan="${fieldKeys.length + 1}" style="padding:40px;text-align:center;color:#94a3b8">Ei liidejä haulla.</td></tr>`}
           </tbody>
         </table>
       </div>
@@ -117,11 +115,10 @@ function render(container) {
 
 function downloadCSV(leads, fieldKeys) {
   if (!leads.length) { showToast('Ei liidejä vietäväksi', 'error'); return; }
-  const headers = ['Päivämäärä', ...fieldKeys, 'A/B-variantti'];
+  const headers = ['Päivämäärä', ...fieldKeys];
   const rows = leads.map(l => [
     new Date(l.submittedAt).toLocaleString('fi-FI'),
     ...fieldKeys.map(k => l.data?.[k] || ''),
-    l.variant || 'A'
   ]);
   const csvContent = [headers, ...rows]
     .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
