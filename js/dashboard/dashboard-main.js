@@ -31,7 +31,7 @@ async function init() {
   const avatarEl = document.getElementById('user-avatar');
   if (nameEl) nameEl.textContent = user.displayName || user.email || '';
   if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Admin' : 'Käyttäjä';
-  if (avatarEl && user.profilePicture) avatarEl.src = user.profilePicture;
+  if (avatarEl && user.profilePicture) { avatarEl.src = user.profilePicture; avatarEl.style.display = ''; }
   if (user.role === 'admin') {
     const adminLink = document.getElementById('nav-admin');
     if (adminLink) adminLink.style.display = 'flex';
