@@ -1,13 +1,9 @@
 // js/dashboard/element-editor.js
-import { renderStickyBarFields, getStickyBarData }           from './editors/sticky-bar-editor.js';
-import { renderFabFields, getFabData }                       from './editors/fab-editor.js';
-import { renderSlideInFields, getSlideInData }               from './editors/slide-in-editor.js';
-import { renderPopupFields, getPopupData }                   from './editors/popup-editor.js';
-import { renderSocialProofFields, getSocialProofData }       from './editors/social-proof-editor.js';
-import { renderScrollProgressFields, getScrollProgressData } from './editors/scroll-progress-editor.js';
-import { renderTargetingFields, getTargetingData }           from './editors/targeting-editor.js';
-import { renderLeadFormFields, getLeadFormData }             from './editors/lead-form-editor.js';
-import { renderAbTestFields, getAbTestData }                 from './editors/ab-test-editor.js';
+import { renderStickyBarFields, getStickyBarData } from './editors/sticky-bar-editor.js';
+import { renderFabFields, getFabData }             from './editors/fab-editor.js';
+import { renderSlideInFields, getSlideInData }     from './editors/slide-in-editor.js';
+import { renderPopupFields, getPopupData }         from './editors/popup-editor.js';
+import { renderLeadFormFields, getLeadFormData }   from './editors/lead-form-editor.js';
 import { renderPreview }  from './live-preview.js';
 import { showToast }      from './dashboard-main.js';
 
@@ -17,8 +13,7 @@ let cachedSites = null;
 
 const TYPE_LABELS = {
   sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in', popup: 'Popup',
-  social_proof: 'Social Proof', scroll_progress: 'Scroll Progress', lead_form: 'Lead Form',
-  stats_only: 'Tilastojen kerääjä'
+  lead_form: 'Lead Form', stats_only: 'Tilastojen kerääjä'
 };
 
 export function initEditor() {}
@@ -30,7 +25,6 @@ async function loadSites() {
     if (r.ok) cachedSites = await r.json();
     else cachedSites = [];
   } catch { cachedSites = []; }
-  // Tyhjennä cache sivustojen muuttuessa
   window.addEventListener('sites-updated', () => { cachedSites = null; });
   return cachedSites;
 }
@@ -43,50 +37,30 @@ export async function openEditor(data = {}) {
   if (!panel) return;
   panel.classList.add('open');
 
-  // Lataa sivustot ennen HTML:n rakentamista
   const sites = await loadSites();
   panel.innerHTML = buildEditorHTML(currentType, data, sites);
 
-  // Aseta valittu sivusto
   const siteSelect = document.getElementById('el-site');
   if (siteSelect && data.siteId) siteSelect.value = String(data.siteId);
 
-  // Render type-specific fields
   const fieldsContainer = document.getElementById('type-fields');
   renderTypeFields(fieldsContainer, currentType, data);
 
-  // Targeting – tarkista oikeus
-  const targetingSection = document.getElementById('targeting-section');
-  if (targetingSection) {
-    const user = window.__currentUser__;
-    const canTarget = !user || user.role === 'admin' || user.limits?.canUseTargeting;
-    if (!canTarget) {
-      const contact = `mailto:tuki@uimanager.fi?subject=Pro-tili%20päivitys`;
-      targetingSection.innerHTML = `
-        <div style="padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;display:flex;align-items:center;gap:12px;margin-top:8px">
-          <span style="font-size:20px">🔒</span>
-          <div style="flex:1;font-size:13px;color:#92400e"><strong>Targeting</strong> on Pro-ominaisuus.</div>
-          <a href="${contact}" style="background:#f59e0b;color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap">Päivitä →</a>
-        </div>`;
-    } else {
-      renderTargetingFields(targetingSection, data.targeting || {});
-    }
-  }
+  if (currentType !== 'stats_only') updatePreview();
 
-  // A/B test
-  const abSection = document.getElementById('ab-test-section');
-  if (abSection) renderAbTestFields(abSection, data.abTest || {});
-
-  // Preview initialisointi
-  updatePreview();
-
-  // Event-kuuntelijat
   panel.querySelectorAll('#editor-cancel').forEach(btn => btn.addEventListener('click', closeEditor));
   panel.querySelector('#editor-save')?.addEventListener('click', saveElement);
   panel.addEventListener('change', () => setTimeout(updatePreview, 50));
   panel.addEventListener('input',  () => setTimeout(updatePreview, 200));
 
-  // Scroll sivun alkuun jotta sticky editor näkyy heti
+  // Ajastus: radiobuttonit
+  panel.querySelectorAll('input[name="timing-mode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const delayOptions = panel.querySelector('#delay-options');
+      if (delayOptions) delayOptions.style.display = radio.value === 'delay' ? 'block' : 'none';
+    });
+  });
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -94,17 +68,66 @@ function buildEditorHTML(type, data = {}, sites = []) {
   const isNew = !data._id;
   const title = isNew ? 'Uusi ' + (TYPE_LABELS[type] || type) : 'Muokkaa: ' + (data.name || '');
   const timing = data.timing || {};
+  const delay = timing.delay || 0;
+  const frequency = timing.frequency || 'always';
+
+  // Tunnista ajastustila tallennettua dataa varten
+  let timingMode = 'immediate';
+  if (delay > 0) timingMode = 'delay';
+
   const siteOptions = sites.map(s =>
     `<option value="${s._id}">${escHtml(s.name)}${s.domain ? ' (' + escHtml(s.domain) + ')' : ''}</option>`
   ).join('');
   const siteSelectHTML = `
     <div class="form-group">
-      <label>Sivusto <span style="font-size:11px;color:#94a3b8;font-weight:400">(vapaaehtoinen – rajaa mille sivustolle elementti näkyy)</span></label>
+      <label>Sivusto <span style="font-size:11px;color:#94a3b8;font-weight:400">(vapaaehtoinen)</span></label>
       <select id="el-site">
         <option value="">– Ei sivustoa (globaali) –</option>
         ${siteOptions}
       </select>
     </div>`;
+
+  const timingHTML = type !== 'stats_only' && type !== 'slide_in' ? `
+    <div class="section-title" style="margin-top:20px">Milloin näytetään?</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid ${timingMode==='immediate'?'#3b82f6':'#e2e8f0'};border-radius:9px;cursor:pointer;background:${timingMode==='immediate'?'#eff6ff':'#fff'}">
+        <input type="radio" name="timing-mode" value="immediate" ${timingMode==='immediate'?'checked':''} style="accent-color:#3b82f6">
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#0f172a">Heti</div>
+          <div style="font-size:11px;color:#64748b">Näkyy heti kun sivu latautuu</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid ${timingMode==='delay'?'#3b82f6':'#e2e8f0'};border-radius:9px;cursor:pointer;background:${timingMode==='delay'?'#eff6ff':'#fff'}">
+        <input type="radio" name="timing-mode" value="delay" ${timingMode==='delay'?'checked':''} style="accent-color:#3b82f6">
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#0f172a">Viiveen jälkeen</div>
+          <div style="font-size:11px;color:#64748b">Näkyy muutaman sekunnin kuluttua</div>
+        </div>
+      </label>
+    </div>
+    <div id="delay-options" style="display:${timingMode==='delay'?'block':'none'};margin-bottom:16px">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Viive sekunteina</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${[3,5,10,15,30].map(s => `<button type="button" class="delay-btn${delay===s?' active':''}" data-delay="${s}"
+          style="padding:7px 14px;border:2px solid ${delay===s?'#3b82f6':'#e2e8f0'};border-radius:8px;background:${delay===s?'#eff6ff':'#fff'};font-size:13px;font-weight:600;color:${delay===s?'#1d4ed8':'#374151'};cursor:pointer">
+          ${s}s
+        </button>`).join('')}
+      </div>
+      <input type="hidden" id="el-delay" value="${delay > 0 ? delay : 5}">
+    </div>
+    <div class="form-group">
+      <label>Kuinka usein?</label>
+      <div style="display:flex;gap:8px">
+        <label style="flex:1;display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${frequency==='always'?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${frequency==='always'?'#eff6ff':'#fff'}">
+          <input type="radio" name="el-frequency" value="always" ${frequency==='always'?'checked':''} style="accent-color:#3b82f6">
+          <span style="font-size:13px;font-weight:500;color:#0f172a">Joka kerta</span>
+        </label>
+        <label style="flex:1;display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${frequency==='once'?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${frequency==='once'?'#eff6ff':'#fff'}">
+          <input type="radio" name="el-frequency" value="once" ${frequency==='once'?'checked':''} style="accent-color:#3b82f6">
+          <span style="font-size:13px;font-weight:500;color:#0f172a">Kerran per istunto</span>
+        </label>
+      </div>
+    </div>` : '';
 
   return `
     <div class="editor-header">
@@ -124,36 +147,9 @@ function buildEditorHTML(type, data = {}, sites = []) {
 
         <div id="type-fields"></div>
 
-        <div id="targeting-section" style="margin-top:20px"></div>
-
-        <div id="ab-test-section" style="margin-top:12px"></div>
-
-        <div class="section-title" style="margin-top:20px">Ajoitus</div>
-        <div class="form-row">
-          <div class="form-group" ${type === 'slide_in' ? 'style="display:none"' : ''}>
-            <label>Viive (sekuntia)</label>
-            <input type="number" id="el-delay" min="0" value="${timing.delay || 0}">
-          </div>
-          <div class="form-group">
-            <label>Näytä aina / kerran</label>
-            <select id="el-frequency">
-              <option value="always" ${(timing.frequency||'always') === 'always' ? 'selected':''}>Aina</option>
-              <option value="once"   ${timing.frequency === 'once' ? 'selected':''}>Kerran per sessio</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Aloituspäivä (vapaaehtoinen)</label>
-            <input type="date" id="el-start" value="${timing.startDate && timing.startDate !== 'default' ? (() => { try { return new Date(timing.startDate).toISOString().slice(0,10); } catch(e) { return ''; } })() : ''}">
-          </div>
-          <div class="form-group">
-            <label>Lopetuspäivä (vapaaehtoinen)</label>
-            <input type="date" id="el-end" value="${timing.endDate && timing.endDate !== 'default' ? (() => { try { return new Date(timing.endDate).toISOString().slice(0,10); } catch(e) { return ''; } })() : ''}">
-          </div>
-        </div>
+        ${timingHTML}
       </div>
-      <div class="editor-preview-pane">
+      ${type !== 'stats_only' ? `<div class="editor-preview-pane">
         <div class="preview-toolbar">
           <button class="btn btn-secondary btn-sm active" id="btn-desktop" title="Desktop">
             <i class="fa fa-desktop"></i>
@@ -172,7 +168,7 @@ function buildEditorHTML(type, data = {}, sites = []) {
             </div>
           </div>
         </div>
-      </div>
+      </div>` : ''}
     </div>
     <div class="editor-footer">
       <button class="btn btn-secondary" id="editor-cancel">Peruuta</button>
@@ -197,7 +193,6 @@ function renderTypeFields(container, type, data) {
   const cfg = data.elementConfig || {};
   const user = window.__currentUser__;
 
-  // Tilastojen kerääjä – ei visuaalista elementtiä, vain tilastonkeruu
   if (type === 'stats_only') {
     container.innerHTML = `
       <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:20px 24px">
@@ -209,16 +204,12 @@ function renderTypeFields(container, type, data) {
           </div>
         </div>
         <div style="font-size:13px;color:#15803d;line-height:1.6">
-          Tämä elementti <strong>ei näytä mitään</strong> sivustosi kävijöille — se ainoastaan rekisteröi näyttökerran kun skripti suoritetaan. Hyödyllinen kun haluat seurata tietyn sivun kävijämäärää ennen kuin aktivoit varsinaisen elementin, tai kun tarvitset puhdasta kävijädataa ilman visuaalisia elementtejä.
-        </div>
-        <div style="margin-top:14px;padding:10px 14px;background:#dcfce7;border-radius:7px;font-size:12px;color:#14532d">
-          💡 <strong>Käyttö:</strong> Lisää asennuskoodi sivulle ja tilastot näkyvät dashboardissa normaalisti (näyttökerrat, klikkaukset).
+          Tämä elementti <strong>ei näytä mitään</strong> sivustosi kävijöille — se ainoastaan rekisteröi näyttökerran kun skripti suoritetaan.
         </div>
       </div>`;
     return;
   }
 
-  // Lead Form – tarkista onko sallittu
   if (type === 'lead_form') {
     const leadLimit = user?.limits?.lead_form ?? 0;
     if (user && user.role !== 'admin' && leadLimit === 0) {
@@ -228,23 +219,19 @@ function renderTypeFields(container, type, data) {
     renderLeadFormFields(container, cfg);
     return;
   }
-  if (type === 'sticky_bar')     renderStickyBarFields(container, cfg);
-  else if (type === 'fab')       renderFabFields(container, cfg);
-  else if (type === 'slide_in')  renderSlideInFields(container, cfg, data);
-  else if (type === 'social_proof')    renderSocialProofFields(container, cfg);
-  else if (type === 'scroll_progress') renderScrollProgressFields(container, cfg);
-  else renderPopupFields(container, cfg, data);
+  if (type === 'sticky_bar')    renderStickyBarFields(container, cfg);
+  else if (type === 'fab')      renderFabFields(container, cfg);
+  else if (type === 'slide_in') renderSlideInFields(container, cfg, data);
+  else                          renderPopupFields(container, cfg, data);
 }
 
 function getTypeData() {
   const fieldsContainer = document.getElementById('type-fields');
   if (!fieldsContainer) return {};
   if (currentType === 'stats_only') return { popupType: 'stats_only', content: '', width: 0, height: 0 };
-  if (currentType === 'sticky_bar')     return { elementConfig: getStickyBarData(fieldsContainer) };
-  if (currentType === 'fab')            return { elementConfig: getFabData(fieldsContainer) };
-  if (currentType === 'social_proof')   return { elementConfig: getSocialProofData(fieldsContainer) };
-  if (currentType === 'scroll_progress') return { elementConfig: getScrollProgressData(fieldsContainer) };
-  if (currentType === 'lead_form') return { elementConfig: getLeadFormData(fieldsContainer) };
+  if (currentType === 'sticky_bar') return { elementConfig: getStickyBarData(fieldsContainer) };
+  if (currentType === 'fab')        return { elementConfig: getFabData(fieldsContainer) };
+  if (currentType === 'lead_form')  return { elementConfig: getLeadFormData(fieldsContainer) };
   if (currentType === 'slide_in') {
     const d = getSlideInData(fieldsContainer);
     return { elementConfig: d.config, content: d.content, backgroundColor: d.backgroundColor, textColor: d.textColor };
@@ -255,27 +242,24 @@ function getTypeData() {
 
 function buildPayload() {
   const name = document.getElementById('el-name')?.value?.trim() || 'Nimetön elementti';
-  const delay = parseInt(document.getElementById('el-delay')?.value) || 0;
-  const frequency = document.getElementById('el-frequency')?.value || 'always';
-  const startDate = document.getElementById('el-start')?.value || null;
-  const endDate = document.getElementById('el-end')?.value || null;
   const siteId = document.getElementById('el-site')?.value || null;
   const typeData = getTypeData();
-  const targetingSection = document.getElementById('targeting-section');
-  const targeting = targetingSection ? getTargetingData(targetingSection) : { enabled: false, matchType: 'all', rules: [] };
-  const abSection = document.getElementById('ab-test-section');
-  const abTest = abSection ? getAbTestData(abSection) : { enabled: false };
+
+  // Ajastus: lue radiobuttoneista
+  const timingMode = document.querySelector('input[name="timing-mode"]:checked')?.value || 'immediate';
+  const delay = timingMode === 'delay' ? (parseInt(document.getElementById('el-delay')?.value) || 5) : 0;
+  const frequency = document.querySelector('input[name="el-frequency"]:checked')?.value || 'always';
 
   return {
     name,
     elementType: currentType,
     popupType: typeData.popupType || 'rectangle',
     delay, frequency,
-    targeting,
-    abTest,
+    targeting: { enabled: false, matchType: 'all', rules: [] },
+    abTest: { enabled: false },
     siteId: siteId || null,
-    startDate: startDate || '',
-    endDate: endDate || '',
+    startDate: '',
+    endDate: '',
     ...typeData
   };
 }
@@ -326,6 +310,42 @@ function escHtml(s) {
 
 // Desktop/mobile toggle
 document.addEventListener('click', e => {
+  // Delay-napit
+  if (e.target.closest('.delay-btn')) {
+    const btn = e.target.closest('.delay-btn');
+    const panel = document.getElementById('editor-panel');
+    if (panel) {
+      panel.querySelectorAll('.delay-btn').forEach(b => {
+        const active = b === btn;
+        b.style.borderColor = active ? '#3b82f6' : '#e2e8f0';
+        b.style.background  = active ? '#eff6ff' : '#fff';
+        b.style.color       = active ? '#1d4ed8' : '#374151';
+      });
+      const delayInput = document.getElementById('el-delay');
+      if (delayInput) delayInput.value = btn.dataset.delay;
+    }
+    return;
+  }
+  // Radio border highlight – timing-mode
+  const timingRadio = e.target.closest('label')?.querySelector('input[name="timing-mode"]');
+  if (timingRadio) {
+    document.querySelectorAll('input[name="timing-mode"]').forEach(r => {
+      const lbl = r.closest('label');
+      if (!lbl) return;
+      lbl.style.borderColor = r.checked ? '#3b82f6' : '#e2e8f0';
+      lbl.style.background  = r.checked ? '#eff6ff' : '#fff';
+    });
+  }
+  // Radio border highlight – frequency
+  const freqRadio = e.target.closest('label')?.querySelector('input[name="el-frequency"]');
+  if (freqRadio) {
+    document.querySelectorAll('input[name="el-frequency"]').forEach(r => {
+      const lbl = r.closest('label');
+      if (!lbl) return;
+      lbl.style.borderColor = r.checked ? '#3b82f6' : '#e2e8f0';
+      lbl.style.background  = r.checked ? '#eff6ff' : '#fff';
+    });
+  }
   if (e.target.closest('#btn-desktop')) {
     document.getElementById('preview-frame')?.classList.remove('mobile');
     document.getElementById('btn-desktop')?.classList.add('active');

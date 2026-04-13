@@ -3,13 +3,12 @@ import { showToast } from './dashboard-main.js';
 import { openStats } from './stats-panel.js';
 
 const TYPE_META = {
-  sticky_bar:      { label: 'Sticky Bar',      icon: 'fa-minus',        badge: 'badge-sticky' },
-  fab:             { label: 'Floating Button', icon: 'fa-circle',       badge: 'badge-fab' },
-  slide_in:        { label: 'Slide-in',        icon: 'fa-comment-dots', badge: 'badge-slidein' },
-  popup:           { label: 'Popup',           icon: 'fa-square',       badge: 'badge-popup' },
-  social_proof:    { label: 'Social Proof',    icon: 'fa-users',        badge: 'badge-social' },
-  scroll_progress: { label: 'Scroll Progress', icon: 'fa-arrows-alt-v', badge: 'badge-scroll' },
-  lead_form:       { label: 'Lead Form',       icon: 'fa-envelope',     badge: 'badge-lead' }
+  sticky_bar: { label: 'Sticky Bar',      icon: 'fa-minus',        badge: 'badge-sticky' },
+  fab:        { label: 'Floating Button', icon: 'fa-circle',       badge: 'badge-fab' },
+  slide_in:   { label: 'Slide-in',        icon: 'fa-comment-dots', badge: 'badge-slidein' },
+  popup:      { label: 'Popup',           icon: 'fa-square',       badge: 'badge-popup' },
+  lead_form:  { label: 'Lead Form',       icon: 'fa-envelope',     badge: 'badge-lead' },
+  stats_only: { label: 'Tilastot',        icon: 'fa-chart-bar',    badge: 'badge-sticky' },
 };
 
 let allElements = [];
@@ -17,6 +16,7 @@ let searchQuery = '';
 let siteFilter = '';  // '_none' = ei sivustoa, '' = kaikki, muuten siteId
 let currentUser = null;
 let cachedSites = [];
+let pendingDeleteId = null;
 
 export function initElementList(user) {
   currentUser = user || null;
@@ -211,7 +211,7 @@ function getTimingStatus(el) {
   const start = timing.startDate && timing.startDate !== 'default' ? new Date(timing.startDate) : null;
   const end   = timing.endDate   && timing.endDate   !== 'default' ? new Date(timing.endDate)   : null;
   if (el.active === false) return { label: '● Ei käytössä',    color: '#ef4444' };
-  if (end   && now > end)   return { label: '● Kampanja päättynyt', color: '#f59e0b' };
+  if (end   && now > end)   return { label: '● Aikarajoitus päättyi', color: '#f59e0b' };
   if (start && now < start) return { label: `● Alkaa ${start.toLocaleDateString('fi-FI')}`, color: '#64748b' };
   return { label: '● Aktiivinen', color: '#10b981' };
 }
@@ -228,11 +228,15 @@ function cardHTML(el) {
   const status = getTimingStatus(el);
   const site = el.siteId ? cachedSites.find(s => String(s._id) === String(el.siteId)) : null;
   const siteBadge = site ? `<span style="font-size:10px;color:#3b82f6;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;padding:1px 6px;margin-left:6px">🌐 ${escHtml(site.name)}</span>` : '';
+  const active = el.active !== false;
   let subtitle = '';
   if (type === 'sticky_bar') subtitle = cfg.barText ? cfg.barText.substring(0, 50) + (cfg.barText.length > 50 ? '…' : '') : '';
   else if (type === 'fab') subtitle = (cfg.fabPosition || '') + (cfg.fabAction ? ' · ' + cfg.fabAction : '');
   else if (type === 'slide_in') subtitle = 'Triggeri: ' + (cfg.slideInTrigger || 'time');
+  else if (type === 'popup') subtitle = (cfg.popupMode || 'text') === 'image' ? '📸 Kuvapopup' : '✏️ Tekstipopup';
   else subtitle = el.content ? el.content.replace(/<[^>]*>/g, '').substring(0, 50) : '';
+
+  const isDeleting = pendingDeleteId === el._id;
 
   return `
     <div class="element-card el-card" data-id="${el._id}">
@@ -247,7 +251,13 @@ function cardHTML(el) {
           <div class="element-card-title">${escHtml(el.name)}</div>
           <div class="element-card-meta">${escHtml(subtitle)}</div>
         </div>
-        <div style="font-size:11px;color:#94a3b8;white-space:nowrap">${date}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+          <button data-action="toggle" data-id="${el._id}" title="${active ? 'Deaktivoi' : 'Aktivoi elementti'}"
+            style="width:38px;height:22px;border-radius:11px;background:${active ? '#22c55e' : '#cbd5e1'};position:relative;cursor:pointer;border:none;padding:0;flex-shrink:0;transition:background 0.15s">
+            <span style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:${active ? '18px' : '2px'};transition:left 0.15s;box-shadow:0 1px 2px rgba(0,0,0,0.2);display:block"></span>
+          </button>
+          <div style="font-size:11px;color:#94a3b8;white-space:nowrap">${date}</div>
+        </div>
       </div>
       <div class="element-card-stats">
         <div class="stat-item">
@@ -264,15 +274,25 @@ function cardHTML(el) {
         </div>
       </div>
       <div class="element-card-actions">
-        <button class="btn btn-secondary btn-sm" data-action="edit" data-id="${el._id}">
-          <i class="fa fa-edit"></i> Muokkaa
-        </button>
-        <button class="btn btn-secondary btn-sm" data-action="stats" data-id="${el._id}">
-          <i class="fa fa-chart-bar"></i> Tilastot
-        </button>
-        <button class="btn btn-danger btn-sm" data-action="delete" data-id="${el._id}" style="margin-left:auto">
-          <i class="fa fa-trash"></i>
-        </button>
+        ${isDeleting ? `
+          <span style="font-size:13px;color:#64748b;flex:1">Poistetaanko elementti?</span>
+          <button class="btn btn-danger btn-sm" data-action="delete-confirm" data-id="${el._id}">
+            <i class="fa fa-check"></i> Kyllä, poista
+          </button>
+          <button class="btn btn-secondary btn-sm" data-action="delete-cancel" data-id="${el._id}">
+            Peruuta
+          </button>
+        ` : `
+          <button class="btn btn-secondary btn-sm" data-action="edit" data-id="${el._id}">
+            <i class="fa fa-edit"></i> Muokkaa
+          </button>
+          <button class="btn btn-secondary btn-sm" data-action="stats" data-id="${el._id}">
+            <i class="fa fa-chart-bar"></i> Tilastot
+          </button>
+          <button class="btn btn-danger btn-sm" data-action="delete" data-id="${el._id}" style="margin-left:auto">
+            <i class="fa fa-trash"></i>
+          </button>
+        `}
       </div>
     </div>`;
 }
@@ -284,13 +304,38 @@ async function handleAction(action, id) {
   } else if (action === 'stats') {
     const el = allElements.find(e => e._id === id);
     if (el) openStats(el);
+  } else if (action === 'toggle') {
+    const el = allElements.find(e => e._id === id);
+    if (!el) return;
+    const newActive = el.active === false ? true : false;
+    el.active = newActive;
+    renderList();
+    try {
+      const r = await fetch('/api/popups/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: newActive }),
+      });
+      if (!r.ok) throw new Error();
+      showToast(newActive ? 'Elementti aktivoitu' : 'Elementti pois käytöstä');
+    } catch {
+      el.active = !newActive;
+      renderList();
+      showToast('Tilan muutos epäonnistui', 'error');
+    }
   } else if (action === 'delete') {
-    if (!confirm('Poistetaanko tämä elementti?')) return;
+    pendingDeleteId = id;
+    renderList();
+  } else if (action === 'delete-cancel') {
+    pendingDeleteId = null;
+    renderList();
+  } else if (action === 'delete-confirm') {
     try {
       const r = await fetch('/api/popups/' + id, { method: 'DELETE' });
       if (!r.ok) throw new Error();
       showToast('Elementti poistettu');
       allElements = allElements.filter(e => e._id !== id);
+      pendingDeleteId = null;
       renderList();
     } catch {
       showToast('Poisto epäonnistui', 'error');
