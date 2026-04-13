@@ -180,6 +180,31 @@ async function renderInstallSection(user) {
         <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin:0 0 6px">Asennusohje</h2>
         <p style="font-size:13px;color:#64748b;margin:0 0 20px">Kolme askelta ja elementtisi on live sivustollasi.</p>
 
+        <!-- Selitys: miten toimii -->
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px 18px;margin-bottom:20px">
+          <div style="font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:10px">💡 Miten järjestelmä tietää mitä näyttää?</div>
+          <p style="font-size:13px;color:#1e40af;margin:0 0 12px;line-height:1.6">
+            Jokaiselle sivustollesi luodaan oma tunnistuskoodi. Kun koodi on sivustolla, se kertoo järjestelmälle: <em>"tämä on Kuntokeitaan sivu — näytä Kuntokeitaan elementit."</em>
+          </p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+            <div style="background:#fff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;flex:1;min-width:160px">
+              <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:4px">🌐 Joensuun Kuntokeidas</div>
+              <div style="font-size:11px;color:#64748b;margin-bottom:6px">Oma koodi → omat elementit</div>
+              <div style="font-size:10px;color:#10b981;font-weight:600">✓ Popup "Avaa ovi keväälle"</div>
+            </div>
+            <div style="background:#fff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;flex:1;min-width:160px">
+              <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:4px">🌐 Cryostudio Joensuu</div>
+              <div style="font-size:11px;color:#64748b;margin-bottom:6px">Eri koodi → eri elementit</div>
+              <div style="font-size:10px;color:#10b981;font-weight:600">✓ Sticky bar "Varaa aika"</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="font-size:12px;color:#1d4ed8"><span style="font-weight:700">✅ Koodi lisätään vain kerran</span> — kaikilla saman sivuston sivuilla (etusivu, varaussivu, yms.) toimii sama koodi.</div>
+            <div style="font-size:12px;color:#1d4ed8"><span style="font-weight:700">✅ Lisää elementtejä milloin vain</span> — ne ilmestyvät automaattisesti, koodia ei tarvitse vaihtaa.</div>
+            <div style="font-size:12px;color:#1d4ed8"><span style="font-weight:700">✅ Aktivoi ja sammuta togglella</span> — elementtilistasta, ei koskematta sivuston koodiin.</div>
+          </div>
+        </div>
+
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;gap:14px;align-items:flex-start;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 16px">
             <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
