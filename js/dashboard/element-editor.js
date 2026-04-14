@@ -127,6 +127,16 @@ function buildEditorHTML(type, data = {}, sites = []) {
           <span style="font-size:13px;font-weight:500;color:#0f172a">Kerran per istunto</span>
         </label>
       </div>
+    </div>
+    <div class="form-row" style="margin-top:8px">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Näytä alkaen <span style="font-size:11px;color:#94a3b8;font-weight:400">(vapaaehtoinen)</span></label>
+        <input type="date" id="el-start-date" value="${timing.startDate || ''}">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Näytä saakka <span style="font-size:11px;color:#94a3b8;font-weight:400">(vapaaehtoinen)</span></label>
+        <input type="date" id="el-end-date" value="${timing.endDate || ''}">
+      </div>
     </div>` : '';
 
   return `
@@ -219,7 +229,7 @@ function renderTypeFields(container, type, data) {
     renderLeadFormFields(container, cfg);
     return;
   }
-  if (type === 'sticky_bar')    renderStickyBarFields(container, cfg);
+  if (type === 'sticky_bar')    renderStickyBarFields(container, cfg, data);
   else if (type === 'fab')      renderFabFields(container, cfg);
   else if (type === 'slide_in') renderSlideInFields(container, cfg, data);
   else                          renderPopupFields(container, cfg, data);
@@ -229,7 +239,10 @@ function getTypeData() {
   const fieldsContainer = document.getElementById('type-fields');
   if (!fieldsContainer) return {};
   if (currentType === 'stats_only') return { popupType: 'stats_only', content: '', width: 0, height: 0 };
-  if (currentType === 'sticky_bar') return { elementConfig: getStickyBarData(fieldsContainer) };
+  if (currentType === 'sticky_bar') {
+    const d = getStickyBarData(fieldsContainer);
+    return { elementConfig: d.config, backgroundColor: d.backgroundColor, textColor: d.textColor };
+  }
   if (currentType === 'fab')        return { elementConfig: getFabData(fieldsContainer) };
   if (currentType === 'lead_form')  return { elementConfig: getLeadFormData(fieldsContainer) };
   if (currentType === 'slide_in') {
@@ -258,8 +271,8 @@ function buildPayload() {
     targeting: { enabled: false, matchType: 'all', rules: [] },
     abTest: { enabled: false },
     siteId: siteId || null,
-    startDate: '',
-    endDate: '',
+    startDate: document.getElementById('el-start-date')?.value || '',
+    endDate:   document.getElementById('el-end-date')?.value   || '',
     ...typeData
   };
 }

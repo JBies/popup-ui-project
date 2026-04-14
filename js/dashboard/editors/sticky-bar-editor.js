@@ -9,7 +9,7 @@ const MSG_PRESETS = [
   { emoji: '🍀', text: 'Hyvää Black Fridayta! Kaikki tuotteet -30% koko viikonlopun.' },
 ];
 
-export function renderStickyBarFields(container, cfg = {}) {
+export function renderStickyBarFields(container, cfg = {}, data = {}) {
   container.innerHTML = `
     <div class="section-title">Sticky Bar -asetukset</div>
     <div class="form-group">
@@ -74,6 +74,18 @@ export function renderStickyBarFields(container, cfg = {}) {
         <option value="30"  ${cfg.dismissCookieDays == 30        ? 'selected':''}>1 kuukausi</option>
         <option value="365" ${cfg.dismissCookieDays == 365       ? 'selected':''}>1 vuosi</option>
       </select>
+    </div>
+
+    <div class="section-title" style="margin-top:16px">Värit</div>
+    <div style="display:flex;gap:16px;margin-bottom:4px">
+      <div class="form-group" style="flex:1;margin-bottom:0">
+        <label>Taustaväri</label>
+        <input type="color" name="barBgColor" value="${data.backgroundColor || '#1a56db'}" style="width:100%;height:38px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer">
+      </div>
+      <div class="form-group" style="flex:1;margin-bottom:0">
+        <label>Tekstin väri</label>
+        <input type="color" name="barTextColor" value="${data.textColor || '#ffffff'}" style="width:100%;height:38px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer">
+      </div>
     </div>`;
 
   // Preset-napit
@@ -96,10 +108,14 @@ export function getStickyBarData(container) {
   })).filter(b => b.label);
 
   return {
-    barPosition:       g('barPosition')?.value       || 'bottom',
-    barText:           g('barText')?.value?.trim()   || '',
-    ctaButtons,
-    showDismiss:       g('showDismiss')?.checked      ?? true,
-    dismissCookieDays: parseInt(g('dismissCookieDays')?.value) || 0,
+    config: {
+      barPosition:       g('barPosition')?.value       || 'bottom',
+      barText:           g('barText')?.value?.trim()   || '',
+      ctaButtons,
+      showDismiss:       g('showDismiss')?.checked      ?? true,
+      dismissCookieDays: parseInt(g('dismissCookieDays')?.value) || 0,
+    },
+    backgroundColor: g('barBgColor')?.value   || '#1a56db',
+    textColor:       g('barTextColor')?.value || '#ffffff',
   };
 }
