@@ -264,6 +264,7 @@ function cardHTML(el) {
           <div class="stat-value">${views}</div>
           <div class="stat-label">Näytöt</div>
         </div>
+        ${type !== 'stats_only' ? `
         <div class="stat-item">
           <div class="stat-value">${clicks}</div>
           <div class="stat-label">Klikkaukset</div>
@@ -271,7 +272,7 @@ function cardHTML(el) {
         <div class="stat-item">
           <div class="stat-value">${ctr}%</div>
           <div class="stat-label">CTR</div>
-        </div>
+        </div>` : ''}
       </div>
       <div class="element-card-actions">
         ${isDeleting ? `

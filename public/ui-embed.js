@@ -1,8 +1,17 @@
+// Pre-queue: jos ShowElement kutsutaan ennen scriptin latautumista (esim. defer), tallennetaan kutsut
+if (!window.ShowElement) {
+  window.ShowElement = function (id) { (window.ShowElement.__q = window.ShowElement.__q || []).push(id); };
+  window.ShowElement.__isPreQueue__ = true;
+}
+
 (function () {
   'use strict';
 
   var API_BASE = 'https://popupmanager.net';
   window.__UE_API__ = API_BASE;
+
+  // Jonossa olevat varhaiset kutsut
+  var _earlyQueue = window.ShowElement && window.ShowElement.__isPreQueue__ ? (window.ShowElement.__q || []) : [];
 
   // ─── XSS-apufunktio ─────────────────────────────────────────────────────────
   // Palauttaa HTML-enkoodatun merkkijonon (estää XSS kun käytetään innerHTML:ssä)
@@ -46,16 +55,22 @@
         }
         trackView(elementId);
         var type = el.elementType || 'popup';
-        if (type === 'sticky_bar')     renderStickyBar(el);
-        else if (type === 'fab')       renderFAB(el);
-        else if (type === 'slide_in')  setupSlideIn(el);
+        if (type === 'stats_only')           return; // vain käyntilaskuri, ei renderöintiä
+        else if (type === 'sticky_bar')      renderStickyBar(el);
+        else if (type === 'fab')             renderFAB(el);
+        else if (type === 'slide_in')        setupSlideIn(el);
         else if (type === 'social_proof')    setupSocialProof(el);
         else if (type === 'scroll_progress') renderScrollProgress(el);
-        else if (type === 'lead_form') renderLeadForm(el);
-        else renderLegacyPopup(el);
+        else if (type === 'lead_form')       renderLeadForm(el);
+        else                                 renderLegacyPopup(el);
       })
       .catch(function (e) { console.warn('[ui-embed] Elementtiä ei löydy:', e); });
   };
+
+  // Jos ShowElement kutsuttiin ennen scriptin latautumista, suorita jonossa olevat kutsut
+  if (_earlyQueue.length) {
+    _earlyQueue.forEach(function (id) { window.ShowElement(id); });
+  }
 
   // ─── Site Token – automaattinen lataus ──────────────────────────────────────
   // Jos <script src="...ui-embed.js" data-site="TOKEN"> niin lataa kaikki aktiiviset elementit
