@@ -1,9 +1,10 @@
 // controllers/popup.controller.js
 // Vastaa popup-toimintojen logiikasta
 
-const Popup = require('../models/Popup');
-const Image = require('../models/Image');
-const User = require('../models/User');
+const Popup      = require('../models/Popup');
+const Image      = require('../models/Image');
+const User       = require('../models/User');
+const DailyStats = require('../models/DailyStats');
 const { triggerWebhooks } = require('../utils/webhooks');
 
 const { bucket } = require('../firebase');
@@ -453,15 +454,24 @@ class PopupController {
   static async registerView(req, res) {
     try {
       const popupId = req.params.id;
-      
-      // Päivitä tilastot
+      const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+      // Päivitä kumulatiiviset tilastot
       await Popup.findByIdAndUpdate(popupId, {
         $inc: { 'statistics.views': 1 },
         $set: { 'statistics.lastViewed': new Date() }
       });
 
+      // Päivitä päiväkohtaiset tilastot
       const popup = await Popup.findById(popupId).select('userId').lean();
-      if (popup) triggerWebhooks(popup.userId, 'view', { popupId });
+      if (popup) {
+        DailyStats.findOneAndUpdate(
+          { userId: popup.userId, popupId, date: today },
+          { $inc: { views: 1 } },
+          { upsert: true, new: true }
+        ).catch(() => {}); // ei blokkaa vastausta
+        triggerWebhooks(popup.userId, 'view', { popupId });
+      }
 
       res.status(200).json({ success: true });
     } catch (err) {
@@ -478,15 +488,24 @@ class PopupController {
   static async registerClick(req, res) {
     try {
       const popupId = req.params.id;
-      
-      // Päivitä tilastot
+      const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+      // Päivitä kumulatiiviset tilastot
       await Popup.findByIdAndUpdate(popupId, {
         $inc: { 'statistics.clicks': 1 },
         $set: { 'statistics.lastClicked': new Date() }
       }, { new: true });
 
+      // Päivitä päiväkohtaiset tilastot
       const clickedPopup = await Popup.findById(popupId).select('userId').lean();
-      if (clickedPopup) triggerWebhooks(clickedPopup.userId, 'click', { popupId });
+      if (clickedPopup) {
+        DailyStats.findOneAndUpdate(
+          { userId: clickedPopup.userId, popupId, date: today },
+          { $inc: { clicks: 1 } },
+          { upsert: true, new: true }
+        ).catch(() => {}); // ei blokkaa vastausta
+        triggerWebhooks(clickedPopup.userId, 'click', { popupId });
+      }
 
       res.status(200).json({ success: true, message: 'Click registered' });
     } catch (err) {

@@ -7,6 +7,7 @@ import { initAnalyticsPage }  from './analytics-page.js';
 import { initHelpPanel }      from './help-panel.js';
 import { initLeadsPanel }     from './leads-panel.js';
 import { initImageLibraryPanel } from './image-library-panel.js';
+import { initReportsPage }    from './reports-page.js';
 
 let currentView = 'elements';
 
@@ -46,6 +47,7 @@ async function init() {
   initElementList(user);
   initTemplateLibrary();
   initAnalyticsPage();
+  initReportsPage();
   initHelpPanel();
   initLeadsPanel();
   initImageLibraryPanel();
@@ -79,7 +81,7 @@ export function showView(name) {
     a.classList.toggle('active', a.dataset.view === name || a.getAttribute('href') === '#' + name);
   });
 
-  const titles = { elements: 'Omat elementit', analytics: 'Tilastot', settings: 'Asennuskoodi', help: 'Ohjeet', leads: 'Liidit' };
+  const titles = { elements: 'Omat elementit', reports: 'Raportit', analytics: 'Tilastot', settings: 'Asennuskoodi', help: 'Ohjeet', leads: 'Liidit' };
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = titles[name] || 'UI Manager';
 }
