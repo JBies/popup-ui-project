@@ -93,7 +93,6 @@ exports.getReport = async (req, res) => {
     const leadsMap = Object.fromEntries(leadsByPopup.map(l => [String(l._id), l.leads]));
 
     const topElements = popups
-      .filter(p => p.elementType !== 'stats_only')
       .map(p => {
         const d = dailyMap[String(p._id)] || {};
         return {

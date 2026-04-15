@@ -48,7 +48,7 @@ async function loadSites() {
 async function loadPopups() {
   try {
     const r = await fetch('/api/popups');
-    if (r.ok) cachedPopups = (await r.json()).filter(p => p.elementType !== 'stats_only');
+    if (r.ok) cachedPopups = await r.json(); // stats_only mukaan — ne näyttävät kävijämäärät
   } catch {}
 }
 
@@ -99,11 +99,18 @@ async function loadReport() {
 // ─── Rakenne ──────────────────────────────────────────────────────────────────
 
 function renderShell(container) {
-  const sitesOpts  = cachedSites.map(s =>
+  const sitesOpts = cachedSites.map(s =>
     `<option value="${s._id}">${esc(s.name)}${s.domain ? ' ('+esc(s.domain)+')' : ''}</option>`
   ).join('');
-  const popupOpts  = cachedPopups.map(p =>
-    `<option value="${p._id}">${esc(p.name)}</option>`
+
+  // Suodata elementit nykyisen sivustosuodattimen mukaan
+  const visiblePopups = cachedPopups.filter(p => {
+    if (!filterSiteId) return true;
+    if (filterSiteId === '_none') return !p.siteId;
+    return String(p.siteId) === filterSiteId;
+  });
+  const popupOpts = visiblePopups.map(p =>
+    `<option value="${p._id}">${esc(p.name)}${p.elementType === 'stats_only' ? ' 📊' : ''}</option>`
   ).join('');
 
   container.innerHTML = `
@@ -185,7 +192,9 @@ function renderShell(container) {
   });
 
   document.getElementById('rpt-site-filter')?.addEventListener('change', e => {
-    filterSiteId = e.target.value;
+    filterSiteId  = e.target.value;
+    filterPopupId = ''; // nollaa elementtisuodin kun sivusto vaihtuu
+    updatePopupDropdown(filterSiteId);
     loadReport();
   });
   document.getElementById('rpt-popup-filter')?.addEventListener('change', e => {
@@ -264,16 +273,19 @@ function renderResults(data, from, to) {
             </tr>
           </thead>
           <tbody>
-            ${topElements.map((el, i) => `
+            ${topElements.map((el, i) => {
+              const isStats = el.type === 'stats_only';
+              return `
               <tr style="border-top:1px solid #f1f5f9;${i%2===1?'background:#fafbfc':''}">
                 <td style="padding:10px 16px">
                   <div style="font-size:13px;font-weight:600;color:#0f172a">${esc(el.name)}</div>
                   <div style="font-size:11px;color:#94a3b8">${typeBadge(el.type)}</div>
                 </td>
                 <td style="padding:10px 8px;font-size:13px;color:#374151;text-align:right">${el.views}</td>
-                <td style="padding:10px 8px;font-size:13px;color:#374151;text-align:right">${el.clicks}</td>
-                <td style="padding:10px 16px;font-size:13px;font-weight:700;color:#1d4ed8;text-align:right">${el.leads}</td>
-              </tr>`).join('')}
+                <td style="padding:10px 8px;font-size:13px;color:#94a3b8;text-align:right">${isStats ? '–' : el.clicks}</td>
+                <td style="padding:10px 16px;font-size:13px;font-weight:700;color:${isStats?'#94a3b8':'#1d4ed8'};text-align:right">${isStats ? '–' : el.leads}</td>
+              </tr>`;
+            }).join('')}
           </tbody>
         </table>` : `
         <div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">
@@ -352,8 +364,28 @@ function statCard(icon, value, label, bg, accentColor) {
 const TYPE_LABELS = {
   sticky_bar: 'Sticky Bar', fab: 'Floating Button',
   slide_in: 'Slide-in', popup: 'Popup', lead_form: 'Lead Form',
+  stats_only: '📊 Tilastojen kerääjä',
 };
 function typeBadge(type) { return TYPE_LABELS[type] || type; }
+
+/**
+ * Päivittää elementtisuodattimen dropdownin sivustosuodatuksen mukaan.
+ * Jos siteId on tyhjä → kaikki elementit; '_none' → vain sivustoitta; muuten suodata siteId:llä.
+ */
+function updatePopupDropdown(siteId) {
+  const select = document.getElementById('rpt-popup-filter');
+  if (!select) return;
+
+  const filtered = cachedPopups.filter(p => {
+    if (!siteId) return true;
+    if (siteId === '_none') return !p.siteId;
+    return String(p.siteId) === siteId;
+  });
+
+  select.innerHTML = `<option value="">Kaikki elementit</option>` +
+    filtered.map(p => `<option value="${p._id}">${esc(p.name)}${p.elementType === 'stats_only' ? ' 📊' : ''}</option>`).join('');
+  select.value = ''; // nollaa valinta
+}
 
 function fmtDate(d) {
   if (!d) return '';
