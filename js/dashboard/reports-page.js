@@ -260,7 +260,7 @@ function renderResults(data, from, to) {
         <div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px">
           <span style="font-size:16px">🏆</span>
           <span style="font-size:14px;font-weight:700;color:#0f172a">Top elementit</span>
-          <span style="font-size:11px;color:#94a3b8;margin-left:auto">${esc(periodLabel)}</span>
+          <span style="font-size:11px;color:#94a3b8;margin-left:auto">Kaikki aika</span>
         </div>
         ${topElements.length ? `
         <table style="width:100%;border-collapse:collapse">

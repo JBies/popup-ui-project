@@ -77,33 +77,18 @@ exports.getReport = async (req, res) => {
       return acc;
     }, { views: 0, clicks: 0, leads: 0 });
 
-    // ── Top-elementit jaksolle ────────────────────────────────────────────────
-    // Aggregoi DailyStats per popup
-    const dailyPerPopup = await DailyStats.aggregate([
-      { $match: { popupId: { $in: popupIds }, date: { $gte: fromStr, $lte: toStr } } },
-      { $group: { _id: '$popupId', views: { $sum: '$views' }, clicks: { $sum: '$clicks' } } },
-    ]);
-    const dailyMap = Object.fromEntries(dailyPerPopup.map(d => [String(d._id), d]));
-
-    // Liidit per popup jaksolla
-    const leadsByPopup = await Lead.aggregate([
-      { $match: { userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } } },
-      { $group: { _id: '$popupId', leads: { $sum: 1 } } },
-    ]);
-    const leadsMap = Object.fromEntries(leadsByPopup.map(l => [String(l._id), l.leads]));
-
+    // ── Top-elementit: käytetään kumulatiivista Popup.statistics-dataa ────────
+    // DailyStats on uusi → ei historiadataa vanhemmilta jaksoilta.
+    // Kumulatiivinen data on aina saatavilla ja kertoo elementin kokonaissuorituksen.
     const topElements = popups
-      .map(p => {
-        const d = dailyMap[String(p._id)] || {};
-        return {
-          _id:    p._id,
-          name:   p.name || 'Nimetön',
-          type:   p.elementType || 'popup',
-          views:  d.views  || 0,
-          clicks: d.clicks || 0,
-          leads:  leadsMap[String(p._id)] || 0,
-        };
-      })
+      .map(p => ({
+        _id:    p._id,
+        name:   p.name || 'Nimetön',
+        type:   p.elementType || 'popup',
+        views:  p.statistics?.views  || 0,
+        clicks: p.statistics?.clicks || 0,
+        leads:  p.statistics?.leads  || 0,
+      }))
       .sort((a, b) => b.leads - a.leads || b.clicks - a.clicks || b.views - a.views)
       .slice(0, 5);
 
