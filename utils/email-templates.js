@@ -131,21 +131,32 @@ function buildWeeklyReport(user, stats, topEls, leads, weekLabel) {
     return Math.round(((current - prev) / prev) * 100);
   }
 
-  const statBox = (icon, label, value, change) => `
-    <td style="text-align:center;padding:16px 8px;background:#f8fafc;border-radius:10px">
+  const statBox = (icon, label, value, change, bg = '#f8fafc') => `
+    <td style="text-align:center;padding:16px 8px;background:${bg};border-radius:10px">
       <div style="font-size:22px;margin-bottom:4px">${icon}</div>
       <div style="font-size:26px;font-weight:800;color:#0f172a">${value}</div>
       <div style="font-size:12px;color:#64748b;margin-top:2px">${label}${delta(change)}</div>
     </td>`;
 
   const statsRow = `
+    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Tällä viikolla</div>
+    <table width="100%" cellpadding="6" cellspacing="0" style="margin-bottom:16px">
+      <tr>
+        ${statBox('👁️', 'Näyttöä', stats.views)}
+        <td width="8"></td>
+        ${statBox('🖱️', 'Klikkausta', stats.clicks)}
+        <td width="8"></td>
+        ${statBox('📋', 'Liidiä', stats.leads, pct(stats.leads, stats.prevLeads))}
+      </tr>
+    </table>
+    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Kaikki aika yhteensä</div>
     <table width="100%" cellpadding="6" cellspacing="0">
       <tr>
-        ${statBox('👁️', 'Näyttöä yhteensä', stats.views)}
+        ${statBox('👁️', 'Näyttöä yhteensä', stats.allViews || 0, null, '#f1f5f9')}
         <td width="8"></td>
-        ${statBox('🖱️', 'Klikkausta yhteensä', stats.clicks)}
+        ${statBox('🖱️', 'Klikkausta yhteensä', stats.allClicks || 0, null, '#f1f5f9')}
         <td width="8"></td>
-        ${statBox('📋', 'Liidiä viikolla', stats.leads, pct(stats.leads, stats.prevLeads))}
+        ${statBox('📋', 'Liidiä yhteensä', stats.allLeads || 0, null, '#f1f5f9')}
       </tr>
     </table>`;
 

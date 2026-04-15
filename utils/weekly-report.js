@@ -1,9 +1,10 @@
 // utils/weekly-report.js
 // Viikkoraportin generointi ja lähetys kaikille käyttäjille
 
-const User  = require('../models/User');
-const Popup = require('../models/Popup');
-const Lead  = require('../models/Lead');
+const User       = require('../models/User');
+const Popup      = require('../models/Popup');
+const Lead       = require('../models/Lead');
+const DailyStats = require('../models/DailyStats');
 const { sendMail } = require('./email');
 const { buildWeeklyReport } = require('./email-templates');
 
@@ -48,21 +49,38 @@ function getWeekRanges() {
  * @returns {{ views, clicks, leads }}
  */
 async function getStatsForPeriod(userId, from, to) {
-  // Popupit eivät tallenna päivittäisiä tilastoja – käytetään Lead-mallia liideille
-  // ja Popup.statistics:ssa olevaa kokonaismäärää vertailuun ei voi käyttää ajalta,
-  // joten leads lasketaan tarkasti Lead-mallista.
-  // Views + clicks kerätään statistiikasta (kumulatiivisia – paras saatavilla oleva data)
+  // Muodosta päivämäärästring-raja DailyStats-kyselyä varten
+  const fromStr = from.toISOString().slice(0, 10);
+  const toStr   = to.toISOString().slice(0, 10);
 
+  const [dailyAgg, leads] = await Promise.all([
+    // Jaksokohtaiset views + clicks DailyStats-kokoelmasta
+    DailyStats.aggregate([
+      { $match: { userId, date: { $gte: fromStr, $lte: toStr } } },
+      { $group: { _id: null, views: { $sum: '$views' }, clicks: { $sum: '$clicks' } } },
+    ]),
+    // Liidit Lead-mallista (tarkka timestamp-suodatus)
+    Lead.countDocuments({ userId, submittedAt: { $gte: from, $lte: to } }),
+  ]);
+
+  return {
+    views:  dailyAgg[0]?.views  || 0,
+    clicks: dailyAgg[0]?.clicks || 0,
+    leads,
+  };
+}
+
+/**
+ * Hakee kaikki-aikaisen kokonaissumman käyttäjän kaikista elementeistä.
+ */
+async function getAllTimeStats(userId) {
   const popups = await Popup.find({ userId }).select('statistics').lean();
-  const leads = await Lead.countDocuments({ userId, submittedAt: { $gte: from, $lte: to } });
-
-  // Koska per-päivä view/click-logia ei vielä ole, palautetaan kumulatiivinen summa
-  // (sama luku molemmille periodeille) – delta on 0 mutta leads on tarkka.
-  // Tämä on paras mahdollinen ilman aikasarjatietokantaa.
-  const views  = popups.reduce((s, p) => s + (p.statistics?.views  || 0), 0);
-  const clicks = popups.reduce((s, p) => s + (p.statistics?.clicks || 0), 0);
-
-  return { views, clicks, leads };
+  return popups.reduce((acc, p) => {
+    acc.views  += p.statistics?.views  || 0;
+    acc.clicks += p.statistics?.clicks || 0;
+    acc.leads  += p.statistics?.leads  || 0;
+    return acc;
+  }, { views: 0, clicks: 0, leads: 0 });
 }
 
 /**
@@ -129,17 +147,23 @@ async function sendWeeklyReports() {
       const toEmail = user.emailNotifications?.notifyEmail?.trim() || user.email;
       if (!toEmail) continue;
 
-      // Tilastot tältä viikolta ja edelliseltä (vain leads on viikkokohtainen)
-      const [thisPeriod, prevPeriod] = await Promise.all([
+      // Tilastot tältä viikolta, edelliseltä ja kaikki-aikainen
+      const [thisPeriod, prevPeriod, allTime] = await Promise.all([
         getStatsForPeriod(user._id, lastMonday, lastSunday),
         getStatsForPeriod(user._id, prevMonday, prevSunday),
+        getAllTimeStats(user._id),
       ]);
 
       const stats = {
+        // Jaksokohtaiset (viikko)
         views:     thisPeriod.views,
         clicks:    thisPeriod.clicks,
         leads:     thisPeriod.leads,
         prevLeads: prevPeriod.leads,
+        // Kaikki aika
+        allViews:  allTime.views,
+        allClicks: allTime.clicks,
+        allLeads:  allTime.leads,
       };
 
       // Skipata jos viikolla ei tullut yhtään liidiä
