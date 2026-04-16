@@ -84,6 +84,8 @@ const popupSchema = new mongoose.Schema({
         slideInTrigger:     { type: String, default: 'time' },
         slideInTriggerValue:{ type: Number, default: 5 },
         showCloseButton:    { type: Boolean, default: true },
+        lastTemplate:       { type: String, default: '' },
+        tplFields:          { type: mongoose.Schema.Types.Mixed, default: {} },
         // Popup v2 alatyypit
         popupSubtype:       { type: String, default: 'announcement' },
         // Social Proof
@@ -98,6 +100,8 @@ const popupSchema = new mongoose.Schema({
         progressHeight:     { type: Number, default: 4 },
         progressPosition:   { type: String, default: 'top' },
         // Lead Form
+        leadTitle:          { type: String, default: '' },
+        leadSubtitle:       { type: String, default: '' },
         leadFields:         { type: Array, default: [] },
         leadSubmitText:     { type: String, default: 'Lähetä' },
         leadSuccessMsg:     { type: String, default: 'Kiitos! Olemme yhteydessä pian.' }

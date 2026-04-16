@@ -212,7 +212,14 @@ function previewLeadForm(container, el, cfg) {
     fontFamily: 'system-ui,sans-serif', fontSize: '11px'
   });
   const fields = cfg.leadFields || [{ label: 'Nimi' }, { label: 'Sähköposti' }];
-  box.innerHTML = fields.map(f =>
+  const titleHtml = cfg.leadTitle
+    ? `<div style="font-size:12px;font-weight:700;margin-bottom:${cfg.leadSubtitle ? '2px' : '10px'};line-height:1.3">${cfg.leadTitle}</div>`
+    : '';
+  const subtitleHtml = cfg.leadSubtitle
+    ? `<div style="font-size:10px;opacity:0.6;margin-bottom:10px;line-height:1.4">${cfg.leadSubtitle}</div>`
+    : '';
+  box.innerHTML = titleHtml + subtitleHtml +
+  fields.map(f =>
     `<div style="margin-bottom:8px">
       <div style="font-size:10px;margin-bottom:3px;opacity:0.7">${f.label || ''}</div>
       <div style="height:24px;background:rgba(0,0,0,0.08);border-radius:4px"></div>
