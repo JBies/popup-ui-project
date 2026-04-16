@@ -302,6 +302,7 @@ function initTargetingEditor(data) {
   // AND/OR toggle
   document.querySelectorAll('.tgt-match-btn').forEach(btn => {
     const active = btn.dataset.match === matchType;
+    btn.dataset.active     = active ? 'true' : 'false';
     btn.style.borderColor  = active ? '#3b82f6' : '#e2e8f0';
     btn.style.background   = active ? '#eff6ff' : '#fff';
     btn.style.color        = active ? '#1d4ed8' : '#64748b';
@@ -309,6 +310,7 @@ function initTargetingEditor(data) {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tgt-match-btn').forEach(b => {
         const a = b.dataset.match === btn.dataset.match;
+        b.dataset.active    = a ? 'true' : 'false';
         b.style.borderColor = a ? '#3b82f6' : '#e2e8f0';
         b.style.background  = a ? '#eff6ff' : '#fff';
         b.style.color       = a ? '#1d4ed8' : '#64748b';
@@ -336,7 +338,7 @@ function readTargetingFromUI() {
   const enabled = cb?.checked === true;
   if (!enabled) return { enabled: false, matchType: 'all', rules: [] };
 
-  const matchBtn  = document.querySelector('.tgt-match-btn[style*="#eff6ff"]') ||
+  const matchBtn  = document.querySelector('.tgt-match-btn[data-active="true"]') ||
                     document.querySelector('.tgt-match-btn[data-match="all"]');
   const matchType = matchBtn?.dataset.match || 'all';
 
