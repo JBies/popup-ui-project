@@ -17,19 +17,6 @@ function getTimingStatus(el) {
   return { label: '● Aktiivinen', color: '#10b981' };
 }
 
-const TYPE_EMBED = {
-  sticky_bar: 'ui-embed.js',
-  fab:        'ui-embed.js',
-  slide_in:   'ui-embed.js',
-  popup:      'popup-embed.js'
-};
-const TYPE_FN = {
-  sticky_bar: 'ShowElement',
-  fab:        'ShowElement',
-  slide_in:   'ShowElement',
-  popup:      'ShowPopup'
-};
-
 export function openStats(el) {
   const root = document.getElementById('modal-root');
   if (!root) return;
@@ -40,17 +27,12 @@ export function openStats(el) {
 
   root.querySelectorAll('#close-stats').forEach(btn => btn.addEventListener('click', () => { root.innerHTML = ''; }));
   root.querySelector('#reset-stats')?.addEventListener('click', () => resetStats(el._id, el));
-  root.querySelector('#copy-embed')?.addEventListener('click', () => copyEmbed(el));
   root.querySelector('#stats-overlay')?.addEventListener('click', e => {
     if (e.target.id === 'stats-overlay') root.innerHTML = '';
   });
 }
 
 function buildStatsHTML(el) {
-  const type = el.elementType || 'popup';
-  const embedFile = TYPE_EMBED[type] || 'ui-embed.js';
-  const embedFn   = TYPE_FN[type] || 'ShowElement';
-  const embedCode = `<script src="https://popupmanager.net/${embedFile}"><\/script>\n<script>\n  window.addEventListener('load', function() {\n    ${embedFn}('${el._id}');\n  });\n<\/script>`;
 
   return `
     <div class="modal-overlay" id="stats-overlay">
@@ -67,16 +49,6 @@ function buildStatsHTML(el) {
           <div class="stat-card"><div class="stat-value" id="s-ctr">–</div><div class="stat-label">CTR</div></div>
         </div>
         <div style="font-size:12px;color:#94a3b8;margin-bottom:20px" id="s-dates"></div>
-
-        <div style="margin-bottom:20px">
-          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin-bottom:8px">Embed-koodi</div>
-          <div style="background:#1e293b;border-radius:8px;padding:14px;position:relative">
-            <pre id="embed-code-pre" style="color:#e2e8f0;font-family:monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;margin:0">${escHtml(embedCode)}</pre>
-            <button class="btn btn-secondary btn-sm" id="copy-embed" style="position:absolute;top:8px;right:8px;background:#334155;color:#94a3b8;border:none">
-              <i class="fa fa-copy"></i> Kopioi
-            </button>
-          </div>
-        </div>
 
         <div style="display:flex;justify-content:space-between;align-items:center">
           <button class="btn btn-danger btn-sm" id="reset-stats">
@@ -149,13 +121,6 @@ async function resetStats(id, el) {
   } catch {
     showToast('Nollaus epäonnistui', 'error');
   }
-}
-
-function copyEmbed(el) {
-  const pre = document.getElementById('embed-code-pre');
-  if (!pre) return;
-  const text = pre.textContent;
-  navigator.clipboard.writeText(text).then(() => showToast('Embed-koodi kopioitu!'));
 }
 
 function escHtml(s) {

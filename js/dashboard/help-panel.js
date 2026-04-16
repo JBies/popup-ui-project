@@ -47,8 +47,8 @@ function renderHelp() {
         <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;border-top:1px solid #bbf7d0;padding-top:14px">
           <div style="font-size:12px;font-weight:700;color:#166534;margin-bottom:2px">💡 Hyödyllistä tietää</div>
           <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#166534">
-            <span style="flex-shrink:0">📋</span>
-            <span><strong>Elementin oma koodi</strong> – Jos tarvitset yksittäisen elementin embed-koodin, avaa elementti <strong>Muokkaa</strong>-napilla → koodi löytyy editorin alaosasta "Elementtikoodi"-kohdasta.</span>
+            <span style="flex-shrink:0">🎯</span>
+            <span><strong>Kohdistus</strong> – Voit rajata missä elementti näkyy: avaa <strong>Muokkaa</strong> → Kohdistus → lisää sääntö. Esim. "Sivun osoite sisältää /tunnit" näyttää elementin vain tunnit-sivulla.</span>
           </div>
           <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#166534">
             <span style="flex-shrink:0">📊</span>

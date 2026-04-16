@@ -312,7 +312,7 @@ async function handleAction(action, id) {
     el.active = newActive;
     renderList();
     try {
-      const r = await fetch('/api/popups/' + id, {
+      const r = await fetch('/api/popups/' + id + '/toggle-active', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: newActive }),
