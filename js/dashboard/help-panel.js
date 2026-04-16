@@ -43,6 +43,22 @@ function renderHelp() {
             <div style="font-size:13px;color:#166534"><strong>Aktivoi</strong> – Kytke elementtikortin toggle päälle. Elementti alkaa näkyä sivustollasi välittömästi – ei tarvitse muuttaa sivuston koodia uudelleen.</div>
           </div>
         </div>
+        <!-- Vinkit -->
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;border-top:1px solid #bbf7d0;padding-top:14px">
+          <div style="font-size:12px;font-weight:700;color:#166534;margin-bottom:2px">💡 Hyödyllistä tietää</div>
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#166534">
+            <span style="flex-shrink:0">📋</span>
+            <span><strong>Elementin oma koodi</strong> – Jos tarvitset yksittäisen elementin embed-koodin, avaa elementti <strong>Muokkaa</strong>-napilla → koodi löytyy editorin alaosasta "Elementtikoodi"-kohdasta.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#166534">
+            <span style="flex-shrink:0">📊</span>
+            <span><strong>Raportit</strong> – Näet tarkat tilastot aikaväliltä Raportit-välilehdellä. Voit suodattaa sivuston tai elementin mukaan ja lähettää raportin sähköpostiin.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#166534">
+            <span style="flex-shrink:0">🔄</span>
+            <span><strong>Toggle = live</strong> – Elementtikortin vihreä toggle tarkoittaa että elementti on live. Harmaa = piilotettu. Muutos astuu voimaan välittömästi ilman sivuston koodin muuttamista.</span>
+          </div>
+        </div>
       </div>
 
       <!-- Elementtityypit -->
@@ -132,6 +148,31 @@ function renderHelp() {
           ['Kentät','Lomakkeen kentät määritetään Lead Form -editorissa: teksti, email, puhelin, textarea.'],
           ['Sähköposti-ilmoitus','Saat automaattisesti sähköpostin joka uudesta liidistä (asetus: Asennuskoodi → Sähköposti-ilmoitukset).'],
         ])
+      ])}
+
+      <!-- Raportit -->
+      ${section('fa-chart-line','Raportit','Tilastot aikaväleittäin – jakso ja kaikki aika', [
+        infoBlock('Raportit-välilehti näyttää tarkat tilastot valitulle ajanjaksolle. Voit suodattaa sivuston tai elementin mukaan.',
+        [
+          ['Aikavälivalitsin','Valitse valmisvaihtoehto: Tänään / Tämä viikko / Tämä kuukausi / Kaikki aika – tai aseta vapaa aikaväli "Muokkaa..."-napista.'],
+          ['Jakson tilastokortit','Ylärivi näyttää valitun jakson tarkat näyttökerrat, klikkaukset, liidit ja CTR%. Data kertyy tästä päivästä alkaen.'],
+          ['Kaikki aika -kortit','Alarivi näyttää kumulatiiviset kokonaissummat kaikesta ajasta – aina saatavilla.'],
+          ['Sivusto-suodatin','Valitse sivusto-dropdownista → elementtisuodatin päivittyy automaattisesti näyttämään vain sen sivuston elementit.'],
+          ['Elementtisuodatin','Valitse yksittäinen elementti → näet vain sen elementin datan. Tilastojenkerääjät (📊) näkyvät myös listassa.'],
+          ['Top elementit -taulukko','Näyttää parhaat elementit kumulatiivisen kokonaissuorituksen mukaan (näytöt, klikkaukset, liidit). Tilastojenkerääjillä klikkaukset ja liidit näkyvät "–" koska niitä ei voi klikata.'],
+          ['Viimeisimmät liidit','Listaus valitun jakson lead form -lähetyksistä – nimi, sähköposti, päivämäärä.'],
+          ['Lähetä sähköpostiin','Klikkaa "Lähetä sähköpostiin" -nappia – saat raportin suoraan sähköpostiisi (maksimissaan 3 kertaa tunnissa).'],
+          ['Tilastojenkerääjät raportissa','Tilastojenkerääjä-elementit (📊) näkyvät Top elementit -listassa. Niiden näyttökerrat kertovat miten paljon sivuilla käy kävijöitä. Voit vertailla esim. etusivua, varaussivua ja yhteystietosivua keskenään.'],
+        ]),
+
+        `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-top:8px">
+          <div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:8px">📌 Milloin data alkaa kertyä?</div>
+          <div style="font-size:12px;color:#1e40af;line-height:1.6">
+            Jaksokohtaiset näyttö- ja klikkausmäärät (sininen kortit) kerätään tästä päivästä alkaen – ennen käyttöönottoa ei ole historiadataa.
+            <br>Liidit ovat aina tarkkoja koska ne on tallennettu alusta asti aikaleimalla.
+            <br>Kaikki-aika -kortit (harmaat) ovat välittömästi saatavilla – ne käyttävät kumulatiivisia kokonaissummia.
+          </div>
+        </div>`
       ])}
 
       <!-- Sähköposti-ilmoitukset -->
