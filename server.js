@@ -77,11 +77,13 @@ app.get('/popup-embed.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/popup-embed.js'));
 });
 
-// /api/popups/site – julkinen reitti, Nginx ei lisää CORS-headeria tälle polulle
-// /embed/, /view/, /click/ ja /api/leads saavat CORS-headerit Nginxiltä – ei lisätä kahdesti
+// Julkiset embed-reitit joille Nginx ei lisää CORS-headeria – lisätään Node.js:ssä
+// /embed/, /view/, /click/ saavat CORS-headerit Nginxiltä – ei lisätä kahdesti
 const embedCors = cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'] });
 app.options('/api/popups/site/*', embedCors);
 app.use('/api/popups/site', embedCors);
+app.options('/api/leads', embedCors);
+app.use('/api/leads', embedCors);
 
 // Poista CSP admin-reiteiltä
 app.use('/admin-popups.html', (req, res, next) => {

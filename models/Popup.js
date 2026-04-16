@@ -104,7 +104,8 @@ const popupSchema = new mongoose.Schema({
         leadSubtitle:       { type: String, default: '' },
         leadFields:         { type: Array, default: [] },
         leadSubmitText:     { type: String, default: 'Lähetä' },
-        leadSuccessMsg:     { type: String, default: 'Kiitos! Olemme yhteydessä pian.' }
+        leadSuccessMsg:     { type: String, default: 'Kiitos! Olemme yhteydessä pian.' },
+        leadNotifyEmail:    { type: String, default: '' }
     },
     siteId: { type: mongoose.Schema.Types.ObjectId, default: null },
     version: { type: Number, default: Date.now },

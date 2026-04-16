@@ -39,6 +39,10 @@ export function renderLeadFormFields(container, cfg = {}) {
       <label>Onnistumisviesti</label>
       <input type="text" name="leadSuccessMsg" value="${cfg.leadSuccessMsg || 'Kiitos! Olemme yhteydessä pian.'}">
     </div>
+    <div class="form-group">
+      <label>Ilmoitussähköposti <span style="font-size:11px;color:#94a3b8">(tyhjä = oma tilisi sähköposti)</span></label>
+      <input type="email" name="leadNotifyEmail" value="${cfg.leadNotifyEmail || ''}" placeholder="esim. padel@kuntokeidas.fi">
+    </div>
     <div class="form-row">
       <div class="form-group">
         <label>Taustaväri</label>
@@ -86,12 +90,13 @@ export function getLeadFormData(container) {
     required: row.querySelector('.lf-req')?.checked   ?? false
   })).filter(f => f.label.trim());
   return {
-    leadTitle:      g('leadTitle')?.value      || '',
-    leadSubtitle:   g('leadSubtitle')?.value   || '',
-    leadFields:     fields,
-    leadSubmitText: g('leadSubmitText')?.value || 'Lähetä',
-    leadSuccessMsg: g('leadSuccessMsg')?.value || 'Kiitos!',
-    backgroundColor: g('lfBg')?.value   || '#ffffff',
-    textColor:       g('lfText')?.value || '#1f2937'
+    leadTitle:       g('leadTitle')?.value       || '',
+    leadSubtitle:    g('leadSubtitle')?.value    || '',
+    leadFields:      fields,
+    leadSubmitText:  g('leadSubmitText')?.value  || 'Lähetä',
+    leadSuccessMsg:  g('leadSuccessMsg')?.value  || 'Kiitos!',
+    leadNotifyEmail: g('leadNotifyEmail')?.value || '',
+    backgroundColor: g('lfBg')?.value            || '#ffffff',
+    textColor:       g('lfText')?.value          || '#1f2937'
   };
 }

@@ -25,7 +25,10 @@ class LeadController {
             .select('email emailNotifications displayName').lean();
           if (!user) return;
           if (user.emailNotifications?.leadAlert === false) return;
-          const toEmail = user.emailNotifications?.notifyEmail?.trim() || user.email;
+          // Elementin oma sähköposti ohittaa käyttäjän oletussähköpostin
+          const toEmail = popup.elementConfig?.leadNotifyEmail?.trim()
+            || user.emailNotifications?.notifyEmail?.trim()
+            || user.email;
           if (!toEmail) return;
           const { subject, html } = buildLeadNotification(popup, lead);
           await sendMail(toEmail, subject, html);
