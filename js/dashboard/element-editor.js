@@ -46,6 +46,8 @@ export async function openEditor(data = {}) {
   const fieldsContainer = document.getElementById('type-fields');
   renderTypeFields(fieldsContainer, currentType, data);
 
+  initTargetingEditor(data);
+
   if (currentType !== 'stats_only') updatePreview();
 
   panel.querySelectorAll('#editor-cancel').forEach(btn => btn.addEventListener('click', closeEditor));
@@ -158,6 +160,35 @@ function buildEditorHTML(type, data = {}, sites = []) {
         <div id="type-fields"></div>
 
         ${timingHTML}
+
+        <!-- Kohdistus -->
+        <div style="margin-top:20px">
+          <div class="section-title">Kohdistus</div>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:10px;user-select:none">
+            <input type="checkbox" id="el-targeting-enabled" style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#0f172a">Rajoita kohderyhmä</div>
+              <div style="font-size:11px;color:#64748b">Näytetään vain tietyllä sivulla, laitteella tai aikana</div>
+            </div>
+          </label>
+          <div id="el-targeting-rules-wrap" style="display:none">
+            <div id="el-targeting-match" style="display:flex;gap:6px;margin-bottom:10px">
+              <button type="button" class="tgt-match-btn" data-match="all"
+                style="flex:1;padding:6px;border:2px solid #3b82f6;border-radius:7px;background:#eff6ff;font-size:12px;font-weight:700;color:#1d4ed8;cursor:pointer">
+                Kaikki ehdot täyttyy (JA)
+              </button>
+              <button type="button" class="tgt-match-btn" data-match="any"
+                style="flex:1;padding:6px;border:2px solid #e2e8f0;border-radius:7px;background:#fff;font-size:12px;font-weight:600;color:#64748b;cursor:pointer">
+                Jokin ehto täyttyy (TAI)
+              </button>
+            </div>
+            <div id="el-rules-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+            <button type="button" id="el-add-rule"
+              style="width:100%;padding:8px;border:2px dashed #cbd5e1;border-radius:8px;background:transparent;font-size:12px;font-weight:600;color:#64748b;cursor:pointer">
+              + Lisää sääntö
+            </button>
+          </div>
+        </div>
       </div>
       ${type !== 'stats_only' ? `<div class="editor-preview-pane">
         <div class="preview-toolbar">
@@ -186,6 +217,138 @@ function buildEditorHTML(type, data = {}, sites = []) {
         <i class="fa fa-save"></i> Tallenna
       </button>
     </div>`;
+}
+
+// ─── Targeting ────────────────────────────────────────────────────────────────
+
+const RULE_TYPES = [
+  { value: 'url',              label: 'Sivun osoite' },
+  { value: 'device',           label: 'Laite' },
+  { value: 'referrer',         label: 'Viittaava sivu' },
+  { value: 'day_of_week',      label: 'Viikonpäivä' },
+  { value: 'hour_of_day',      label: 'Kellonaika' },
+];
+
+const RULE_OPERATORS = {
+  url:          [{ value: 'contains', label: 'sisältää' }, { value: 'equals', label: 'on täsmälleen' }, { value: 'starts_with', label: 'alkaa' }],
+  referrer:     [{ value: 'contains', label: 'sisältää' }, { value: 'equals', label: 'on täsmälleen' }],
+  hour_of_day:  [{ value: 'greater_than', label: 'suurempi kuin' }, { value: 'less_than', label: 'pienempi kuin' }],
+};
+
+const RULE_VALUE_OPTIONS = {
+  device:      [{ value: 'mobile', label: 'Mobiili' }, { value: 'tablet', label: 'Tabletti' }, { value: 'desktop', label: 'Tietokone' }],
+  day_of_week: [{ value: 'monday', label: 'Maanantai' }, { value: 'tuesday', label: 'Tiistai' }, { value: 'wednesday', label: 'Keskiviikko' },
+                { value: 'thursday', label: 'Torstai' }, { value: 'friday', label: 'Perjantai' }, { value: 'saturday', label: 'Lauantai' }, { value: 'sunday', label: 'Sunnuntai' }],
+};
+
+function buildRuleRow(rule = {}) {
+  const ruleType = rule.type || 'url';
+  const ops      = RULE_OPERATORS[ruleType] || [];
+  const valOpts  = RULE_VALUE_OPTIONS[ruleType] || [];
+  const hasOp    = ops.length > 0;
+  const hasSelect = valOpts.length > 0;
+
+  const typeOpts = RULE_TYPES.map(t =>
+    `<option value="${t.value}" ${t.value === ruleType ? 'selected' : ''}>${t.label}</option>`
+  ).join('');
+
+  const opOpts = ops.map(o =>
+    `<option value="${o.value}" ${o.value === (rule.operator || '') ? 'selected' : ''}>${o.label}</option>`
+  ).join('');
+
+  const valSelectOpts = valOpts.map(v =>
+    `<option value="${v.value}" ${v.value === (rule.value || '') ? 'selected' : ''}>${v.label}</option>`
+  ).join('');
+
+  const row = document.createElement('div');
+  row.className = 'tgt-rule-row';
+  row.style.cssText = 'display:flex;gap:6px;align-items:center';
+  row.innerHTML = `
+    <select class="tgt-type" style="flex:1.2;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;font-size:12px;background:#fff">${typeOpts}</select>
+    <select class="tgt-op" style="flex:1;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;font-size:12px;background:#fff;display:${hasOp?'block':'none'}">${opOpts}</select>
+    ${hasSelect
+      ? `<select class="tgt-val" style="flex:1.2;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;font-size:12px;background:#fff">${valSelectOpts}</select>`
+      : `<input type="text" class="tgt-val" placeholder="${ruleType === 'hour_of_day' ? '0–23' : '/sivusto-polku'}"
+           value="${escHtml(rule.value || '')}"
+           style="flex:1.2;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;font-size:12px">`
+    }
+    <button type="button" class="tgt-remove" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0" title="Poista">✕</button>`;
+
+  // Tyyppi vaihtuu → päivitä operaattori + arvo
+  row.querySelector('.tgt-type').addEventListener('change', e => {
+    const newType = e.target.value;
+    const newRow  = buildRuleRow({ type: newType });
+    row.replaceWith(newRow);
+  });
+
+  row.querySelector('.tgt-remove').addEventListener('click', () => row.remove());
+  return row;
+}
+
+function initTargetingEditor(data) {
+  const targeting = data.targeting || {};
+  const enabled   = targeting.enabled === true;
+  const matchType = targeting.matchType || 'all';
+  const rules     = Array.isArray(targeting.rules) ? targeting.rules : [];
+
+  const cb   = document.getElementById('el-targeting-enabled');
+  const wrap = document.getElementById('el-targeting-rules-wrap');
+  const list = document.getElementById('el-rules-list');
+  if (!cb || !wrap || !list) return;
+
+  cb.checked = enabled;
+  wrap.style.display = enabled ? 'block' : 'none';
+
+  // AND/OR toggle
+  document.querySelectorAll('.tgt-match-btn').forEach(btn => {
+    const active = btn.dataset.match === matchType;
+    btn.style.borderColor  = active ? '#3b82f6' : '#e2e8f0';
+    btn.style.background   = active ? '#eff6ff' : '#fff';
+    btn.style.color        = active ? '#1d4ed8' : '#64748b';
+    btn.style.fontWeight   = active ? '700' : '600';
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tgt-match-btn').forEach(b => {
+        const a = b.dataset.match === btn.dataset.match;
+        b.style.borderColor = a ? '#3b82f6' : '#e2e8f0';
+        b.style.background  = a ? '#eff6ff' : '#fff';
+        b.style.color       = a ? '#1d4ed8' : '#64748b';
+        b.style.fontWeight  = a ? '700' : '600';
+      });
+    });
+  });
+
+  // Esitäytä säännöt
+  rules.forEach(r => list.appendChild(buildRuleRow(r)));
+
+  // + Lisää sääntö
+  document.getElementById('el-add-rule')?.addEventListener('click', () => {
+    list.appendChild(buildRuleRow({ type: 'url', operator: 'contains', value: '' }));
+  });
+
+  // Checkbox toggle
+  cb.addEventListener('change', () => {
+    wrap.style.display = cb.checked ? 'block' : 'none';
+  });
+}
+
+function readTargetingFromUI() {
+  const cb = document.getElementById('el-targeting-enabled');
+  const enabled = cb?.checked === true;
+  if (!enabled) return { enabled: false, matchType: 'all', rules: [] };
+
+  const matchBtn  = document.querySelector('.tgt-match-btn[style*="#eff6ff"]') ||
+                    document.querySelector('.tgt-match-btn[data-match="all"]');
+  const matchType = matchBtn?.dataset.match || 'all';
+
+  const rules = [];
+  document.querySelectorAll('.tgt-rule-row').forEach(row => {
+    const type     = row.querySelector('.tgt-type')?.value || 'url';
+    const operator = row.querySelector('.tgt-op')?.value   || 'contains';
+    const value    = row.querySelector('.tgt-val')?.value?.trim() || '';
+    if (value) rules.push({ type, operator, value });
+  });
+
+  return { enabled: rules.length > 0, matchType, rules };
 }
 
 function proLockHTML(feature) {
@@ -268,7 +431,7 @@ function buildPayload() {
     elementType: currentType,
     popupType: typeData.popupType || 'rectangle',
     delay, frequency,
-    targeting: { enabled: false, matchType: 'all', rules: [] },
+    targeting: readTargetingFromUI(),
     abTest: { enabled: false },
     siteId: siteId || null,
     startDate: document.getElementById('el-start-date')?.value || '',
