@@ -15,6 +15,14 @@ export function renderLeadFormFields(container, cfg = {}) {
   container.innerHTML = `
     <div class="section-title">Lead Form -asetukset</div>
     <div class="form-group">
+      <label>Otsikko <span style="font-size:11px;color:#94a3b8">(näkyy lomakkeen yläpuolella, tyhjä = ei otsikkoa)</span></label>
+      <input type="text" name="leadTitle" value="${cfg.leadTitle || ''}" placeholder="esim. Ilmoittaudu Padelturnaukseen tästä:">
+    </div>
+    <div class="form-group">
+      <label>Alaotsikko / kuvaus <span style="font-size:11px;color:#94a3b8">(valinnainen)</span></label>
+      <input type="text" name="leadSubtitle" value="${cfg.leadSubtitle || ''}" placeholder="esim. Täytä tiedot ja otamme yhteyttä.">
+    </div>
+    <div class="form-group">
       <label>Lomakkeen kentät</label>
       <div id="lf-fields" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px">
         ${fields.map(f => fieldRow(f)).join('')}
@@ -78,6 +86,8 @@ export function getLeadFormData(container) {
     required: row.querySelector('.lf-req')?.checked   ?? false
   })).filter(f => f.label.trim());
   return {
+    leadTitle:      g('leadTitle')?.value      || '',
+    leadSubtitle:   g('leadSubtitle')?.value   || '',
     leadFields:     fields,
     leadSubmitText: g('leadSubmitText')?.value || 'Lähetä',
     leadSuccessMsg: g('leadSuccessMsg')?.value || 'Kiitos!',

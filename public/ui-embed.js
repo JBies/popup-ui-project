@@ -594,7 +594,15 @@ if (!window.ShowElement) {
           'style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box"></div>';
       }).join('');
 
-      box.innerHTML = fieldsHtml +
+      var headerHtml = '';
+      if (cfg.leadTitle) {
+        headerHtml += '<div style="font-size:17px;font-weight:700;margin-bottom:' + (cfg.leadSubtitle ? '4px' : '16px') + ';line-height:1.3">' + escHtml(cfg.leadTitle) + '</div>';
+      }
+      if (cfg.leadSubtitle) {
+        headerHtml += '<div style="font-size:13px;opacity:0.7;margin-bottom:16px;line-height:1.4">' + escHtml(cfg.leadSubtitle) + '</div>';
+      }
+
+      box.innerHTML = headerHtml + fieldsHtml +
         '<button id="ue-lead-submit" style="width:100%;padding:11px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px">' +
         escHtml(cfg.leadSubmitText || 'Lähetä') + '</button>' +
         '<div id="ue-lead-success" style="display:none;text-align:center;padding:12px;color:#16a34a;font-weight:500">' +
