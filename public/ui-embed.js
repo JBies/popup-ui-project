@@ -427,10 +427,13 @@ if (!window.ShowElement) {
     var op = rule.operator;
     switch (rule.type) {
       case 'url':
-        var url = window.location.href.toLowerCase();
-        if (op === 'contains') return url.indexOf(val) !== -1;
-        if (op === 'equals') return url === val;
-        if (op === 'starts_with') return url.indexOf(val) === 0;
+        var url      = window.location.href.toLowerCase();
+        var pathname = window.location.pathname.toLowerCase();
+        // Jos arvo alkaa / (polku), käytetään pathnamea – muuten koko URL:ia
+        var urlTarget = val.startsWith('/') ? pathname : url;
+        if (op === 'contains')    return urlTarget.indexOf(val) !== -1;
+        if (op === 'equals')      return urlTarget === val;
+        if (op === 'starts_with') return urlTarget.indexOf(val) === 0;
         return false;
       case 'device':
         var ua = navigator.userAgent.toLowerCase();
