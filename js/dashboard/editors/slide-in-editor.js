@@ -99,8 +99,10 @@ function syncContent(container, tplId) {
 
 // ── Renderöi editori ──────────────────────────────────────────────────────────
 export function renderSlideInFields(container, cfg = {}, el = {}) {
-  // Onko olemassa olevaa sisältöä? Jos kyllä, aloita HTML-tilassa.
-  const hasExistingContent = !!(el.content && el.content.trim());
+  // Jos tallennettuja tpl-kenttiä löytyy, käytetään aina mallipohja-tilaa (linkin muokkaus toimii)
+  const hasTplFields = !!(cfg.tplFields && (cfg.tplFields.heading || cfg.tplFields.btn || cfg.tplFields.url));
+  // HTML-tila vain jos sisältöä on eikä tplFields:iä ole tallennettuna
+  const hasExistingContent = !!(el.content && el.content.trim()) && !hasTplFields;
   const activeTplId = cfg.lastTemplate || SLIDE_TEMPLATES[0].id;
 
   container.innerHTML = `
@@ -300,17 +302,41 @@ export function renderSlideInFields(container, cfg = {}, el = {}) {
     if (hidden) hidden.name = 'slideContent';
   });
 
-  // Alusta valittu mallipohja (uudet elementit)
+  // Alusta valittu mallipohja — uusille tai kun tplFields on tallennettu
   if (!hasExistingContent) {
     applyTemplate(activeTplId);
+    // Palauta tallennetut kenttien arvot (muokkaus — linkit, tekstit jne.)
+    if (cfg.tplFields) {
+      const f = cfg.tplFields;
+      const headingEl = container.querySelector('#tpl-heading');
+      const bodyEl    = container.querySelector('#tpl-body');
+      const btnEl     = container.querySelector('#tpl-btn');
+      const urlEl     = container.querySelector('#tpl-url');
+      const bigEl     = container.querySelector('#tpl-big');
+      if (headingEl && f.heading !== undefined) headingEl.value = f.heading;
+      if (bodyEl    && f.body    !== undefined) bodyEl.value    = f.body;
+      if (btnEl     && f.btn     !== undefined) btnEl.value     = f.btn;
+      if (urlEl     && f.url     !== undefined) urlEl.value     = f.url;
+      if (bigEl     && f.big     !== undefined) bigEl.value     = f.big;
+      syncContent(container, currentTpl);
+    }
   }
 }
 
 // ── Lue data lomakkeelta ──────────────────────────────────────────────────────
 export function getSlideInData(container) {
   const g = n => container.querySelector(`[name="${n}"]`);
-  // Lue sisältö: joko HTML-tilasta tai mallipohjan piilotetusta kentästä
-  const contentEl = container.querySelector('[name="slideContent"]');
+  // Lue sisältö — suosi ei-tyhjää arvoa (mallipohja vs HTML-tila)
+  const allContent = Array.from(container.querySelectorAll('[name="slideContent"]'));
+  const contentEl  = allContent.find(el => el.value) || allContent[0];
+  // Tallenna myös mallipohjakenttien arvot jotta linkkiä voi aina muokata
+  const tplFields = {
+    heading: container.querySelector('#tpl-heading')?.value || '',
+    big:     container.querySelector('#tpl-big')?.value     || '',
+    body:    container.querySelector('#tpl-body')?.value    || '',
+    btn:     container.querySelector('#tpl-btn')?.value     || '',
+    url:     container.querySelector('#tpl-url')?.value     || '',
+  };
   return {
     config: {
       slideInPosition:     g('slideInPosition')?.value || 'bottom-right',
@@ -318,7 +344,8 @@ export function getSlideInData(container) {
       slideInTrigger:      g('slideInTrigger')?.value || 'time',
       slideInTriggerValue: parseInt(g('slideInTriggerValue')?.value) || 5,
       showCloseButton:     g('showCloseButton')?.checked ?? true,
-      lastTemplate:        g('lastTemplate')?.value || 'announcement'
+      lastTemplate:        g('lastTemplate')?.value || 'announcement',
+      tplFields,
     },
     content:         contentEl?.value || '',
     backgroundColor: g('backgroundColor')?.value || '#ffffff',

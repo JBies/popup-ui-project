@@ -308,14 +308,23 @@ if (!window.ShowElement) {
     var box = document.createElement('div');
     box.id = 'ue-slidein-' + el._id;
     var isTop = pos === 'top-left' || pos === 'top-right';
-    var posStyle = pos === 'top-left'    ? { top: '24px',    left: '24px'  }
-                 : pos === 'top-right'   ? { top: '24px',    right: '24px' }
-                 : pos === 'bottom-left' ? { bottom: '24px', left: '24px'  }
-                 :                         { bottom: '24px', right: '24px' };
+    var isMobile = window.innerWidth < 500;
+    var posStyle, widthStyle;
+    if (isMobile) {
+      // Mobiililla: venytä koko leveyteen, pieni marginaali reunoista
+      widthStyle = { width: 'auto', left: '10px', right: '10px' };
+      posStyle = isTop ? { top: '10px' } : { bottom: '10px' };
+    } else {
+      widthStyle = { width: w + 'px', maxWidth: 'calc(100vw - 48px)' };
+      posStyle = pos === 'top-left'    ? { top: '24px',    left: '24px'  }
+               : pos === 'top-right'   ? { top: '24px',    right: '24px' }
+               : pos === 'bottom-left' ? { bottom: '24px', left: '24px'  }
+               :                         { bottom: '24px', right: '24px' };
+    }
     var hideTransform = isTop ? 'translateY(-120%)' : 'translateY(120%)';
     Object.assign(box.style, Object.assign({
       position: 'fixed', zIndex: '999997',
-      width: w + 'px', padding: '20px',
+      padding: '20px', boxSizing: 'border-box',
       backgroundColor: el.backgroundColor || '#fff',
       color: el.textColor || '#1f2937',
       borderRadius: '12px',
@@ -323,7 +332,7 @@ if (!window.ShowElement) {
       fontFamily: 'system-ui, sans-serif',
       transform: hideTransform,
       transition: 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)'
-    }, posStyle));
+    }, widthStyle, posStyle));
 
     if (el.content) box.innerHTML = el.content;
 

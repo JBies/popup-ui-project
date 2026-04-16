@@ -48,7 +48,7 @@ function renderHelp() {
           <div style="font-size:12px;font-weight:700;color:#166534;margin-bottom:2px">💡 Hyödyllistä tietää</div>
           <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#166534">
             <span style="flex-shrink:0">🎯</span>
-            <span><strong>Kohdistus</strong> – Voit rajata missä elementti näkyy: avaa <strong>Muokkaa</strong> → Kohdistus → lisää sääntö. Esim. "Sivun osoite sisältää /tunnit" näyttää elementin vain tunnit-sivulla.</span>
+            <span><strong>Kohdistus</strong> – Rajaa missä elementti näkyy: avaa <strong>Muokkaa</strong> → Kohdistus → lisää sääntö. Usealle sivulle: käytä <strong>TAI</strong>-moodia. Etusivulle: "on täsmälleen" → <code style="background:#dcfce7;padding:1px 4px;border-radius:3px">/</code>. Katso tarkempi ohje Ohjeet → Kohdistus.</span>
           </div>
           <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#166534">
             <span style="flex-shrink:0">📊</span>
@@ -100,7 +100,7 @@ function renderHelp() {
         [
           ['Kuvan lataaminen','Popup-editorissa: klikkaa "Lataa kuva" tai raahaa kuva suoraan kenttään. Kuvat pakataan automaattisesti jos ne ovat yli 950 KB.'],
           ['Valitse kirjastosta','Klikkaa "Kirjastosta" -nappia popup-editorissa – näet kaikki aiemmin lataamasi kuvat ruudukkonäkymässä.'],
-          ['Tuetut tiedostomuodot','JPG, PNG, GIF, WebP. Suositeltu maksimikoko 5 MB (pakataan automaattisesti).'],
+          ['Tuetut tiedostomuodot','JPG, PNG, GIF, WebP. Maksimikoko 10 MB. PNG-kuvat muunnetaan automaattisesti JPEG:ksi pakkauksen yhteydessä (laatu säilyy hyvin, tiedostokoko pienenee huomattavasti).'],
           ['Kuvalinkit','Kuvat tallennetaan turvallisesti pilveen. Linkit päivittyvät automaattisesti 7 päivän välein – kuvat näkyvät aina oikein.'],
           ['Vinkki – nopein tapa','Suunnittele popup Canvassa tai Photoshopissa → lataa kuva suoraan editoriin drag & dropilla → aseta linkki-URL → valmis.'],
         ]),
@@ -116,6 +116,32 @@ function renderHelp() {
           ['Kerran per istunto','Elementti näytetään vain kerran per selainistunto. Hyvä popupeille jotta se ei ärsytä kävijää.'],
           ['Slide-in – omat ajastimet','Slide-in-elementillä on omat ajoitusasetukset editorin sisällä: aika (sekuntia) tai scroll-syvyys (%).'],
         ])
+      ])}
+
+      <!-- Kohdistus -->
+      ${section('fa-crosshairs','Kohdistus','Näytä elementti vain tietyillä sivuilla', [
+        infoBlock('Avaa <strong>Muokkaa</strong> → rullaa alas → kytke <strong>Rajoita kohderyhmä</strong> päälle. Ilman sääntöjä elementti näkyy kaikilla sivuilla.',
+        [
+          ['JA-moodi','Kaikkien sääntöjen pitää täyttyä yhtä aikaa. Esim. URL sisältää /tunnit JA laite on Mobiili → näkyy vain mobiilikäyttäjille tunnit-sivulla.'],
+          ['TAI-moodi','Riittää että yksi sääntö täyttyy. Esim. URL sisältää /tunnit TAI /varaus → näkyy molemmilla sivuilla. Käytä tätä kun haluat elementin usealle sivulle.'],
+        ]),
+        infoBlock('Sivun osoite -säännön operaattorit:',
+        [
+          ['"sisältää" + /tunnit','Täsmää kaikkiin URL-osoitteisiin joissa on /tunnit. Esim. .../fi/tunnit/ryhmaliikunta – toimii hyvin alasivuille.'],
+          ['"on täsmälleen" + /','Täsmää vain etusivuun (juuriosoite). Muista: "sisältää /" osuisi KAIKKIIN sivuihin koska kauttaviiva on jokaisessa URL:ssa!'],
+          ['"on täsmälleen" + /tunnit','Täsmää vain tähän yhteen polkuun – ei alasivuihin.'],
+          ['"alkaa" + /fi-fi/article','Täsmää kaikkiin /fi-fi/article/... -sivuihin (koko artikkelihakemisto).'],
+        ]),
+        `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:14px 16px;margin-top:4px">
+          <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:8px">📌 Käytännön esimerkkejä</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#78350f">
+            <div><strong>Etusivu:</strong> "on täsmälleen" → <code style="background:#fef3c7;padding:1px 5px;border-radius:3px">/</code></div>
+            <div><strong>Tietty sivu:</strong> "sisältää" → <code style="background:#fef3c7;padding:1px 5px;border-radius:3px">/virtuaalilasit</code></div>
+            <div><strong>Kolme sivua (TAI):</strong> lisää 3 sääntöä "sisältää" → <code style="background:#fef3c7;padding:1px 5px;border-radius:3px">/tunnit</code>, <code style="background:#fef3c7;padding:1px 5px;border-radius:3px">/varaus</code>, <code style="background:#fef3c7;padding:1px 5px;border-radius:3px">/hinnasto</code></div>
+            <div><strong>Vain mobiililla:</strong> lisää sääntö Laite → Mobiili</div>
+            <div><strong>Mobiili + tietty sivu (JA):</strong> Laite = Mobiili JA URL sisältää /tunnit</div>
+          </div>
+        </div>`
       ])}
 
       <!-- Asennuskoodi -->

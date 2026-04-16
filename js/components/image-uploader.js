@@ -60,11 +60,9 @@ class ImageUploader {
     URL.revokeObjectURL(imageUrl);
     
     // Muunnetaan canvas BLOB-muotoon
+    // PNG ignoreoi quality-parametrin → muunnetaan aina JPEG:ksi jotta pakkaus toimii
     const blob = await new Promise(resolve => {
-      // Käytetään 90% laatua JPEG-muodossa tai alkuperäistä formaattia
-      const format = file.type.startsWith('image/png') ? 'image/png' : 'image/jpeg';
-      const quality = format === 'image/jpeg' ? 0.9 : undefined;
-      canvas.toBlob(resolve, format, quality);
+      canvas.toBlob(resolve, 'image/jpeg', 0.88);
     });
     
     // Luodaan uusi tiedosto

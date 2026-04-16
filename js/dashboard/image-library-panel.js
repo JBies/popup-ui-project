@@ -25,8 +25,8 @@ async function resizeIfNeeded(file, maxBytes = 950 * 1024) {
   canvas.height = Math.floor(img.height * scale);
   canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
   URL.revokeObjectURL(url);
-  const fmt = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-  const blob = await new Promise(r => canvas.toBlob(r, fmt, 0.9));
+  // PNG ignoreoi quality-parametrin → muunnetaan aina JPEG:ksi jotta pakkaus toimii
+  const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.88));
   return new File([blob], file.name, { type: blob.type });
 }
 
