@@ -77,18 +77,18 @@ app.get('/popup-embed.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/popup-embed.js'));
 });
 
-// Erillinen CORS-käsittely API:n public-reiteille
-app.use('/api/popups/embed', (req, res, next) => {
-    next();
-});
-
-app.use('/api/popups/view', (req, res, next) => {
-    next();
-});
-
-app.use('/api/popups/click', (req, res, next) => {
-    next();
-});
+// Julkiset embed-reitit – sallitaan kaikista origineista (ulkoiset sivustot)
+const embedCors = cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'] });
+app.options('/api/popups/site/*',  embedCors);
+app.options('/api/popups/embed/*', embedCors);
+app.options('/api/popups/view/*',  embedCors);
+app.options('/api/popups/click/*', embedCors);
+app.options('/api/leads/*',        embedCors);
+app.use('/api/popups/site',  embedCors);
+app.use('/api/popups/embed', embedCors);
+app.use('/api/popups/view',  embedCors);
+app.use('/api/popups/click', embedCors);
+app.use('/api/leads',        embedCors);
 
 // Poista CSP admin-reiteiltä
 app.use('/admin-popups.html', (req, res, next) => {

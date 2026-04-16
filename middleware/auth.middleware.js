@@ -17,9 +17,10 @@ const isAuthenticated = (req, res, next) => {
   const isUser = (req, res, next) => {
     // Ohita autentikaatio julkisille reiteille
     if (
-      req.path.startsWith('/embed/') || 
-      req.path.startsWith('/view/') || 
-      req.path.startsWith('/click/')
+      req.path.startsWith('/embed/') ||
+      req.path.startsWith('/view/') ||
+      req.path.startsWith('/click/') ||
+      req.path.startsWith('/site/')
     ) {
       return next();
     }

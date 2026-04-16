@@ -158,7 +158,7 @@ async function renderInstallSection(user) {
     const sitesHTML = siteList.map(s => {
       const code = `<script src="https://popupmanager.net/ui-embed.js" data-site="${s.token}"><\/script>`;
       return `
-        <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:10px">
+        <div class="site-block" style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:10px">
           <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8fafc">
             <span style="font-size:15px">🌐</span>
             <div style="flex:1">
@@ -295,7 +295,8 @@ async function renderInstallSection(user) {
     });
     container.querySelectorAll('.copy-site-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        navigator.clipboard.writeText(btn.dataset.code).then(() => showToast('Koodi kopioitu!'));
+        const code = btn.closest('.site-block')?.querySelector('pre')?.textContent || '';
+        navigator.clipboard.writeText(code).then(() => showToast('Koodi kopioitu!'));
       });
     });
     container.querySelectorAll('.delete-site-btn').forEach(btn => {
