@@ -21,5 +21,6 @@ router.post('/webhooks', UserController.addWebhook);
 router.delete('/webhooks/:id', UserController.deleteWebhook);
 
 router.post('/upgrade-request', UserController.requestUpgrade);
+router.post('/contact', UserController.contactRequest);
 
 module.exports = router;

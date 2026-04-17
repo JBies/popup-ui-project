@@ -358,6 +358,42 @@ static async updateUserPopupLimit(req, res) {
       res.status(500).json({ message: 'Error deleting webhook' });
     }
   }
+  static async contactRequest(req, res) {
+    // Ei vaadi kirjautumista — julkinen lomake
+    const { name, email, company, message } = req.body || {};
+    if (!name || !email || !message) {
+      return res.status(400).json({ message: 'Puuttuvat kentät' });
+    }
+    // Yksinkertainen rate limit: sama IP max 3 viestiä tunnissa (muisti, ei DB)
+    const ip = req.ip || req.connection?.remoteAddress || '';
+    const now = Date.now();
+    if (!UserController._contactLog) UserController._contactLog = {};
+    const log = UserController._contactLog;
+    log[ip] = (log[ip] || []).filter(t => now - t < 3600000);
+    if (log[ip].length >= 3) {
+      return res.status(429).json({ message: 'Liian monta viestiä. Yritä myöhemmin uudelleen.' });
+    }
+    log[ip].push(now);
+
+    try {
+      const ownerEmail = (process.env.ADMIN_EMAILS || '').split(',')[0].trim();
+      if (ownerEmail) {
+        await sendMail(ownerEmail, `Tarjouspyyntö: ${name}`, `
+          <h2>Uusi tarjouspyyntö popupmanager.net:istä</h2>
+          <p><strong>Nimi:</strong> ${name}</p>
+          <p><strong>Sähköposti:</strong> <a href="mailto:${email}">${email}</a></p>
+          <p><strong>Sivusto/yritys:</strong> ${company || '–'}</p>
+          <p><strong>Viesti:</strong></p>
+          <blockquote style="border-left:3px solid #6366f1;padding-left:12px;color:#374151">${message.replace(/\n/g, '<br>')}</blockquote>
+          <p style="color:#94a3b8;font-size:12px">Lähetetty ${new Date().toLocaleString('fi-FI')} · IP: ${ip}</p>
+        `);
+      }
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: 'Lähetys epäonnistui' });
+    }
+  }
+
   static async requestUpgrade(req, res) {
     if (!req.user) return res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
     try {

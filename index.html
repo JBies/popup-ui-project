@@ -1063,9 +1063,9 @@
             <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Prioriteettituki</li>
             <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Räätälöidyt integraatiot</li>
           </ul>
-          <a href="mailto:joni.bies@gmail.com?subject=Räätälöity paketti" class="block text-center py-3 px-6 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-gray-400 transition-colors">
+          <button onclick="openContactModal()" class="block w-full text-center py-3 px-6 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-gray-400 transition-colors">
             Ota yhteyttä
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -1073,17 +1073,21 @@
 
   <script>
   async function requestProUpgrade() {
+    // Jos kirjautunut, lähetä suoraan upgrade-request
     try {
-      const r = await fetch('/api/user/upgrade-request', { method: 'POST' });
-      const data = await r.json();
-      if (r.ok || data.alreadySent) {
-        alert(data.message || 'Kiitos! Saat tarjouksen sähköpostiisi pian.');
-      } else {
-        window.location.href = '/api/auth/google';
+      const me = await fetch('/api/user').then(r => r.ok ? r.json() : null).catch(() => null);
+      if (me && me._id) {
+        const r = await fetch('/api/user/upgrade-request', { method: 'POST' });
+        const data = await r.json();
+        if (r.ok || data.alreadySent) {
+          // Näytä onnistuminen suoraan modaalissa
+          openContactModal('pro');
+          return;
+        }
       }
-    } catch {
-      window.location.href = '/api/auth/google';
-    }
+    } catch {}
+    // Kirjautumaton tai virhe → avaa sama tarjouspyyntömodaali
+    openContactModal('pro');
   }
   </script>
 
@@ -1289,5 +1293,165 @@
     }).catch(() => {});
   </script>
   <script src="https://popupmanager.net/ui-embed.js" data-site="6083666a-263e-4f1b-a5e9-d76317210bda"></script>
+
+  <!-- ═══ OTA YHTEYTTÄ -MODAALI ═══ -->
+  <div id="contact-modal" style="display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;padding:16px">
+    <!-- Tausta blur -->
+    <div id="contact-backdrop" onclick="closeContactModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)"></div>
+
+    <!-- Kortti -->
+    <div id="contact-card" style="position:relative;background:#fff;border-radius:24px;padding:40px 44px;max-width:520px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,0.35);transform:scale(0.85) translateY(40px);opacity:0;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease">
+
+      <!-- Sulkupainike -->
+      <button onclick="closeContactModal()" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;color:#94a3b8;cursor:pointer;line-height:1">✕</button>
+
+      <!-- Otsikko -->
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:16px;margin-bottom:14px;box-shadow:0 8px 24px rgba(99,102,241,0.4)">
+          <i class="fa fa-paper-plane" style="color:#fff;font-size:22px"></i>
+        </div>
+        <h2 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 6px">Pyydä räätälöity tarjous</h2>
+        <p style="font-size:14px;color:#64748b;margin:0">Kerro tarpeesi — vastataan yleensä saman päivän aikana.</p>
+      </div>
+
+      <!-- Lomake -->
+      <form id="contact-form" onsubmit="submitContactForm(event)" novalidate>
+        <!-- Honeypot (spämmisuoja — piilotettu kenttä, botti täyttää tämän) -->
+        <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;height:0">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Nimi *</label>
+            <input id="cf-name" type="text" required placeholder="Matti Meikäläinen"
+              style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s"
+              onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Sähköposti *</label>
+            <input id="cf-email" type="email" required placeholder="matti@yritys.fi"
+              style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s"
+              onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Sivusto tai yritys</label>
+          <input id="cf-company" type="text" placeholder="yritys.fi tai yrityksen nimi"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s"
+            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+
+        <div style="margin-bottom:22px">
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Mitä tarvitset? *</label>
+          <textarea id="cf-message" required rows="3" placeholder="Esim. useita sivustoja, integraatio CRM:ään, räätälöity ulkoasu..."
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;resize:vertical;transition:border-color 0.2s;font-family:inherit"
+            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+        </div>
+
+        <div id="cf-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:13px;color:#dc2626;margin-bottom:14px"></div>
+
+        <button type="submit" id="cf-submit"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(99,102,241,0.4);transition:transform 0.15s,box-shadow 0.15s"
+          onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 12px 30px rgba(99,102,241,0.5)'"
+          onmouseout="this.style.transform='';this.style.boxShadow='0 8px 24px rgba(99,102,241,0.4)'">
+          <i class="fa fa-paper-plane" style="margin-right:8px"></i>Lähetä tarjouspyyntö
+        </button>
+      </form>
+
+      <!-- Onnistumisviesti (piilotettu aluksi) -->
+      <div id="cf-success" style="display:none;text-align:center;padding:20px 0">
+        <div style="font-size:52px;margin-bottom:12px">🎉</div>
+        <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px">Viesti lähetetty!</h3>
+        <p style="font-size:14px;color:#64748b;margin:0">Palataan asiaan mahdollisimman pian.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  function openContactModal(mode) {
+    const modal = document.getElementById('contact-modal');
+    const card = document.getElementById('contact-card');
+    // Pro-moodi: vaihda otsikko
+    const msgField = document.getElementById('cf-message');
+    if (mode === 'pro') {
+      const h2 = card.querySelector('h2');
+      const p = card.querySelector('h2 + p');
+      if (h2) h2.textContent = 'Aloita Pro-tili — 4,90€/kk';
+      if (p) p.textContent = 'Jätä yhteystietosi, niin lähetämme aktivointiohjeet sähköpostiin.';
+      msgField.value = 'Hei!\n\nHaluaisin aktivoida Pro-tilin. Sivustoni on [sivustosi osoite] ja käytän palvelua [kerro lyhyesti mihin — esim. liidien keräämiseen / cookie consent -banneriin / myynninedistämiseen].\n\nOdotan aktivointiohjeitanne!';
+    } else {
+      msgField.value = 'Hei!\n\nOlen kiinnostunut räätälöidystä paketista. Meillä on [sivustojen määrä] sivustoa ja tarvitsisimme [kuvaile tarpeet lyhyesti — esim. useita tilejä / oman ulkoasun / CRM-integraation].\n\nVoidaanko sopia lyhyt palaveri?';
+    }
+    document.getElementById('contact-form').style.display = '';
+    document.getElementById('cf-success').style.display = 'none';
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+      card.style.transform = 'scale(1) translateY(0)';
+      card.style.opacity = '1';
+    });
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeContactModal() {
+    const modal = document.getElementById('contact-modal');
+    const card = document.getElementById('contact-card');
+    card.style.transform = 'scale(0.85) translateY(40px)';
+    card.style.opacity = '0';
+    setTimeout(() => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }, 300);
+  }
+
+  async function submitContactForm(e) {
+    e.preventDefault();
+    const honeypot = document.querySelector('#contact-form [name="website"]');
+    if (honeypot && honeypot.value) return; // botti täytti piilotetun kentän
+
+    const name    = document.getElementById('cf-name').value.trim();
+    const email   = document.getElementById('cf-email').value.trim();
+    const company = document.getElementById('cf-company').value.trim();
+    const message = document.getElementById('cf-message').value.trim();
+    const errEl   = document.getElementById('cf-error');
+    const submit  = document.getElementById('cf-submit');
+
+    errEl.style.display = 'none';
+    if (!name || !email || !message) {
+      errEl.textContent = 'Täytä pakolliset kentät (nimi, sähköposti, viesti).';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errEl.textContent = 'Tarkista sähköpostiosoite.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    submit.disabled = true;
+    submit.innerHTML = '<i class="fa fa-spinner fa-spin" style="margin-right:8px"></i>Lähetetään...';
+
+    try {
+      const r = await fetch('/api/user/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, company, message })
+      });
+      if (r.ok) {
+        document.getElementById('contact-form').style.display = 'none';
+        document.getElementById('cf-success').style.display = 'block';
+        setTimeout(closeContactModal, 3500);
+      } else {
+        throw new Error();
+      }
+    } catch {
+      errEl.textContent = 'Lähetys epäonnistui. Yritä uudelleen tai kirjoita suoraan: joni.bies@gmail.com';
+      errEl.style.display = 'block';
+      submit.disabled = false;
+      submit.innerHTML = '<i class="fa fa-paper-plane" style="margin-right:8px"></i>Lähetä tarjouspyyntö';
+    }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeContactModal(); });
+  </script>
 </body>
 </html>
