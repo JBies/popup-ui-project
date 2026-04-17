@@ -244,8 +244,14 @@ async function renderInstallSection(user) {
         </div>
       </div>
 
-      <!-- Lisää sivusto -modaali -->
-      <div id="add-site-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center">
+      `;
+
+    // Modaali body-tasolle (ei view-settings-kontin sisälle, muuten display:none peittää sen)
+    if (!document.getElementById('add-site-modal')) {
+      const modalEl = document.createElement('div');
+      modalEl.id = 'add-site-modal';
+      modalEl.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center';
+      modalEl.innerHTML = `
         <div style="background:#fff;border-radius:12px;padding:28px;width:420px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
           <h3 style="font-size:16px;font-weight:700;margin:0 0 20px">Lisää sivusto</h3>
           <div style="margin-bottom:14px">
@@ -260,8 +266,9 @@ async function renderInstallSection(user) {
             <button id="cancel-site-modal" class="btn btn-secondary">Peruuta</button>
             <button id="confirm-add-site" class="btn btn-primary">Luo sivusto</button>
           </div>
-        </div>
-      </div>`;
+        </div>`;
+      document.body.appendChild(modalEl);
+    }
 
     // Kuuntelijat
     const openAddSiteModal = () => {
