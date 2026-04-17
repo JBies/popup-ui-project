@@ -241,6 +241,32 @@ async function renderInstallSection(user) {
               <div style="font-size:12px;color:#64748b">Liitä koodi kenttään ja tallenna. Elementtisi ilmestyy sivustolle heti — voit aktivoida ja deaktivoida ne dashboard-listauksesta.</div>
             </div>
           </div>
+
+          <div style="display:flex;gap:12px;align-items:flex-start;background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:14px 16px">
+            <div style="font-size:18px;flex-shrink:0">⚠️</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:4px">Koodi ei toimi? Tarkista CSP-asetukset</div>
+              <div style="font-size:12px;color:#78350f;line-height:1.6">
+                Jos sivustosi käyttää <strong>Content Security Policy</strong> -otsakkeita eikä koodi toimi, lisää <code style="background:#fef3c7;padding:1px 5px;border-radius:3px;font-size:11px">https://popupmanager.net</code> sallittujen skriptien listaan:
+              </div>
+              <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;font-size:12px;color:#78350f">
+                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">
+                  <strong>Nginx / Apache (HTTP-otsake)</strong><br>
+                  <code style="font-size:11px;color:#92400e">Content-Security-Policy: script-src 'self' https://popupmanager.net</code>
+                </div>
+                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">
+                  <strong>Next.js</strong> — <code style="font-size:11px;color:#92400e">next.config.js</code> → headers()-funktio → lisää <code style="font-size:11px;color:#92400e">https://popupmanager.net</code> script-src:ään
+                </div>
+                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">
+                  <strong>WordPress</strong> — käytä lisäosaa kuten <em>Headers & CSP Manager</em> tai lisää palvelimen .htaccess-tiedostoon
+                </div>
+                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">
+                  <strong>Shopify / Squarespace / Wix</strong> — näissä ei yleensä ole omaa CSP:tä, joten koodi toimii suoraan ilman muutoksia
+                </div>
+                <div style="font-size:11px;color:#a16207;margin-top:2px">💡 Tarkista onko CSP käytössä: avaa F12 → Console → jos näet "Content Security Policy"-virheen, CSP on päällä.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
