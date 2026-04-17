@@ -88,6 +88,11 @@ function renderHelp() {
           ['Yhteydenottopyyntö','Uutiskirjetilaus','Varaa demo -lomake','Kilpailun osallistuminen'],
           ['Kentät – teksti / email / puhelin / textarea','Lähetä-napin teksti muokattavissa','Onnistumisviesti tallentuvan jälkeen','Kaikki liidit tallentuvat automaattisesti']),
 
+        card('fa-cookie-bite','#16a34a','Cookie Consent',
+          'GDPR-yhteensopiva evästeilmoitusbanneri sivun alareunassa. Kävijä voi hyväksyä tai hylätä evästeet. Sisältää valinnaisen "Lisätietoja"-napin joka avaa tietosuojatekstin. Ilmainen kaikille käyttäjille.',
+          ['GDPR-evästeilmoitus kaikille sivustoille','Tietosuojaselostepopup yhdellä napilla','Estää kävijän häiritsemisen jos jo hyväksynyt','Toimii ilman Pro-tiliä'],
+          ['"Hyväksy"-nappi → tallentaa cc_consent=accepted 365 pv','"Hylkää"-nappi → tallentaa sessioon (banneri näkyy taas seuraavalla käynnillä)','Napit värit muokattavissa editorissa','Kuuntele tapahtumia: document.addEventListener("cc_consent", e => { if(e.detail==="accepted") { /* aktivoi analytics */ } })']),
+
         card('fa-chart-bar','#64748b','Tilastojen kerääjä',
           'Näkymätön tilastopiste – ei näytä kävijöille mitään. Rekisteröi ainoastaan näyttökerran kun skripti suoritetaan. Hyödyllinen sivun kävijämäärän seurantaan ilman häiritseviä elementtejä.',
           ['Kävijämäärän seuranta tietylle sivulle','Funnel-analytiikka: kuinka moni saavuttaa kohdan','Sivuston suosituimpien osioiden kartoitus','Datan keräys ennen varsinaisen elementin aktivointia'],

@@ -3,12 +3,13 @@ import { showToast } from './dashboard-main.js';
 import { openStats } from './stats-panel.js';
 
 const TYPE_META = {
-  sticky_bar: { label: 'Sticky Bar',      icon: 'fa-minus',        badge: 'badge-sticky' },
-  fab:        { label: 'Floating Button', icon: 'fa-circle',       badge: 'badge-fab' },
-  slide_in:   { label: 'Slide-in',        icon: 'fa-comment-dots', badge: 'badge-slidein' },
-  popup:      { label: 'Popup',           icon: 'fa-square',       badge: 'badge-popup' },
-  lead_form:  { label: 'Lead Form',       icon: 'fa-envelope',     badge: 'badge-lead' },
-  stats_only: { label: 'Tilastot',        icon: 'fa-chart-bar',    badge: 'badge-sticky' },
+  sticky_bar:     { label: 'Sticky Bar',      icon: 'fa-minus',        badge: 'badge-sticky' },
+  fab:            { label: 'Floating Button', icon: 'fa-circle',       badge: 'badge-fab' },
+  slide_in:       { label: 'Slide-in',        icon: 'fa-comment-dots', badge: 'badge-slidein' },
+  popup:          { label: 'Popup',           icon: 'fa-square',       badge: 'badge-popup' },
+  lead_form:      { label: 'Lead Form',       icon: 'fa-envelope',     badge: 'badge-lead' },
+  stats_only:     { label: 'Tilastot',        icon: 'fa-chart-bar',    badge: 'badge-sticky' },
+  cookie_consent: { label: 'Cookie Consent',  icon: 'fa-cookie-bite',  badge: 'badge-sticky' },
 };
 
 let allElements = [];
@@ -139,9 +140,9 @@ function renderList() {
               <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">Luo elementti</div>
               <div style="font-size:12px;color:#64748b;margin-bottom:10px">Valitse tyyppi alta, mukauta ja tallenna. Voit luoda niin monta kuin haluat.</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-primary btn-sm" data-quick="cookie_consent" style="font-size:12px"><i class="fa fa-cookie-bite"></i> Cookie Consent</button>
                 <button class="btn btn-primary btn-sm" data-quick="sticky_bar" style="font-size:12px"><i class="fa fa-minus"></i> Sticky Bar</button>
                 <button class="btn btn-primary btn-sm" data-quick="popup" style="font-size:12px"><i class="fa fa-square"></i> Popup</button>
-                <button class="btn btn-primary btn-sm" data-quick="lead_form" style="font-size:12px"><i class="fa fa-envelope"></i> Lead Form</button>
               </div>
             </div>
           </div>

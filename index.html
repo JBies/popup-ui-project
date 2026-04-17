@@ -366,11 +366,13 @@
         <a href="#elementit" class="hover:text-gray-900 transition-colors">Elementit</a>
         <a href="#ominaisuudet" class="hover:text-gray-900 transition-colors">Ominaisuudet</a>
         <a href="#kayttoonotto" class="hover:text-gray-900 transition-colors">Käyttöönotto</a>
+        <a href="#hinnoittelu" class="hover:text-gray-900 transition-colors">Hinnoittelu</a>
       </nav>
       <a href="/auth/google"
-         class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm shadow-md hover:shadow-lg">
+         class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold px-3 py-2 md:px-5 md:py-2.5 rounded-xl transition-all text-xs md:text-sm shadow-md hover:shadow-lg whitespace-nowrap">
         <i class="fab fa-google text-white/90"></i>
-        Kirjaudu Google-tilillä
+        <span class="hidden sm:inline">Kirjaudu Google-tilillä</span>
+        <span class="sm:hidden">Kirjaudu</span>
       </a>
     </div>
   </header>
@@ -500,7 +502,7 @@
   <section id="elementit" class="py-24 px-6 bg-gray-50">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-16 fade-in">
-        <div class="tag-pill mb-4"><i class="fa fa-layer-group"></i> 5 elementtityyppiä</div>
+        <div class="tag-pill mb-4"><i class="fa fa-layer-group"></i> 6 elementtityyppiä</div>
         <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
           Kaikki konversiotyökalut<br class="hidden md:block"> yhdessä paikassa
         </h2>
@@ -602,6 +604,25 @@
               <div class="prev-input" style="width:75%"></div>
               <div class="prev-submit"><span>Lähetä</span></div>
             </div>
+          </div>
+        </div>
+
+        <!-- Cookie Consent -->
+        <div class="feature-card bg-white rounded-2xl p-6 border-2 border-green-200 shadow-sm fade-in relative">
+          <div class="absolute -top-3 left-6">
+            <span class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Ilmainen</span>
+          </div>
+          <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-cookie-bite text-green-600 text-xl"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Cookie Consent</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">
+            GDPR-yhteensopiva evästeilmoitus sivustollesi — Hyväksy &amp; Hylkää -napit, tietosuojateksti, oma tyyli. Toimii yhdellä koodirivillä. <strong class="text-green-700">Ilmaiseksi.</strong>
+          </p>
+          <div class="mt-4 bg-gray-900 rounded-xl p-3 flex items-center gap-3 text-xs">
+            <div class="flex-1 text-gray-300">Käytämme evästeitä...</div>
+            <button class="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold pointer-events-none">Hyväksy</button>
+            <button class="border border-gray-500 text-gray-300 px-2 py-1 rounded text-xs pointer-events-none">Hylkää</button>
           </div>
         </div>
 
@@ -960,6 +981,111 @@
     </div>
   </section>
 
+
+  <!-- ═══════════════════════════════════════
+       HINNOITTELU
+  ═══════════════════════════════════════ -->
+  <section id="hinnoittelu" class="py-24 px-6 bg-white">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16 fade-in">
+        <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-700 rounded-full px-4 py-2 text-sm font-medium mb-6">
+          <i class="fa fa-tag"></i> Hinnoittelu
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Aloita ilmaiseksi, skaalaa tarpeen mukaan</h2>
+        <p class="text-lg text-gray-600">Ei sitoutumista. Ei luottokorttia. Aloita heti.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8 fade-in">
+
+        <!-- FREE -->
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-8 flex flex-col">
+          <div class="mb-6">
+            <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Ilmainen</p>
+            <div class="flex items-end gap-1 mb-4">
+              <span class="text-4xl font-bold text-gray-900">0€</span>
+              <span class="text-gray-500 mb-1">/kk</span>
+            </div>
+            <p class="text-sm text-gray-600">Täydellinen kokeiluun ja yksittäisen elementin käyttöön.</p>
+          </div>
+          <ul class="space-y-3 mb-8 flex-1 text-sm text-gray-700">
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> 1 elementti kerrallaan</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Kaikki elementtityypit</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Cookie consent -banneri</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> 5 kuvalatauksta</li>
+            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> Analytiikka</li>
+            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> Targeting-säännöt</li>
+            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> Lead-lomakkeet</li>
+          </ul>
+          <a href="/api/auth/google" class="block text-center py-3 px-6 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-gray-400 transition-colors">
+            Aloita ilmaiseksi
+          </a>
+        </div>
+
+        <!-- PRO -->
+        <div class="bg-brand-600 border border-brand-700 rounded-2xl p-8 flex flex-col relative shadow-xl shadow-brand-200">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+            <span class="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Suosituin</span>
+          </div>
+          <div class="mb-6">
+            <p class="text-sm font-semibold text-brand-200 uppercase tracking-wide mb-2">Pro</p>
+            <div class="flex items-end gap-1 mb-4">
+              <span class="text-4xl font-bold text-white">4,90€</span>
+              <span class="text-brand-200 mb-1">/kk</span>
+            </div>
+            <p class="text-sm text-brand-100">Kaikki mitä tarvitset kasvavaan liiketoimintaan.</p>
+          </div>
+          <ul class="space-y-3 mb-8 flex-1 text-sm text-white">
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> 10 elementtiä</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Kaikki elementtityypit</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> 100 kuvalatauksta</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Analytiikka &amp; tilastot</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Targeting-säännöt</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Lead-lomakkeet</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Sähköposti-ilmoitukset</li>
+          </ul>
+          <button onclick="requestProUpgrade()" class="block w-full text-center py-3 px-6 rounded-xl bg-white text-brand-700 font-bold hover:bg-brand-50 transition-colors">
+            Tilaa Pro →
+          </button>
+        </div>
+
+        <!-- RÄÄTÄLÖITY -->
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-8 flex flex-col">
+          <div class="mb-6">
+            <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Räätälöity</p>
+            <div class="flex items-end gap-1 mb-4">
+              <span class="text-4xl font-bold text-gray-900">?</span>
+            </div>
+            <p class="text-sm text-gray-600">Useita sivustoja, rajattomasti elementtejä, omat integraatiot.</p>
+          </div>
+          <ul class="space-y-3 mb-8 flex-1 text-sm text-gray-700">
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Rajaton elementtimäärä</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Useita sivustoja</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Kaikki Pro-ominaisuudet</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Prioriteettituki</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Räätälöidyt integraatiot</li>
+          </ul>
+          <a href="mailto:joni.bies@gmail.com?subject=Räätälöity paketti" class="block text-center py-3 px-6 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-gray-400 transition-colors">
+            Ota yhteyttä
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+  async function requestProUpgrade() {
+    try {
+      const r = await fetch('/api/user/upgrade-request', { method: 'POST' });
+      const data = await r.json();
+      if (r.ok || data.alreadySent) {
+        alert(data.message || 'Kiitos! Saat tarjouksen sähköpostiisi pian.');
+      } else {
+        window.location.href = '/api/auth/google';
+      }
+    } catch {
+      window.location.href = '/api/auth/google';
+    }
+  }
+  </script>
 
   <!-- ═══════════════════════════════════════
        EMAIL NOTIFICATIONS HIGHLIGHT

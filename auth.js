@@ -40,7 +40,7 @@ async (accessToken, refreshToken, profile, done) => {
             await user.save();
         } else {
             // Määritetään rooli sähköpostin perusteella
-            let role = 'pending'; // Oletusosoite on nyt "pending"
+            let role = 'user'; // Uudet käyttäjät saavat suoraan free-tierin
             
             // Määritetään automaattisesti admin-rooli tietyille sähköposteille
             if (profile.emails && profile.emails.length > 0) {

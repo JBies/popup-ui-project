@@ -48,7 +48,7 @@ const popupSchema = new mongoose.Schema({
     // Uusi elementtityyppi (Phase 1+)
     elementType: {
         type: String,
-        enum: ['popup', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress', 'lead_form', 'stats_only'],
+        enum: ['popup', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress', 'lead_form', 'stats_only', 'cookie_consent'],
         default: 'popup'
     },
     // Targeting Engine v2
@@ -122,7 +122,7 @@ const popupSchema = new mongoose.Schema({
 // pre-save hook
 popupSchema.pre('save', function(next) {
     // Uudet elementtityypit ja stats_only eivät tarvitse content/image -validaatiota
-    const skipValidation = ['stats_only', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress', 'lead_form'].includes(this.elementType)
+    const skipValidation = ['stats_only', 'sticky_bar', 'fab', 'slide_in', 'social_proof', 'scroll_progress', 'lead_form', 'cookie_consent'].includes(this.elementType)
         || this.popupType === 'stats_only';
 
     if (skipValidation) {

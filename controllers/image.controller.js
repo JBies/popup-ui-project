@@ -23,6 +23,20 @@ class ImageController {
     }
   
     try {
+      if (req.user.role !== 'admin') {
+        const imageLimit = req.user.imageLimit ?? 5;
+        const currentCount = await Image.countDocuments({ userId: req.user._id });
+        if (currentCount >= imageLimit) {
+          return res.status(403).json({
+            message: `Olet käyttänyt ilmaistason kuvarajasi (${imageLimit} kpl). Pro-tilillä saat 100 kuvaa.`,
+            limitReached: true,
+            limitType: 'images',
+            current: currentCount,
+            limit: imageLimit
+          });
+        }
+      }
+
       if (!req.file) {
         return res.status(400).json({ message: 'Kuvaa ei ladattu' });
       }

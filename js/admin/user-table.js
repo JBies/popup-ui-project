@@ -225,9 +225,9 @@ class UserTable {
     const lim = user.limits || {};
 
     const PRESETS = {
-      free:   { popupLimit:2,   sticky_bar:1,  fab:1,  slide_in:1,  popup:1,  social_proof:1,  scroll_progress:1,  lead_form:0,  canUseTargeting:false, canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:false, canUseCampaigns:false, canUseWebhooks:false },
-      pro:    { popupLimit:20,  sticky_bar:5,  fab:5,  slide_in:5,  popup:5,  social_proof:5,  scroll_progress:5,  lead_form:3,  canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:true,  canUseCampaigns:true,  canUseWebhooks:true  },
-      agency: { popupLimit:100, sticky_bar:20, fab:20, slide_in:20, popup:20, social_proof:20, scroll_progress:20, lead_form:10, canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:true,  canUseCampaigns:true,  canUseWebhooks:true  }
+      free:   { popupLimit:1,   imageLimit:5,   sticky_bar:1,  fab:1,  slide_in:1,  popup:1,  social_proof:1,  scroll_progress:1,  lead_form:1,  cookie_consent:1,  canUseTargeting:false, canUseAnalytics:false, canUseTemplates:true,  canUseAbTest:false, canUseCampaigns:false, canUseWebhooks:false },
+      pro:    { popupLimit:10,  imageLimit:100,  sticky_bar:5,  fab:5,  slide_in:5,  popup:5,  social_proof:5,  scroll_progress:5,  lead_form:5,  cookie_consent:5,  canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:true,  canUseCampaigns:true,  canUseWebhooks:true  },
+      agency: { popupLimit:100, imageLimit:500,  sticky_bar:20, fab:20, slide_in:20, popup:20, social_proof:20, scroll_progress:20, lead_form:20, cookie_consent:20, canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:true,  canUseCampaigns:true,  canUseWebhooks:true  }
     };
 
     const modal = document.createElement('div');
@@ -243,14 +243,19 @@ class UserTable {
         </div>
         <div style="margin-bottom:14px">
           <label style="font-size:12px;color:#475569;display:block;margin-bottom:4px;font-weight:600">Max elementtejä yhteensä</label>
-          <input type="number" id="lim-popupLimit" min="0" max="9999" value="${user.popupLimit ?? 2}"
+          <input type="number" id="lim-popupLimit" min="0" max="9999" value="${user.popupLimit ?? 1}"
+            style="width:120px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;color:#475569;display:block;margin-bottom:4px;font-weight:600">Max kuvia</label>
+          <input type="number" id="lim-imageLimit" min="0" max="9999" value="${user.imageLimit ?? 5}"
             style="width:120px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-          ${['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress','lead_form'].map(t => `
+          ${['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress','lead_form','cookie_consent'].map(t => `
             <div>
               <label style="font-size:12px;color:#475569;display:block;margin-bottom:4px">${t.replace(/_/g,' ')}</label>
-              <input type="number" id="lim-${t}" min="0" max="100" value="${lim[t] ?? (t==='lead_form'?0:1)}"
+              <input type="number" id="lim-${t}" min="0" max="100" value="${lim[t] ?? 1}"
                 style="width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box">
             </div>`).join('')}
         </div>
@@ -286,11 +291,12 @@ class UserTable {
     modal.querySelectorAll('[data-preset]').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = PRESETS[btn.dataset.preset];
-        ['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress','lead_form'].forEach(t => {
+        ['sticky_bar','fab','slide_in','popup','social_proof','scroll_progress','lead_form','cookie_consent'].forEach(t => {
           const el = modal.querySelector('#lim-' + t);
           if (el) el.value = p[t];
         });
         if (p.popupLimit !== undefined) modal.querySelector('#lim-popupLimit').value = p.popupLimit;
+        if (p.imageLimit !== undefined) modal.querySelector('#lim-imageLimit').value = p.imageLimit;
         modal.querySelector('#lim-targeting').checked  = p.canUseTargeting;
         modal.querySelector('#lim-analytics').checked  = p.canUseAnalytics;
         modal.querySelector('#lim-templates').checked  = p.canUseTemplates;
@@ -306,7 +312,8 @@ class UserTable {
     modal.querySelector('#lim-save').addEventListener('click', async () => {
       const g = id => modal.querySelector('#' + id);
       const data = {
-        popupLimit:      parseInt(g('lim-popupLimit').value) || 2,
+        popupLimit:      parseInt(g('lim-popupLimit').value) || 1,
+        imageLimit:      parseInt(g('lim-imageLimit').value) || 5,
         sticky_bar:      parseInt(g('lim-sticky_bar').value) || 0,
         fab:             parseInt(g('lim-fab').value) || 0,
         slide_in:        parseInt(g('lim-slide_in').value) || 0,
@@ -314,6 +321,7 @@ class UserTable {
         social_proof:    parseInt(g('lim-social_proof').value) || 0,
         scroll_progress: parseInt(g('lim-scroll_progress').value) || 0,
         lead_form:       parseInt(g('lim-lead_form').value) || 0,
+        cookie_consent:  parseInt(g('lim-cookie_consent').value) || 0,
         canUseTargeting: g('lim-targeting').checked,
         canUseAnalytics: g('lim-analytics').checked,
         canUseTemplates: g('lim-templates').checked,

@@ -4,6 +4,7 @@ import { renderFabFields, getFabData }             from './editors/fab-editor.js
 import { renderSlideInFields, getSlideInData }     from './editors/slide-in-editor.js';
 import { renderPopupFields, getPopupData }         from './editors/popup-editor.js';
 import { renderLeadFormFields, getLeadFormData }   from './editors/lead-form-editor.js';
+import { renderCookieConsentFields, getCookieConsentData } from './editors/cookie-consent-editor.js';
 import { renderPreview }  from './live-preview.js';
 import { showToast }      from './dashboard-main.js';
 
@@ -13,7 +14,7 @@ let cachedSites = null;
 
 const TYPE_LABELS = {
   sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in', popup: 'Popup',
-  lead_form: 'Lead Form', stats_only: 'Tilastojen kerääjä'
+  lead_form: 'Lead Form', stats_only: 'Tilastojen kerääjä', cookie_consent: 'Cookie Consent'
 };
 
 export function initEditor() {}
@@ -394,6 +395,7 @@ function renderTypeFields(container, type, data) {
     renderLeadFormFields(container, cfg);
     return;
   }
+  if (type === 'cookie_consent') { renderCookieConsentFields(container, cfg); return; }
   if (type === 'sticky_bar')    renderStickyBarFields(container, cfg, data);
   else if (type === 'fab')      renderFabFields(container, cfg);
   else if (type === 'slide_in') renderSlideInFields(container, cfg, data);
@@ -409,7 +411,8 @@ function getTypeData() {
     return { elementConfig: d.config, backgroundColor: d.backgroundColor, textColor: d.textColor };
   }
   if (currentType === 'fab')        return { elementConfig: getFabData(fieldsContainer) };
-  if (currentType === 'lead_form')  return { elementConfig: getLeadFormData(fieldsContainer) };
+  if (currentType === 'lead_form')     return { elementConfig: getLeadFormData(fieldsContainer) };
+  if (currentType === 'cookie_consent') return { elementConfig: getCookieConsentData(fieldsContainer) };
   if (currentType === 'slide_in') {
     const d = getSlideInData(fieldsContainer);
     return { elementConfig: d.config, content: d.content, backgroundColor: d.backgroundColor, textColor: d.textColor };

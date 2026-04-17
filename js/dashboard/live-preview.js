@@ -26,12 +26,13 @@ export function renderPreview(containerId, el) {
   const type = el.elementType || 'popup';
   const cfg = el.elementConfig || {};
 
-  if (type === 'sticky_bar')     previewStickyBar(container, el, cfg);
-  else if (type === 'fab')       previewFAB(container, el, cfg);
-  else if (type === 'slide_in')  previewSlideIn(container, el, cfg);
-  else if (type === 'social_proof')    previewSocialProof(container, cfg);
+  if (type === 'sticky_bar')         previewStickyBar(container, el, cfg);
+  else if (type === 'fab')            previewFAB(container, el, cfg);
+  else if (type === 'slide_in')       previewSlideIn(container, el, cfg);
+  else if (type === 'social_proof')   previewSocialProof(container, cfg);
   else if (type === 'scroll_progress') previewScrollProgress(container, cfg);
-  else if (type === 'lead_form') previewLeadForm(container, el, cfg);
+  else if (type === 'lead_form')      previewLeadForm(container, el, cfg);
+  else if (type === 'cookie_consent') previewCookieConsent(container, el, cfg);
   else previewPopup(container, el);
 }
 
@@ -305,4 +306,56 @@ function previewPopup(container, el) {
     Object.assign(box.style, posMap[pos] || posMap['bottom-right']);
     container.appendChild(box);
   }
+}
+
+// ── Cookie Consent preview ──────────────────────────────────
+function previewCookieConsent(container, el, cfg) {
+  const bg = el.backgroundColor || '#1f2937';
+  const txt = el.textColor || '#ffffff';
+  const btnColor = cfg.allowBtnColor || '#22c55e';
+
+  const bar = document.createElement('div');
+  Object.assign(bar.style, {
+    position: 'absolute', left: '0', right: '0', bottom: '0', zIndex: '10',
+    backgroundColor: bg, color: txt,
+    padding: '10px 12px',
+    display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
+    fontFamily: 'system-ui,sans-serif', fontSize: '11px',
+    boxShadow: '0 -2px 8px rgba(0,0,0,0.2)'
+  });
+
+  const span = document.createElement('span');
+  span.style.flex = '1';
+  span.textContent = cfg.bannerText || 'Käytämme evästeitä sivuston toiminnan parantamiseksi.';
+  bar.appendChild(span);
+
+  const deny = document.createElement('button');
+  deny.textContent = cfg.denyBtnLabel || 'Hylkää';
+  Object.assign(deny.style, {
+    background: 'transparent', border: '1px solid ' + txt, color: txt,
+    padding: '4px 8px', borderRadius: '5px', fontSize: '10px', cursor: 'default', fontWeight: '600'
+  });
+  bar.appendChild(deny);
+
+  const allow = document.createElement('button');
+  allow.textContent = cfg.allowBtnLabel || 'Hyväksy';
+  Object.assign(allow.style, {
+    background: btnColor, border: 'none', color: '#fff',
+    padding: '4px 10px', borderRadius: '5px', fontSize: '10px', cursor: 'default', fontWeight: '700'
+  });
+  bar.appendChild(allow);
+
+  // Sivuston runko
+  const body = document.createElement('div');
+  Object.assign(body.style, { padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '6px' });
+  for (let i = 0; i < 5; i++) {
+    const line = document.createElement('div');
+    Object.assign(line.style, {
+      height: '8px', borderRadius: '4px', background: '#cbd5e1',
+      width: i % 2 === 0 ? '85%' : '65%'
+    });
+    body.appendChild(line);
+  }
+  container.appendChild(body);
+  container.appendChild(bar);
 }

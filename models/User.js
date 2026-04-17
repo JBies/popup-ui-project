@@ -61,15 +61,20 @@ const userSchema = new mongoose.Schema({
     googleId: { type: String, required: true, unique: true },
     displayName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    role: { 
-        type: String, 
-        enum: ['admin', 'user', 'pending'], 
-        default: 'pending'  // oletusrooli "pending"-tilaksi
+    role: {
+        type: String,
+        enum: ['admin', 'user', 'pending'],
+        default: 'user'
     },
     popupLimit: {
         type: Number,
-        default: 2  // Free: 2 elementtiä yhteensä
+        default: 1  // Free: 1 elementti kerralla
     },
+    imageLimit: {
+        type: Number,
+        default: 5  // Free: 5 kuvaa
+    },
+    upgradeRequestedAt: { type: Date, default: null },
     limits: {
         sticky_bar:      { type: Number,  default: 1 },
         fab:             { type: Number,  default: 1 },
@@ -77,9 +82,10 @@ const userSchema = new mongoose.Schema({
         popup:           { type: Number,  default: 1 },
         social_proof:    { type: Number,  default: 1 },
         scroll_progress: { type: Number,  default: 1 },
-        lead_form:       { type: Number,  default: 0 },  // ei Free-tasolla
+        lead_form:       { type: Number,  default: 1 },
+        cookie_consent:  { type: Number,  default: 1 },
         canUseTargeting: { type: Boolean, default: false },
-        canUseAnalytics: { type: Boolean, default: true },
+        canUseAnalytics: { type: Boolean, default: false },
         canUseTemplates: { type: Boolean, default: true },
         canUseAbTest:    { type: Boolean, default: false },
         canUseCampaigns: { type: Boolean, default: false },

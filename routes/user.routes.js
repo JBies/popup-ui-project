@@ -20,4 +20,6 @@ router.get('/webhooks', UserController.getWebhooks);
 router.post('/webhooks', UserController.addWebhook);
 router.delete('/webhooks/:id', UserController.deleteWebhook);
 
+router.post('/upgrade-request', UserController.requestUpgrade);
+
 module.exports = router;

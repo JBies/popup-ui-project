@@ -191,9 +191,9 @@ static async updateUserPopupLimit(req, res) {
       if (!user) return res.status(404).json({ message: 'User not found' });
 
       const {
-        sticky_bar, fab, slide_in, popup, social_proof, scroll_progress, lead_form,
+        sticky_bar, fab, slide_in, popup, social_proof, scroll_progress, lead_form, cookie_consent,
         canUseTargeting, canUseAnalytics, canUseTemplates, canUseAbTest, canUseCampaigns, canUseWebhooks,
-        popupLimit
+        popupLimit, imageLimit
       } = req.body;
 
       const b = (val, fallback) => val !== undefined ? !!val : fallback;
@@ -206,15 +206,17 @@ static async updateUserPopupLimit(req, res) {
         popup:           n(popup,           user.limits?.popup           ?? 1),
         social_proof:    n(social_proof,    user.limits?.social_proof    ?? 1),
         scroll_progress: n(scroll_progress, user.limits?.scroll_progress ?? 1),
-        lead_form:       n(lead_form,       user.limits?.lead_form       ?? 0),
+        lead_form:       n(lead_form,       user.limits?.lead_form       ?? 1),
+        cookie_consent:  n(cookie_consent,  user.limits?.cookie_consent  ?? 1),
         canUseTargeting: b(canUseTargeting, user.limits?.canUseTargeting ?? false),
-        canUseAnalytics: b(canUseAnalytics, user.limits?.canUseAnalytics ?? true),
+        canUseAnalytics: b(canUseAnalytics, user.limits?.canUseAnalytics ?? false),
         canUseTemplates: b(canUseTemplates, user.limits?.canUseTemplates ?? true),
         canUseAbTest:    b(canUseAbTest,    user.limits?.canUseAbTest    ?? false),
         canUseCampaigns: b(canUseCampaigns, user.limits?.canUseCampaigns ?? false),
         canUseWebhooks:  b(canUseWebhooks,  user.limits?.canUseWebhooks  ?? false),
       };
-      if (popupLimit) user.popupLimit = parseInt(popupLimit) || user.popupLimit;
+      if (popupLimit !== undefined) user.popupLimit = parseInt(popupLimit) || user.popupLimit;
+      if (imageLimit !== undefined) user.imageLimit = parseInt(imageLimit) ?? user.imageLimit;
 
       await user.save();
 
@@ -354,6 +356,37 @@ static async updateUserPopupLimit(req, res) {
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ message: 'Error deleting webhook' });
+    }
+  }
+  static async requestUpgrade(req, res) {
+    if (!req.user) return res.status(401).json({ message: 'Kirjautuminen vaaditaan' });
+    try {
+      const user = await User.findById(req.user._id);
+      if (!user) return res.status(404).json({ message: 'User not found' });
+
+      if (user.upgradeRequestedAt) {
+        return res.json({ alreadySent: true, message: 'Pyyntö on jo lähetetty. Olemme yhteydessä pian!' });
+      }
+
+      user.upgradeRequestedAt = new Date();
+      await user.save();
+
+      const ownerEmail = (process.env.ADMIN_EMAILS || '').split(',')[0].trim();
+      if (ownerEmail) {
+        const adminUrl = `${process.env.APP_URL || 'https://popupmanager.net'}/admin-users.html`;
+        await sendMail(ownerEmail, `Pro-tilaus pyyntö: ${user.displayName}`, `
+          <h2>Uusi Pro-tilaus pyyntö</h2>
+          <p><strong>Nimi:</strong> ${user.displayName}</p>
+          <p><strong>Sähköposti:</strong> ${user.email}</p>
+          <p><strong>Rekisteröityi:</strong> ${user.registeredAt?.toLocaleDateString('fi-FI') || '-'}</p>
+          <p><strong>Aika:</strong> ${new Date().toLocaleString('fi-FI')}</p>
+          <p><a href="${adminUrl}">Avaa admin-paneeli →</a></p>
+        `);
+      }
+
+      res.json({ success: true, message: 'Kiitos! Saat tarjouksen sähköpostiisi pian.' });
+    } catch (err) {
+      res.status(500).json({ message: 'Virhe pyynnön käsittelyssä' });
     }
   }
 }
