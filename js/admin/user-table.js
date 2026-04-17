@@ -226,7 +226,7 @@ class UserTable {
 
     const PRESETS = {
       free:   { popupLimit:1,   imageLimit:5,   sticky_bar:1,  fab:1,  slide_in:1,  popup:1,  social_proof:1,  scroll_progress:1,  lead_form:1,  cookie_consent:1,  canUseTargeting:false, canUseAnalytics:false, canUseTemplates:true,  canUseAbTest:false, canUseCampaigns:false, canUseWebhooks:false },
-      pro:    { popupLimit:10,  imageLimit:100,  sticky_bar:5,  fab:5,  slide_in:5,  popup:5,  social_proof:5,  scroll_progress:5,  lead_form:5,  cookie_consent:5,  canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:true,  canUseCampaigns:true,  canUseWebhooks:true  },
+      pro:    { popupLimit:20,  imageLimit:100,  sticky_bar:10, fab:10, slide_in:10, popup:10, social_proof:10, scroll_progress:10, lead_form:10, cookie_consent:10, canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:true,  canUseCampaigns:true,  canUseWebhooks:true  },
       agency: { popupLimit:100, imageLimit:500,  sticky_bar:20, fab:20, slide_in:20, popup:20, social_proof:20, scroll_progress:20, lead_form:20, cookie_consent:20, canUseTargeting:true,  canUseAnalytics:true,  canUseTemplates:true,  canUseAbTest:true,  canUseCampaigns:true,  canUseWebhooks:true  }
     };
 

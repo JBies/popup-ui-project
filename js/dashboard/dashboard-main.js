@@ -264,10 +264,12 @@ async function renderInstallSection(user) {
       </div>`;
 
     // Kuuntelijat
-    document.getElementById('btn-add-site')?.addEventListener('click', () => {
+    const openAddSiteModal = () => {
       const m = document.getElementById('add-site-modal');
       if (m) { m.style.display = 'flex'; document.getElementById('new-site-name')?.focus(); }
-    });
+    };
+    document.getElementById('btn-add-site')?.addEventListener('click', openAddSiteModal);
+    document.getElementById('btn-add-site-topbar')?.addEventListener('click', openAddSiteModal);
     document.getElementById('cancel-site-modal')?.addEventListener('click', () => {
       document.getElementById('add-site-modal').style.display = 'none';
     });
