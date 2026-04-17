@@ -113,7 +113,9 @@ const popupSchema = new mongoose.Schema({
         allowBtnColor:      { type: String, default: '#22c55e' },
         denyBtnColor:       { type: String, default: '#6b7280' },
         infoBtnLabel:       { type: String, default: 'Lisätietoja' },
-        infoText:           { type: String, default: '' }
+        infoText:           { type: String, default: '' },
+        // Kuinka usein banneri näytetään uudelleen
+        consentFrequency:   { type: String, default: 'once' } // 'always'|'once'|'annual'|'monthly'
     },
     siteId: { type: mongoose.Schema.Types.ObjectId, default: null },
     version: { type: Number, default: Date.now },

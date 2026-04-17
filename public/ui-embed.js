@@ -687,10 +687,16 @@ if (!window.ShowElement) {
     var cfg = el.elementConfig || {};
     var COOKIE_KEY = 'cc_consent';
     var SESSION_KEY = 'cc_consent_denied';
+    var freq = cfg.consentFrequency || 'once';
+    var denyDays = freq === 'annual' ? 365 : freq === 'monthly' ? 30 : 0;
+    var allowDays = freq === 'monthly' ? 30 : 365;
 
-    // Ei näytetä jos jo hyväksytty tai hylätty tässä sessiossa
-    if (getCookie(COOKIE_KEY) === 'accepted') return;
-    if (sessionStorage.getItem(SESSION_KEY)) return;
+    // 'always' = näytetään aina, ohitetaan muistit
+    if (freq !== 'always') {
+      if (getCookie(COOKIE_KEY)) return;
+      if (freq === 'once' && sessionStorage.getItem(SESSION_KEY)) return;
+      if ((freq === 'annual' || freq === 'monthly') && getCookie(SESSION_KEY)) return;
+    }
 
     var bar = document.createElement('div');
     bar.id = 'ue-cc-' + el._id;
@@ -761,7 +767,8 @@ if (!window.ShowElement) {
       padding: '8px 16px', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', fontWeight: '600'
     });
     denyBtn.addEventListener('click', function () {
-      sessionStorage.setItem(SESSION_KEY, '1');
+      if (denyDays > 0) setCookie(SESSION_KEY, '1', denyDays);
+      else sessionStorage.setItem(SESSION_KEY, '1');
       bar.remove();
       document.dispatchEvent(new CustomEvent('cc_consent', { detail: 'declined' }));
       trackClick(el._id);
@@ -776,7 +783,7 @@ if (!window.ShowElement) {
       padding: '8px 18px', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', fontWeight: '700'
     });
     allowBtn.addEventListener('click', function () {
-      setCookie(COOKIE_KEY, 'accepted', 365);
+      setCookie(COOKIE_KEY, 'accepted', allowDays);
       bar.remove();
       document.dispatchEvent(new CustomEvent('cc_consent', { detail: 'accepted' }));
       trackClick(el._id);
