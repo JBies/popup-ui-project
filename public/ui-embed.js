@@ -755,8 +755,9 @@ if (!window.ShowElement) {
     // Hylkää-nappi
     var denyBtn = document.createElement('button');
     denyBtn.textContent = cfg.denyBtnLabel || 'Hylkää';
+    var denyColor = cfg.denyBtnColor || null;
     Object.assign(denyBtn.style, {
-      background: 'transparent', border: '1px solid ' + txtColor, color: txtColor,
+      background: denyColor || 'transparent', border: '1px solid ' + (denyColor || txtColor), color: denyColor ? '#fff' : txtColor,
       padding: '8px 16px', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', fontWeight: '600'
     });
     denyBtn.addEventListener('click', function () {

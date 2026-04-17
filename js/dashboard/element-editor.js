@@ -395,7 +395,7 @@ function renderTypeFields(container, type, data) {
     renderLeadFormFields(container, cfg);
     return;
   }
-  if (type === 'cookie_consent') { renderCookieConsentFields(container, cfg); return; }
+  if (type === 'cookie_consent') { renderCookieConsentFields(container, cfg, data); return; }
   if (type === 'sticky_bar')    renderStickyBarFields(container, cfg, data);
   else if (type === 'fab')      renderFabFields(container, cfg);
   else if (type === 'slide_in') renderSlideInFields(container, cfg, data);
@@ -412,7 +412,7 @@ function getTypeData() {
   }
   if (currentType === 'fab')        return { elementConfig: getFabData(fieldsContainer) };
   if (currentType === 'lead_form')     return { elementConfig: getLeadFormData(fieldsContainer) };
-  if (currentType === 'cookie_consent') return { elementConfig: getCookieConsentData(fieldsContainer) };
+  if (currentType === 'cookie_consent') { const d = getCookieConsentData(fieldsContainer); return { elementConfig: d.elementConfig, backgroundColor: d.backgroundColor, textColor: d.textColor }; }
   if (currentType === 'slide_in') {
     const d = getSlideInData(fieldsContainer);
     return { elementConfig: d.config, content: d.content, backgroundColor: d.backgroundColor, textColor: d.textColor };

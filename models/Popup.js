@@ -105,7 +105,15 @@ const popupSchema = new mongoose.Schema({
         leadFields:         { type: Array, default: [] },
         leadSubmitText:     { type: String, default: 'Lähetä' },
         leadSuccessMsg:     { type: String, default: 'Kiitos! Olemme yhteydessä pian.' },
-        leadNotifyEmail:    { type: String, default: '' }
+        leadNotifyEmail:    { type: String, default: '' },
+        // Cookie Consent
+        bannerText:         { type: String, default: '' },
+        allowBtnLabel:      { type: String, default: 'Hyväksy' },
+        denyBtnLabel:       { type: String, default: 'Hylkää' },
+        allowBtnColor:      { type: String, default: '#22c55e' },
+        denyBtnColor:       { type: String, default: '#6b7280' },
+        infoBtnLabel:       { type: String, default: 'Lisätietoja' },
+        infoText:           { type: String, default: '' }
     },
     siteId: { type: mongoose.Schema.Types.ObjectId, default: null },
     version: { type: Number, default: Date.now },

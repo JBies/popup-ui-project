@@ -329,10 +329,11 @@ function previewCookieConsent(container, el, cfg) {
   span.textContent = cfg.bannerText || 'Käytämme evästeitä sivuston toiminnan parantamiseksi.';
   bar.appendChild(span);
 
+  const denyColor = cfg.denyBtnColor || null;
   const deny = document.createElement('button');
   deny.textContent = cfg.denyBtnLabel || 'Hylkää';
   Object.assign(deny.style, {
-    background: 'transparent', border: '1px solid ' + txt, color: txt,
+    background: denyColor || 'transparent', border: '1px solid ' + (denyColor || txt), color: denyColor ? '#fff' : txt,
     padding: '4px 8px', borderRadius: '5px', fontSize: '10px', cursor: 'default', fontWeight: '600'
   });
   bar.appendChild(deny);
