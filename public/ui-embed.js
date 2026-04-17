@@ -350,7 +350,6 @@ if (!window.ShowElement) {
         setTimeout(function () { box.remove(); }, 400);
         dismiss(el._id, 0);
       });
-      box.style.position = 'relative';
       box.appendChild(x);
     }
 

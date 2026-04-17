@@ -88,21 +88,68 @@ function quotaBarHTML(elements) {
   const max  = user.popupLimit || 2;
   const pct  = Math.min(100, Math.round((used / max) * 100));
   const full = used >= max;
-  const contact = `mailto:joni.bies@gmail.com?subject=Pro-tili%20päivitys&body=Hei%2C%20haluaisin%20päivittää%20Pro-tiliin.`;
-  return `
+
+  const bar = `
     <div style="margin-bottom:16px;padding:12px 16px;background:${full?'#fef2f2':'#f8fafc'};
-      border:1px solid ${full?'#fecaca':'#e2e8f0'};border-radius:10px;display:flex;align-items:center;gap:14px">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:600;color:${full?'#dc2626':'#475569'};margin-bottom:5px">
-          ${full ? '⚠️ Elementtiraja täynnä' : `Elementtejä käytössä: ${used} / ${max}`}
-        </div>
-        <div style="height:5px;background:#e2e8f0;border-radius:3px">
-          <div style="height:5px;background:${full?'#ef4444':'#3b82f6'};border-radius:3px;width:${pct}%;transition:width 0.3s"></div>
-        </div>
-        ${full ? `<div style="font-size:11px;color:#64748b;margin-top:4px">Haluatko lisää? Ota yhteyttä ja saat Pro-tilin.</div>` : ''}
+      border:1px solid ${full?'#fecaca':'#e2e8f0'};border-radius:10px">
+      <div style="font-size:12px;font-weight:600;color:${full?'#dc2626':'#475569'};margin-bottom:5px">
+        ${full ? '⚠️ Elementtiraja täynnä' : `Elementtejä käytössä: ${used} / ${max}`}
       </div>
-      ${full ? `<a href="${contact}" style="flex-shrink:0;background:#3b82f6;color:#fff;padding:8px 14px;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap">Päivitä Pro →</a>` : ''}
+      <div style="height:5px;background:#e2e8f0;border-radius:3px">
+        <div style="height:5px;background:${full?'#ef4444':'#3b82f6'};border-radius:3px;width:${pct}%;transition:width 0.3s"></div>
+      </div>
     </div>`;
+
+  const upgrade = `
+    <div style="margin-bottom:20px;background:linear-gradient(135deg,#f8faff 0%,#f0f4ff 100%);border:1px solid #c7d2fe;border-radius:14px;padding:20px 20px 16px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:radial-gradient(circle,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none"></div>
+
+      <div style="font-size:13px;font-weight:700;color:#312e81;margin-bottom:4px">Siirryt ilmaisversiosta eteenpäin?</div>
+      <div style="font-size:12px;color:#4338ca;margin-bottom:14px">Valitse sinulle sopiva paketti alta.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+
+        <!-- PRO -->
+        <div style="background:#fff;border:1.5px solid #6366f1;border-radius:10px;padding:14px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <span style="background:#6366f1;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">PRO</span>
+            <span style="font-size:14px;font-weight:800;color:#0f172a">4,90€<span style="font-size:11px;font-weight:500;color:#64748b">/kk</span></span>
+          </div>
+          <ul style="list-style:none;padding:0;margin:0 0 12px;font-size:11px;color:#374151;display:flex;flex-direction:column;gap:3px">
+            <li>✅ 20 elementtiä</li>
+            <li>✅ Analytiikka & tilastot</li>
+            <li>✅ Targeting-säännöt</li>
+            <li>✅ Lead-lomakkeet</li>
+            <li>✅ 100 kuvalatauksta</li>
+          </ul>
+          <button onclick="window.__dashboardUpgrade('pro')"
+            style="width:100%;padding:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">
+            Tilaa Pro →
+          </button>
+        </div>
+
+        <!-- RÄÄTÄLÖITY -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <span style="background:#0f172a;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">RÄÄTÄLÖITY</span>
+          </div>
+          <ul style="list-style:none;padding:0;margin:0 0 12px;font-size:11px;color:#374151;display:flex;flex-direction:column;gap:3px">
+            <li>✅ Rajaton elementtimäärä</li>
+            <li>✅ Useita sivustoja</li>
+            <li>✅ Kaikki Pro-ominaisuudet</li>
+            <li>✅ Omat integraatiot</li>
+            <li style="color:#64748b">📧 Sovitaan sähköpostitse</li>
+          </ul>
+          <button onclick="window.__dashboardUpgrade('custom')"
+            style="width:100%;padding:8px;background:#0f172a;border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">
+            Ota yhteyttä →
+          </button>
+        </div>
+
+      </div>
+    </div>`;
+
+  return bar + upgrade;
 }
 
 function renderList() {

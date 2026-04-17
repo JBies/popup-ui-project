@@ -62,7 +62,7 @@ class PopupController {
         // Kokonaisraja
         if (userPopupCount >= req.user.popupLimit) {
           return res.status(403).json({
-            message: `Olet käyttänyt kaikki ${req.user.popupLimit} elementtiäsi. Ota yhteyttä tukeen päivittääksesi Pro-tiliin.`,
+            message: `Olet käyttänyt kaikki ${req.user.popupLimit} elementtiäsi. Päivitä Pro-tiliin saadaksesi 20 elementtiä – vain 4,90€/kk.`,
             limitReached: true, limitType: 'total'
           });
         }

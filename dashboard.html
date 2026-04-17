@@ -179,5 +179,205 @@
   </style>
 
   <script type="module" src="js/dashboard/dashboard-main.js"></script>
+
+  <!-- ═══ UPGRADE-MODAALI (dashboard) ═══ -->
+  <div id="dash-upgrade-modal" style="display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;padding:16px">
+    <div onclick="closeDashUpgrade()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)"></div>
+    <div id="dash-upgrade-card" style="position:relative;background:#fff;border-radius:24px;padding:36px 40px;max-width:540px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,0.35);transform:scale(0.85) translateY(40px);opacity:0;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease">
+      <button onclick="closeDashUpgrade()" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;color:#94a3b8;cursor:pointer">✕</button>
+
+      <!-- Pro-moodi -->
+      <div id="dash-upgrade-pro">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:14px;margin-bottom:12px;box-shadow:0 8px 24px rgba(99,102,241,0.4)">
+            <i class="fa fa-star" style="color:#fff;font-size:20px"></i>
+          </div>
+          <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 6px">Aloita Pro-tili – 4,90€/kk</h2>
+          <p style="font-size:13px;color:#64748b;margin:0">20 elementtiä, analytiikka, targeting, lead-lomakkeet ja paljon muuta.</p>
+        </div>
+        <form id="dash-pro-form" onsubmit="submitDashUpgrade(event,'pro')" novalidate>
+          <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;height:0">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px">Nimi *</label>
+              <input id="dp-name" type="text" required placeholder="Matti Meikäläinen" style="width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px">Sähköposti *</label>
+              <input id="dp-email" type="email" required placeholder="sinä@yritys.fi" style="width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+          </div>
+          <div style="margin-bottom:18px">
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px">Viesti (valinnainen)</label>
+            <textarea id="dp-message" rows="3" style="width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;outline:none;box-sizing:border-box;resize:vertical;font-family:inherit" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">Hei!
+
+Haluaisin aktivoida Pro-tilin. Sivustoni on [sivustosi osoite] ja käytän palvelua liidien keräämiseen / cookie consent -banneriin.
+
+Odotan aktivointiohjeitanne!</textarea>
+          </div>
+          <div id="dp-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:9px 13px;font-size:12px;color:#dc2626;margin-bottom:12px"></div>
+          <button type="submit" id="dp-submit" style="width:100%;padding:13px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:11px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(99,102,241,0.35)">
+            <i class="fa fa-paper-plane" style="margin-right:8px"></i>Lähetä tilaus
+          </button>
+        </form>
+        <div id="dp-success" style="display:none;text-align:center;padding:16px 0">
+          <div style="font-size:48px;margin-bottom:10px">🎉</div>
+          <h3 style="font-size:18px;font-weight:800;color:#0f172a;margin:0 0 6px">Pyyntö lähetetty!</h3>
+          <p style="font-size:13px;color:#64748b;margin:0">Aktivoimme Pro-tilisi ja olemme yhteydessä pian.</p>
+        </div>
+      </div>
+
+      <!-- Elementtiraja täynnä -moodi -->
+      <div id="dash-upgrade-limit" style="display:none">
+        <div style="text-align:center;margin-bottom:22px">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;background:#fef2f2;border:2px solid #fecaca;border-radius:14px;margin-bottom:12px">
+            <i class="fa fa-lock" style="color:#dc2626;font-size:20px"></i>
+          </div>
+          <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 6px">Elementtirajasi on täynnä</h2>
+          <p style="font-size:13px;color:#64748b;margin:0 0 4px">Ilmaisversiossa voit pitää kerrallaan 1 elementin.</p>
+          <p style="font-size:13px;color:#64748b;margin:0">Ota yhteyttä ylläpitäjään — aktivoimme Pro-tilin nopeasti.</p>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:#374151">
+          <div style="font-weight:700;margin-bottom:6px">Ylläpitäjän yhteystiedot</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><i class="fa fa-envelope" style="color:#6366f1;width:14px"></i> <a href="mailto:popupmanager@gmail.com" style="color:#6366f1;font-weight:600">popupmanager@gmail.com</a></div>
+          <div style="font-size:12px;color:#64748b;margin-top:6px">Pro-tili: 4,90€/kk — 20 elementtiä, analytiikka, targeting ja paljon muuta.</div>
+        </div>
+        <form id="dash-limit-form" onsubmit="submitDashUpgrade(event,'limit')" novalidate>
+          <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;height:0">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px">Nimi *</label>
+              <input id="dl-name" type="text" required placeholder="Matti Meikäläinen" style="width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px">Sähköposti *</label>
+              <input id="dl-email" type="email" required placeholder="sinä@yritys.fi" style="width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+          </div>
+          <div style="margin-bottom:18px">
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px">Lisätietoja (valinnainen)</label>
+            <textarea id="dl-message" rows="2" placeholder="Esim. sivustosi domain tai erityistoiveet..." style="width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;outline:none;box-sizing:border-box;resize:vertical;font-family:inherit" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+          </div>
+          <div id="dl-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:9px 13px;font-size:12px;color:#dc2626;margin-bottom:12px"></div>
+          <button type="submit" id="dl-submit" style="width:100%;padding:13px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:11px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(99,102,241,0.35)">
+            <i class="fa fa-paper-plane" style="margin-right:8px"></i>Lähetä yhteydenottopyyntö
+          </button>
+        </form>
+        <div id="dl-success" style="display:none;text-align:center;padding:16px 0">
+          <div style="font-size:48px;margin-bottom:10px">🎉</div>
+          <h3 style="font-size:18px;font-weight:800;color:#0f172a;margin:0 0 6px">Pyyntö lähetetty!</h3>
+          <p style="font-size:13px;color:#64748b;margin:0">Aktivoimme Pro-tilisi ja olemme yhteydessä pian.</p>
+        </div>
+      </div>
+
+      <!-- Räätälöity-moodi -->
+      <div id="dash-upgrade-custom" style="display:none">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;background:#0f172a;border-radius:14px;margin-bottom:12px">
+            <i class="fa fa-building" style="color:#fff;font-size:20px"></i>
+          </div>
+          <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 6px">Räätälöity paketti</h2>
+          <p style="font-size:13px;color:#64748b;margin:0">Useita sivustoja, rajaton elementtimäärä, omat integraatiot. Sovitaan sähköpostitse.</p>
+        </div>
+        <form id="dash-custom-form" onsubmit="submitDashUpgrade(event,'custom')" novalidate>
+          <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;height:0">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px">Nimi *</label>
+              <input id="dc-name" type="text" required placeholder="Matti Meikäläinen" style="width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#374151'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px">Sähköposti *</label>
+              <input id="dc-email" type="email" required placeholder="sinä@yritys.fi" style="width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#374151'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+          </div>
+          <div style="margin-bottom:18px">
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px">Kerro tarpeistasi *</label>
+            <textarea id="dc-message" rows="3" required style="width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;outline:none;box-sizing:border-box;resize:vertical;font-family:inherit" onfocus="this.style.borderColor='#374151'" onblur="this.style.borderColor='#e2e8f0'">Hei!
+
+Olemme kiinnostuneita räätälöidystä paketista. Meillä on [sivustojen määrä] sivustoa ja tarvitsisimme [kuvaile tarpeet — esim. useita tilejä / oman ulkoasun / CRM-integraation].
+
+Voidaanko sopia lyhyt palaveri?</textarea>
+          </div>
+          <div id="dc-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:9px 13px;font-size:12px;color:#dc2626;margin-bottom:12px"></div>
+          <button type="submit" id="dc-submit" style="width:100%;padding:13px;background:#0f172a;border:none;border-radius:11px;color:#fff;font-size:14px;font-weight:700;cursor:pointer">
+            <i class="fa fa-paper-plane" style="margin-right:8px"></i>Lähetä viesti
+          </button>
+        </form>
+        <div id="dc-success" style="display:none;text-align:center;padding:16px 0">
+          <div style="font-size:48px;margin-bottom:10px">✉️</div>
+          <h3 style="font-size:18px;font-weight:800;color:#0f172a;margin:0 0 6px">Viesti lähetetty!</h3>
+          <p style="font-size:13px;color:#64748b;margin:0">Palataan asiaan mahdollisimman pian.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+  window.__dashboardUpgrade = function(mode) {
+    const modal = document.getElementById('dash-upgrade-modal');
+    const card  = document.getElementById('dash-upgrade-card');
+    document.getElementById('dash-upgrade-pro').style.display    = mode === 'pro'    ? '' : 'none';
+    document.getElementById('dash-upgrade-custom').style.display = mode === 'custom' ? '' : 'none';
+    document.getElementById('dash-upgrade-limit').style.display  = mode === 'limit'  ? '' : 'none';
+    // Nollaa lomakkeet
+    ['dp-success','dc-success'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    ['dp-error','dc-error'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    ['dash-pro-form','dash-custom-form'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display=''; });
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => { card.style.transform='scale(1) translateY(0)'; card.style.opacity='1'; });
+    document.body.style.overflow = 'hidden';
+  };
+
+  function closeDashUpgrade() {
+    const modal = document.getElementById('dash-upgrade-modal');
+    const card  = document.getElementById('dash-upgrade-card');
+    card.style.transform = 'scale(0.85) translateY(40px)';
+    card.style.opacity = '0';
+    setTimeout(() => { modal.style.display='none'; document.body.style.overflow=''; }, 300);
+  }
+
+  async function submitDashUpgrade(e, mode) {
+    e.preventDefault();
+    const isP = mode === 'pro';
+    const pfx  = mode === 'pro' ? 'dp' : mode === 'limit' ? 'dl' : 'dc';
+    const honeypot = e.target.querySelector('[name="website"]');
+    if (honeypot?.value) return;
+
+    const name    = document.getElementById(pfx+'-name')?.value.trim();
+    const email   = document.getElementById(pfx+'-email')?.value.trim();
+    const message = document.getElementById(pfx+'-message')?.value.trim();
+    const errEl   = document.getElementById(pfx+'-error');
+    const submit  = document.getElementById(pfx+'-submit');
+
+    errEl.style.display = 'none';
+    if (!name || !email) { errEl.textContent='Täytä nimi ja sähköposti.'; errEl.style.display='block'; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent='Tarkista sähköpostiosoite.'; errEl.style.display='block'; return; }
+
+    submit.disabled = true;
+    submit.innerHTML = '<i class="fa fa-spinner fa-spin" style="margin-right:8px"></i>Lähetetään...';
+
+    try {
+      const r = await fetch('/api/user/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message: (mode==='pro' ? '[PRO-TILAUS] ' : mode==='limit' ? '[RAJA TÄYNNÄ] ' : '[RÄÄTÄLÖITY] ') + (message || ''), company: '' })
+      });
+      if (r.ok) {
+        e.target.style.display = 'none';
+        document.getElementById(pfx+'-success').style.display = 'block';
+        setTimeout(closeDashUpgrade, 3500);
+      } else { throw new Error(); }
+    } catch {
+      errEl.textContent = 'Lähetys epäonnistui. Yritä uudelleen.';
+      errEl.style.display = 'block';
+      submit.disabled = false;
+      submit.innerHTML = '<i class="fa fa-paper-plane" style="margin-right:8px"></i>' + (mode==='pro' ? 'Lähetä tilaus' : mode==='limit' ? 'Lähetä yhteydenottopyyntö' : 'Lähetä viesti');
+    }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDashUpgrade(); });
+  </script>
 </body>
 </html>
