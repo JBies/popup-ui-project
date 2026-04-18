@@ -154,7 +154,7 @@ exports.emailReport = async (req, res) => {
       ]),
       Lead.countDocuments({ userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } }),
       Lead.find({ userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } })
-        .sort({ submittedAt: -1 }).limit(10).populate('popupId', 'name elementType siteId').lean(),
+        .sort({ submittedAt: -1 }).limit(20).populate('popupId', 'name elementType').lean(),
     ]);
 
     const period  = { views: dailyAgg[0]?.views || 0, clicks: dailyAgg[0]?.clicks || 0, leads: periodLeads };
@@ -165,9 +165,22 @@ exports.emailReport = async (req, res) => {
       return a;
     }, { views: 0, clicks: 0, leads: 0 });
 
+    // Top-elementit kumulatiivisesta datasta (kaikki aika)
+    const topElements = popups
+      .map(p => ({
+        name:   p.name || 'Nimetön',
+        type:   p.elementType || 'popup',
+        views:  p.statistics?.views  || 0,
+        clicks: p.statistics?.clicks || 0,
+        leads:  p.statistics?.leads  || 0,
+      }))
+      .sort((a, b) => b.leads - a.leads || b.clicks - a.clicks || b.views - a.views)
+      .slice(0, 5);
+
     const recentLeads = recentLeadsRaw.map(l => ({
-      popupName: l.popupId?.name || 'Tuntematon',
-      data: l.data || {},
+      popupName:   l.popupId?.name || 'Tuntematon',
+      elementType: l.popupId?.elementType || null,
+      data:        l.data || {},
       submittedAt: l.submittedAt,
     }));
 
@@ -176,7 +189,7 @@ exports.emailReport = async (req, res) => {
     const label = from && to ? `${fmt(fromDate)}–${fmt(toDate)}` : from ? `${fmt(fromDate)} alkaen` : 'Kaikki aika';
 
     // Rakenna HTML-sähköposti
-    const html = buildReportEmail(req.user, period, allTime, recentLeads, label);
+    const html = buildReportEmail(req.user, period, allTime, topElements, recentLeads, label);
     const subject = `📊 Raportti: ${label} – UI Manager`;
 
     const toEmail = req.user.emailNotifications?.notifyEmail?.trim() || req.user.email;
@@ -194,65 +207,120 @@ exports.emailReport = async (req, res) => {
 
 function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function buildReportEmail(user, period, allTime, leads, label) {
-  const name = (user.displayName || 'Hei').split(' ')[0];
+const TYPE_LABELS_EMAIL = {
+  sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in',
+  popup: 'Popup', lead_form: 'Lead Form', stats_only: 'Tilastojen kerääjä',
+};
+const TYPE_ICONS_EMAIL = {
+  sticky_bar: '📌', fab: '🔘', slide_in: '💬', popup: '⬜', lead_form: '📝', stats_only: '📊',
+};
 
-  const statCell = (icon, val, label, bg = '#f8fafc') => `
+function buildReportEmail(user, period, allTime, topElements, leads, label) {
+  const name = (user.displayName || 'Hei').split(' ')[0];
+  const periodCtr = period.views > 0 ? ((period.clicks / period.views) * 100).toFixed(1) : '0.0';
+  const allCtr    = allTime.views  > 0 ? ((allTime.clicks  / allTime.views)  * 100).toFixed(1) : '0.0';
+
+  const statCell = (icon, val, lbl, bg = '#f8fafc') => `
     <td style="text-align:center;padding:14px 8px;background:${bg};border-radius:10px">
       <div style="font-size:20px;margin-bottom:2px">${icon}</div>
       <div style="font-size:24px;font-weight:800;color:#0f172a">${val}</div>
-      <div style="font-size:11px;color:#64748b;margin-top:2px">${label}</div>
+      <div style="font-size:11px;color:#64748b;margin-top:2px">${lbl}</div>
     </td>`;
 
-  const leadsHtml = leads.length
-    ? `<div style="margin-top:24px">
-        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px">📋 Viimeisimmät liidit (${leads.length} kpl)</div>
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-          ${leads.map(l => {
-            const preview = Object.values(l.data || {}).filter(Boolean).slice(0,2).join(' · ') || '(tyhjä)';
-            return `<tr>
-              <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;color:#374151">${esc(preview)}</td>
-              <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:11px;color:#94a3b8;white-space:nowrap">${new Date(l.submittedAt).toLocaleDateString('fi-FI')}</td>
+  // Top elementit -osio
+  const topElsHtml = topElements.length
+    ? `<div style="margin-top:28px">
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px">🏆 Top elementit (kaikki aika)</div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px">
+          <tr style="background:#f8fafc">
+            <th style="padding:8px 10px;text-align:left;color:#64748b;font-weight:600">Elementti</th>
+            <th style="padding:8px 6px;text-align:right;color:#64748b;font-weight:600">Näytöt</th>
+            <th style="padding:8px 6px;text-align:right;color:#64748b;font-weight:600">Klikkaukset</th>
+            <th style="padding:8px 6px;text-align:right;color:#64748b;font-weight:600">CTR</th>
+            <th style="padding:8px 10px;text-align:right;color:#64748b;font-weight:600">Liidit</th>
+          </tr>
+          ${topElements.map((el, i) => {
+            const isStats = el.type === 'stats_only';
+            const elCtr = el.views > 0 ? ((el.clicks / el.views) * 100).toFixed(1) : '0.0';
+            const typeLabel = TYPE_LABELS_EMAIL[el.type] || el.type;
+            return `<tr style="border-top:1px solid #f1f5f9;background:${i%2===1?'#fafbfc':'#fff'}">
+              <td style="padding:9px 10px">
+                <div style="font-weight:600;color:#0f172a">${esc(el.name)}</div>
+                <div style="font-size:11px;color:#94a3b8;margin-top:1px">${typeLabel}</div>
+              </td>
+              <td style="padding:9px 6px;text-align:right;color:#374151">${el.views.toLocaleString('fi-FI')}</td>
+              <td style="padding:9px 6px;text-align:right;color:#64748b">${isStats ? '–' : el.clicks.toLocaleString('fi-FI')}</td>
+              <td style="padding:9px 6px;text-align:right;color:${isStats?'#94a3b8':parseFloat(elCtr)>5?'#16a34a':'#64748b'}">${isStats ? '–' : elCtr+'%'}</td>
+              <td style="padding:9px 10px;text-align:right;font-weight:700;color:${isStats?'#94a3b8':'#1d4ed8'}">${isStats ? '–' : el.leads}</td>
             </tr>`;
           }).join('')}
         </table>
       </div>` : '';
 
+  // Liidit-osio eriteltynä
+  const leadsHtml = leads.length
+    ? `<div style="margin-top:28px">
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px">📋 Liidit jaksolla (${leads.length} kpl)</div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+          ${leads.map(l => {
+            const icon = TYPE_ICONS_EMAIL[l.elementType] || '◻';
+            const typeLabel = TYPE_LABELS_EMAIL[l.elementType] || (l.elementType || '');
+            const entries = Object.entries(l.data || {}).filter(([, v]) => v);
+            const preview = entries.slice(0, 3).map(([k, v]) => `<span style="color:#64748b">${esc(k)}:</span> ${esc(String(v))}`).join(' &nbsp;·&nbsp; ') || '(tyhjä)';
+            return `<tr style="border-top:1px solid #f1f5f9">
+              <td style="padding:9px 10px">
+                <div style="font-size:11px;color:#94a3b8;margin-bottom:2px">${icon} ${esc(l.popupName)}${typeLabel ? ' · '+typeLabel : ''}</div>
+                <div style="font-size:12px;color:#0f172a">${preview}</div>
+              </td>
+              <td style="padding:9px 10px;font-size:11px;color:#94a3b8;white-space:nowrap;vertical-align:top;text-align:right">${new Date(l.submittedAt).toLocaleDateString('fi-FI')}</td>
+            </tr>`;
+          }).join('')}
+        </table>
+      </div>` : `
+    <div style="margin-top:28px;padding:16px;background:#f8fafc;border-radius:8px;font-size:13px;color:#94a3b8;text-align:center">
+      Ei liidejä valitulla ajanjaksolla.
+    </div>`;
+
   const body = `
     <p style="font-size:15px;color:#374151;margin:0 0 20px">Hei ${esc(name)}! Tässä raporttisi ajalta <strong>${esc(label)}</strong>.</p>
 
-    <div style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Valittu aikaväli</div>
+    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Valittu aikaväli</div>
     <table width="100%" cellpadding="6" cellspacing="0" style="margin-bottom:20px">
       <tr>
-        ${statCell('👁️', period.views,  'Näyttöä')}
-        <td width="8"></td>
-        ${statCell('🖱️', period.clicks, 'Klikkausta')}
-        <td width="8"></td>
+        ${statCell('👁️', period.views.toLocaleString('fi-FI'),  'Näyttöä')}
+        <td width="6"></td>
+        ${statCell('🖱️', period.clicks.toLocaleString('fi-FI'), 'Klikkausta')}
+        <td width="6"></td>
+        ${statCell('📈', periodCtr + '%', 'CTR')}
+        <td width="6"></td>
         ${statCell('📋', period.leads,  'Liidiä')}
       </tr>
     </table>
 
-    <div style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Kaikki aika yhteensä</div>
+    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Kaikki aika yhteensä</div>
     <table width="100%" cellpadding="6" cellspacing="0" style="margin-bottom:8px">
       <tr>
-        ${statCell('👁️', allTime.views,  'Näyttöä yhteensä', '#f1f5f9')}
-        <td width="8"></td>
-        ${statCell('🖱️', allTime.clicks, 'Klikkausta yhteensä', '#f1f5f9')}
-        <td width="8"></td>
-        ${statCell('📋', allTime.leads,  'Liidiä yhteensä', '#f1f5f9')}
+        ${statCell('👁️', allTime.views.toLocaleString('fi-FI'),  'Näyttöä', '#f1f5f9')}
+        <td width="6"></td>
+        ${statCell('🖱️', allTime.clicks.toLocaleString('fi-FI'), 'Klikkausta', '#f1f5f9')}
+        <td width="6"></td>
+        ${statCell('📈', allCtr + '%', 'CTR', '#f1f5f9')}
+        <td width="6"></td>
+        ${statCell('📋', allTime.leads, 'Liidiä', '#f1f5f9')}
       </tr>
     </table>
 
+    ${topElsHtml}
     ${leadsHtml}
 
-    <div style="margin-top:24px">
+    <div style="margin-top:28px">
       <a href="${process.env.APP_URL || 'https://popupmanager.net'}/dashboard#reports"
         style="display:inline-block;background:#1e40af;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600">
         📊 Avaa Raportit-sivu →
       </a>
     </div>`;
 
-  // Minimal email wrapper
+  const APP_URL = process.env.APP_URL || 'https://popupmanager.net';
   return `<!DOCTYPE html><html lang="fi"><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px">
@@ -265,7 +333,7 @@ function buildReportEmail(user, period, allTime, leads, label) {
           ${body}
         </td></tr>
         <tr><td style="padding:20px 0;text-align:center;font-size:12px;color:#94a3b8">
-          UI Manager · <a href="${process.env.APP_URL || 'https://popupmanager.net'}/dashboard#settings" style="color:#94a3b8">Hallitse ilmoituksia</a>
+          UI Manager · <a href="${APP_URL}/dashboard#settings" style="color:#94a3b8">Hallitse ilmoituksia</a>
         </td></tr>
       </table>
     </td></tr>

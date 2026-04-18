@@ -117,10 +117,11 @@ const popupSchema = new mongoose.Schema({
         // Kuinka usein banneri näytetään uudelleen
         consentFrequency:   { type: String, default: 'once' }, // 'always'|'once'|'annual'|'monthly'
         // Tracking-integraatiot (ladataan vasta suostumuksen jälkeen)
-        gaId:               { type: String, default: '' }, // Google Analytics 4: G-XXXXXXXXXX
-        gtmId:              { type: String, default: '' }, // Google Tag Manager: GTM-XXXXXXX
-        fbPixelId:          { type: String, default: '' }, // Facebook Pixel ID
-        customScripts:      { type: String, default: '' }  // Vapaa JS-koodi suostumuksen jälkeen
+        gaId:               { type: String, default: '' },   // Google Analytics 4: G-XXXXXXXXXX
+        gtmId:              { type: String, default: '' },   // Google Tag Manager: GTM-XXXXXXX
+        fbPixelId:          { type: String, default: '' },   // Facebook Pixel ID
+        customScripts:      { type: String, default: '' },   // Vapaa JS-koodi suostumuksen jälkeen
+        hideBanner:         { type: Boolean, default: false } // Piilota banneri, aktivoi vain skriptit
     },
     siteId: { type: mongoose.Schema.Types.ObjectId, default: null },
     version: { type: Number, default: Date.now },

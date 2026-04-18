@@ -70,6 +70,22 @@ export function renderCookieConsentFields(container, cfg = {}, data = {}) {
     <div class="section-title" style="margin-top:16px">
       <i class="fa fa-chart-line" style="color:#6366f1;margin-right:6px"></i>Tracking-integraatiot
     </div>
+
+    <div class="form-group" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px 14px">
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin:0">
+        <input type="checkbox" name="hideBanner" ${cfg.hideBanner ? 'checked' : ''}
+          style="margin-top:2px;width:16px;height:16px;accent-color:#f97316;flex-shrink:0;cursor:pointer">
+        <span>
+          <span style="font-size:13px;font-weight:700;color:#c2410c;display:block;margin-bottom:2px">Piilota banneri — aktivoi vain tracking-skriptit</span>
+          <span style="font-size:12px;color:#9a3412;line-height:1.5">
+            Banneria ei näytetä kävijälle. Tracking-skriptit (GA, Pixel jne.) ladataan <strong>heti sivun latautuessa</strong> ilman suostumuspyyntöä.<br>
+            <span style="color:#b45309">⚠️ Käytä vain jos et tarvitse GDPR-suostumusta tai sinulla on muu tapa kerätä suostumus.</span>
+          </span>
+        </span>
+      </label>
+    </div>
+
+    <div id="cc-banner-fields-wrapper">
     <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#5b21b6;line-height:1.6">
       🔒 <strong>Consent-first:</strong> Nämä skriptit ladataan <strong>vasta kun käyttäjä klikkaa Hyväksy</strong>.<br>
       Deny estää kaiken seurannan ja pyyhkii jo asetetut tracking-evästeet automaattisesti.
@@ -113,10 +129,21 @@ export function renderCookieConsentFields(container, cfg = {}, data = {}) {
         <strong>Miten se toimii:</strong><br>
         • <strong>Hyväksy</strong> → tallentaa suostumuksen + lataa GA/Pixel/GTM automaattisesti<br>
         • <strong>Hylkää</strong> → ei skriptejä, pyyhkii tracking-evästeet (_ga, _fbp jne.)<br>
+        • <strong>Yksi koodirivi riittää koko sivustolle</strong> — GA seuraa jokaista sivua automaattisesti<br>
         • Sivustosi koodi voi kuunnella: <code>document.addEventListener('cc_consent', e => { ... })</code>
       </p>
     </div>
+    </div>
   `;
+
+  // Toggle: piilota bannerin asetukset jos "hideBanner" on valittu
+  const hideCb = container.querySelector('[name="hideBanner"]');
+  const bannerWrapper = container.querySelector('#cc-banner-fields-wrapper');
+  function updateBannerVisibility() {
+    if (bannerWrapper) bannerWrapper.style.display = hideCb.checked ? 'none' : '';
+  }
+  updateBannerVisibility();
+  hideCb?.addEventListener('change', updateBannerVisibility);
 }
 
 export function getCookieConsentData(container) {
@@ -137,6 +164,7 @@ export function getCookieConsentData(container) {
       gtmId:            g('gtmId')?.value?.trim()            || '',
       fbPixelId:        g('fbPixelId')?.value?.trim()        || '',
       customScripts:    g('customScripts')?.value?.trim()    || '',
+      hideBanner:       g('hideBanner')?.checked             || false,
     }
   };
 }

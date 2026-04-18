@@ -758,6 +758,12 @@ if (!window.ShowElement) {
     var denyDays = freq === 'annual' ? 365 : freq === 'monthly' ? 30 : 0;
     var allowDays = freq === 'monthly' ? 30 : 365;
 
+    // hideBanner: piilota banneri, lataa skriptit heti ilman suostumuspyyntöä
+    if (cfg.hideBanner) {
+      loadTrackingScripts(cfg);
+      return;
+    }
+
     // 'always' = näytetään aina, ohitetaan muistit
     if (freq !== 'always') {
       // Jos jo hyväksytty → lataa skriptit heti, ei banneria
