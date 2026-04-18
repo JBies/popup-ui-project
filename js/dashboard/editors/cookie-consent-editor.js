@@ -67,6 +67,46 @@ export function renderCookieConsentFields(container, cfg = {}, data = {}) {
       </select>
     </div>
 
+    <div class="section-title" style="margin-top:16px">Ulkoasu &amp; sijoittelu</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Bannerin sijainti</label>
+        <select name="bannerPosition" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px">
+          <option value="bottom" ${(cfg.bannerPosition||'bottom')==='bottom' ? 'selected' : ''}>Alareuna</option>
+          <option value="top"    ${cfg.bannerPosition==='top' ? 'selected' : ''}>Yläreuna</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Asetusnapin sijainti</label>
+        <select name="settingsBtnPos" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px">
+          <option value="bottom-left"  ${(cfg.settingsBtnPos||'bottom-left')==='bottom-left'  ? 'selected' : ''}>Vasen alareunus</option>
+          <option value="bottom-right" ${cfg.settingsBtnPos==='bottom-right' ? 'selected' : ''}>Oikea alareunus</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;font-weight:500;color:#0f172a;margin-bottom:0">
+        <input type="checkbox" name="showSettingsBtn" ${cfg.showSettingsBtn !== false ? 'checked' : ''}
+          style="width:16px;height:16px;accent-color:#2563eb;cursor:pointer;flex-shrink:0">
+        Näytä "🍪 Evästeasetukset"-nappi sivun kulmassa suostumuksen jälkeen
+        <span style="font-size:11px;color:#64748b;font-weight:400">(GDPR — käyttäjä voi muuttaa valintaansa)</span>
+      </label>
+    </div>
+
+    <div class="form-group" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;font-weight:500;color:#0f172a;margin-bottom:8px">
+        <input type="checkbox" name="showNecessaryBtn" ${cfg.showNecessaryBtn ? 'checked' : ''}
+          style="width:16px;height:16px;accent-color:#2563eb;cursor:pointer;flex-shrink:0">
+        Lisää "Vain välttämättömät" -nappi
+        <span style="font-size:11px;color:#64748b;font-weight:400">(ammattimaisempi UX)</span>
+      </label>
+      <input type="text" name="necessaryBtnLabel" value="${cfg.necessaryBtnLabel || 'Vain välttämättömät'}"
+        placeholder="Napin teksti"
+        style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+    </div>
+
     <div class="section-title" style="margin-top:16px">
       <i class="fa fa-chart-line" style="color:#6366f1;margin-right:6px"></i>Tracking-integraatiot
     </div>
@@ -165,6 +205,11 @@ export function getCookieConsentData(container) {
       fbPixelId:        g('fbPixelId')?.value?.trim()        || '',
       customScripts:    g('customScripts')?.value?.trim()    || '',
       hideBanner:       g('hideBanner')?.checked             || false,
+      bannerPosition:   g('bannerPosition')?.value           || 'bottom',
+      showSettingsBtn:  g('showSettingsBtn')?.checked        ?? true,
+      settingsBtnPos:   g('settingsBtnPos')?.value           || 'bottom-left',
+      showNecessaryBtn: g('showNecessaryBtn')?.checked       || false,
+      necessaryBtnLabel:g('necessaryBtnLabel')?.value?.trim()|| 'Vain välttämättömät',
     }
   };
 }

@@ -90,7 +90,7 @@ function renderHelp() {
 
         card('fa-cookie-bite','#16a34a','Cookie Consent + Tracking-integraatiot',
           'GDPR- ja ePrivacy-yhteensopiva evästebanneri joka oikeasti estää seurannan ennen suostumusta. Syötä Google Analytics 4-, GTM- tai Facebook Pixel -tunnuksesi suoraan editoriin — ne aktivoituvat automaattisesti vasta kun kävijä klikkaa Hyväksy. Ei erillistä Cookiebotia tarvita.',
-          ['Consent-first: GA/Pixel ei lataudu ennen hyväksyntää','Deny pyyhkii _ga, _gid, _fbp -evästeet automaattisesti','Syötä GA4/GTM/Pixel-tunnus editorissa — ei koodausta','GDPR & ePrivacy -yhteensopiva','Toimii ilman Pro-tiliä'],
+          ['Consent-first: GA/Pixel ei lataudu ennen hyväksyntää','Deny pyyhkii _ga, _gid, _fbp -evästeet automaattisesti','Syötä GA4/GTM/Pixel-tunnus editorissa — ei koodausta','GDPR & ePrivacy -yhteensopiva','Evästeasetukset-nappi + bannerin sijainti + välttämättömät-nappi'],
           [
             '🔑 GA4-tunnus: analytics.google.com → Hallinta → Tietovirrat → kopioi Mittaustunnus (G-XXXXXXXXXX)',
             '🔑 GTM-tunnus: tagmanager.google.com → valitse tili → kopioi Säilötunnus (GTM-XXXXXXX)',
@@ -98,7 +98,10 @@ function renderHelp() {
             '💡 Muu koodi (Hotjar, LinkedIn jne.): liitä JS-koodi "Muu koodi" -kenttään ilman <script>-tageja',
             '✅ Hyväksy → lataa skriptit + tallentaa cc_consent=accepted evästeeseen',
             '🚫 Hylkää → ei skriptejä + pyyhkii tracking-evästeet + tallentaa valinnan',
-            '📡 Kuuntele itse: document.addEventListener("cc_consent", e => { if(e.detail==="accepted") { ... } })'
+            '⚪ Vain välttämättömät → ei tracking-skriptejä, ei pyyhintää — tallentaa cc_consent=necessary',
+            '🍪 Evästeasetukset-nappi: ilmestyy sivun kulmaan suostumuksen jälkeen → käyttäjä voi muuttaa valintaansa (aktivoi editorissa "Ulkoasu & sijoittelu" -osiossa)',
+            '↕️ Bannerin sijainti: valitse Alareuna tai Yläreuna editorin "Ulkoasu & sijoittelu" -osiossa',
+            '📡 Kuuntele itse: document.addEventListener("cc_consent", e => { if(e.detail==="accepted") { ... } else if(e.detail==="necessary") { ... } })'
           ]),
 
         card('fa-chart-bar','#64748b','Tilastojen kerääjä',

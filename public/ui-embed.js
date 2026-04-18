@@ -758,120 +758,181 @@ if (!window.ShowElement) {
     var denyDays = freq === 'annual' ? 365 : freq === 'monthly' ? 30 : 0;
     var allowDays = freq === 'monthly' ? 30 : 365;
 
-    // hideBanner: piilota banneri, lataa skriptit heti ilman suostumuspyyntöä
+    // hideBanner: lataa skriptit heti, ei banneria
     if (cfg.hideBanner) {
       loadTrackingScripts(cfg);
       return;
     }
 
-    // 'always' = näytetään aina, ohitetaan muistit
+    // Tarkista aiempi suostumus
     if (freq !== 'always') {
-      // Jos jo hyväksytty → lataa skriptit heti, ei banneria
-      if (getCookie(COOKIE_KEY) === 'accepted') {
+      var existing = getCookie(COOKIE_KEY);
+      if (existing === 'accepted') {
         loadTrackingScripts(cfg);
+        maybeShowSettingsBtn();
         return;
       }
-      // Jos jo hylätty → ei banneria, ei skriptejä
-      if (getCookie(COOKIE_KEY) === 'declined') return;
+      if (existing === 'declined' || existing === 'necessary') {
+        maybeShowSettingsBtn();
+        return;
+      }
       if (freq === 'once' && sessionStorage.getItem(SESSION_KEY)) return;
       if ((freq === 'annual' || freq === 'monthly') && getCookie(SESSION_KEY)) return;
     }
 
-    var bar = document.createElement('div');
-    bar.id = 'ue-cc-' + el._id;
-    var bgColor = el.backgroundColor || '#1f2937';
-    var txtColor = el.textColor || '#ffffff';
-    var btnColor = cfg.allowBtnColor || '#22c55e';
+    showBanner();
 
-    Object.assign(bar.style, {
-      position: 'fixed', left: '0', right: '0', zIndex: '999999',
-      bottom: '0',
-      backgroundColor: bgColor, color: txtColor,
-      padding: '14px 20px',
-      display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
-      fontFamily: 'system-ui, sans-serif', fontSize: '14px',
-      boxShadow: '0 -2px 12px rgba(0,0,0,0.25)'
-    });
-
-    // Teksti
-    var txt = document.createElement('span');
-    txt.textContent = cfg.bannerText || 'Käytämme evästeitä sivuston toiminnan parantamiseksi.';
-    txt.style.flex = '1';
-    bar.appendChild(txt);
-
-    // "Lisätietoja" -nappi (valinnainen)
-    if (cfg.infoText) {
-      var infoBtn = document.createElement('button');
-      infoBtn.textContent = cfg.infoBtnLabel || 'Lisätietoja';
-      Object.assign(infoBtn.style, {
-        background: 'transparent', border: '1px solid ' + txtColor, color: txtColor,
-        padding: '6px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: '500'
+    // ── Evästeasetukset-nappi sivun kulmassa ──────────────────────────────
+    function maybeShowSettingsBtn() {
+      if (!cfg.showSettingsBtn) return;
+      var btnId = 'ue-cc-settings-' + el._id;
+      if (document.getElementById(btnId)) return;
+      var sBtn = document.createElement('button');
+      sBtn.id = btnId;
+      sBtn.textContent = '🍪 Evästeasetukset';
+      var sPos = cfg.settingsBtnPos || 'bottom-left';
+      Object.assign(sBtn.style, {
+        position: 'fixed', zIndex: '999998',
+        bottom: '16px',
+        left:  sPos === 'bottom-left'  ? '16px' : 'auto',
+        right: sPos === 'bottom-right' ? '16px' : 'auto',
+        background: el.backgroundColor || '#1f2937',
+        color: el.textColor || '#ffffff',
+        border: 'none', borderRadius: '8px',
+        padding: '8px 14px', fontSize: '13px', fontWeight: '600',
+        cursor: 'pointer', fontFamily: 'system-ui, sans-serif',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+        transition: 'opacity 0.2s'
       });
-      infoBtn.addEventListener('click', function () {
-        var overlay = document.createElement('div');
-        Object.assign(overlay.style, {
-          position: 'fixed', inset: '0', zIndex: '1000000', background: 'rgba(0,0,0,0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        });
-        var box = document.createElement('div');
-        Object.assign(box.style, {
-          background: '#fff', color: '#111', borderRadius: '12px', padding: '28px',
-          maxWidth: '480px', width: '90%', fontFamily: 'system-ui, sans-serif', fontSize: '14px',
-          lineHeight: '1.6', boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-        });
-        var closeBtn = document.createElement('button');
-        closeBtn.textContent = '✕';
-        Object.assign(closeBtn.style, {
-          float: 'right', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#666'
-        });
-        closeBtn.addEventListener('click', function () { overlay.remove(); });
-        box.appendChild(closeBtn);
-        var p = document.createElement('p');
-        p.style.margin = '0';
-        p.textContent = cfg.infoText;
-        box.appendChild(p);
-        overlay.appendChild(box);
-        overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
-        document.body.appendChild(overlay);
-      });
-      bar.appendChild(infoBtn);
+      sBtn.addEventListener('mouseenter', function() { sBtn.style.opacity = '0.85'; });
+      sBtn.addEventListener('mouseleave', function() { sBtn.style.opacity = '1'; });
+      sBtn.addEventListener('click', function() { sBtn.remove(); showBanner(); });
+      document.body.appendChild(sBtn);
     }
 
-    // Hylkää-nappi
-    var denyBtn = document.createElement('button');
-    denyBtn.textContent = cfg.denyBtnLabel || 'Hylkää';
-    var denyColor = cfg.denyBtnColor || null;
-    Object.assign(denyBtn.style, {
-      background: denyColor || 'transparent', border: '1px solid ' + (denyColor || txtColor), color: denyColor ? '#fff' : txtColor,
-      padding: '8px 16px', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', fontWeight: '600'
-    });
-    denyBtn.addEventListener('click', function () {
-      setCookie(COOKIE_KEY, 'declined', denyDays > 0 ? denyDays : 365);
-      if (freq === 'once') sessionStorage.setItem(SESSION_KEY, '1');
-      clearTrackingCookies();
-      bar.remove();
-      document.dispatchEvent(new CustomEvent('cc_consent', { detail: 'declined' }));
-      trackClick(el._id);
-    });
-    bar.appendChild(denyBtn);
+    // ── Banneri ───────────────────────────────────────────────────────────
+    function showBanner() {
+      var bar = document.createElement('div');
+      bar.id = 'ue-cc-' + el._id;
+      var bgColor = el.backgroundColor || '#1f2937';
+      var txtColor = el.textColor || '#ffffff';
+      var btnColor = cfg.allowBtnColor || '#22c55e';
+      var pos = cfg.bannerPosition || 'bottom';
 
-    // Hyväksy-nappi
-    var allowBtn = document.createElement('button');
-    allowBtn.textContent = cfg.allowBtnLabel || 'Hyväksy';
-    Object.assign(allowBtn.style, {
-      background: btnColor, border: 'none', color: '#fff',
-      padding: '8px 18px', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', fontWeight: '700'
-    });
-    allowBtn.addEventListener('click', function () {
-      setCookie(COOKIE_KEY, 'accepted', allowDays);
-      loadTrackingScripts(cfg);
-      bar.remove();
-      document.dispatchEvent(new CustomEvent('cc_consent', { detail: 'accepted' }));
-      trackClick(el._id);
-    });
-    bar.appendChild(allowBtn);
+      Object.assign(bar.style, {
+        position: 'fixed', left: '0', right: '0', zIndex: '999999',
+        backgroundColor: bgColor, color: txtColor,
+        padding: '14px 20px',
+        display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
+        fontFamily: 'system-ui, sans-serif', fontSize: '14px'
+      });
+      bar.style[pos === 'top' ? 'top' : 'bottom'] = '0';
+      bar.style.boxShadow = pos === 'top'
+        ? '0 2px 12px rgba(0,0,0,0.25)'
+        : '0 -2px 12px rgba(0,0,0,0.25)';
 
-    document.body.appendChild(bar);
+      // Teksti
+      var txt = document.createElement('span');
+      txt.textContent = cfg.bannerText || 'Käytämme evästeitä sivuston toiminnan parantamiseksi.';
+      txt.style.flex = '1';
+      bar.appendChild(txt);
+
+      // "Lisätietoja" -nappi (valinnainen)
+      if (cfg.infoText) {
+        var infoBtn = document.createElement('button');
+        infoBtn.textContent = cfg.infoBtnLabel || 'Lisätietoja';
+        Object.assign(infoBtn.style, {
+          background: 'transparent', border: '1px solid ' + txtColor, color: txtColor,
+          padding: '6px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: '500'
+        });
+        infoBtn.addEventListener('click', function () {
+          var overlay = document.createElement('div');
+          Object.assign(overlay.style, {
+            position: 'fixed', inset: '0', zIndex: '1000000', background: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          });
+          var box = document.createElement('div');
+          Object.assign(box.style, {
+            background: '#fff', color: '#111', borderRadius: '12px', padding: '28px',
+            maxWidth: '480px', width: '90%', fontFamily: 'system-ui, sans-serif', fontSize: '14px',
+            lineHeight: '1.6', boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+          });
+          var closeBtn = document.createElement('button');
+          closeBtn.textContent = '✕';
+          Object.assign(closeBtn.style, {
+            float: 'right', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#666'
+          });
+          closeBtn.addEventListener('click', function () { overlay.remove(); });
+          box.appendChild(closeBtn);
+          var p = document.createElement('p');
+          p.style.margin = '0';
+          p.textContent = cfg.infoText;
+          box.appendChild(p);
+          overlay.appendChild(box);
+          overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+          document.body.appendChild(overlay);
+        });
+        bar.appendChild(infoBtn);
+      }
+
+      // Hylkää-nappi
+      var denyBtn = document.createElement('button');
+      denyBtn.textContent = cfg.denyBtnLabel || 'Hylkää';
+      var denyColor = cfg.denyBtnColor || null;
+      Object.assign(denyBtn.style, {
+        background: denyColor || 'transparent', border: '1px solid ' + (denyColor || txtColor),
+        color: denyColor ? '#fff' : txtColor,
+        padding: '8px 16px', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', fontWeight: '600'
+      });
+      denyBtn.addEventListener('click', function () {
+        setCookie(COOKIE_KEY, 'declined', denyDays > 0 ? denyDays : 365);
+        if (freq === 'once') sessionStorage.setItem(SESSION_KEY, '1');
+        clearTrackingCookies();
+        bar.remove();
+        maybeShowSettingsBtn();
+        document.dispatchEvent(new CustomEvent('cc_consent', { detail: 'declined' }));
+        trackClick(el._id);
+      });
+      bar.appendChild(denyBtn);
+
+      // "Vain välttämättömät" -nappi (valinnainen)
+      if (cfg.showNecessaryBtn) {
+        var necBtn = document.createElement('button');
+        necBtn.textContent = cfg.necessaryBtnLabel || 'Vain välttämättömät';
+        Object.assign(necBtn.style, {
+          background: 'transparent', border: '1px solid ' + txtColor, color: txtColor,
+          padding: '8px 16px', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
+          opacity: '0.85'
+        });
+        necBtn.addEventListener('click', function () {
+          setCookie(COOKIE_KEY, 'necessary', allowDays);
+          bar.remove();
+          maybeShowSettingsBtn();
+          document.dispatchEvent(new CustomEvent('cc_consent', { detail: 'necessary' }));
+          trackClick(el._id);
+        });
+        bar.appendChild(necBtn);
+      }
+
+      // Hyväksy-nappi
+      var allowBtn = document.createElement('button');
+      allowBtn.textContent = cfg.allowBtnLabel || 'Hyväksy';
+      Object.assign(allowBtn.style, {
+        background: btnColor, border: 'none', color: '#fff',
+        padding: '8px 18px', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', fontWeight: '700'
+      });
+      allowBtn.addEventListener('click', function () {
+        setCookie(COOKIE_KEY, 'accepted', allowDays);
+        loadTrackingScripts(cfg);
+        bar.remove();
+        maybeShowSettingsBtn();
+        document.dispatchEvent(new CustomEvent('cc_consent', { detail: 'accepted' }));
+        trackClick(el._id);
+      });
+      bar.appendChild(allowBtn);
+
+      document.body.appendChild(bar);
+    }
   }
 
   function setCookie(name, value, days) {

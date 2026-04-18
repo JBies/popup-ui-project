@@ -121,7 +121,12 @@ const popupSchema = new mongoose.Schema({
         gtmId:              { type: String, default: '' },   // Google Tag Manager: GTM-XXXXXXX
         fbPixelId:          { type: String, default: '' },   // Facebook Pixel ID
         customScripts:      { type: String, default: '' },   // Vapaa JS-koodi suostumuksen jälkeen
-        hideBanner:         { type: Boolean, default: false } // Piilota banneri, aktivoi vain skriptit
+        hideBanner:         { type: Boolean, default: false },  // Piilota banneri, aktivoi vain skriptit
+        bannerPosition:     { type: String,  default: 'bottom' },    // 'top' | 'bottom'
+        showSettingsBtn:    { type: Boolean, default: true },         // Evästeasetukset-nappi sivun kulmassa
+        settingsBtnPos:     { type: String,  default: 'bottom-left' },// 'bottom-left' | 'bottom-right'
+        showNecessaryBtn:   { type: Boolean, default: false },        // "Vain välttämättömät" -nappi
+        necessaryBtnLabel:  { type: String,  default: 'Vain välttämättömät' }
     },
     siteId: { type: mongoose.Schema.Types.ObjectId, default: null },
     version: { type: Number, default: Date.now },
