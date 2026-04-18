@@ -682,6 +682,74 @@ if (!window.ShowElement) {
 
   // ─── Apufunktiot ─────────────────────────────────────────────────────────────
 
+  // ─── Tracking-apufunktiot ────────────────────────────────────────────────────
+
+  function loadTrackingScripts(cfg) {
+    // Google Analytics 4
+    if (cfg.gaId && cfg.gaId.trim()) {
+      var gaId = cfg.gaId.trim();
+      if (!document.querySelector('script[src*="gtag/js"]')) {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+        document.head.appendChild(s);
+      }
+      window.dataLayer = window.dataLayer || [];
+      if (!window.gtag) window.gtag = function(){ window.dataLayer.push(arguments); };
+      window.gtag('js', new Date());
+      window.gtag('config', gaId);
+    }
+    // Google Tag Manager
+    if (cfg.gtmId && cfg.gtmId.trim()) {
+      var gtmId = cfg.gtmId.trim();
+      if (!document.querySelector('script[src*="googletagmanager.com/gtm"]')) {
+        var ds = document.createElement('script');
+        ds.innerHTML = "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','" + gtmId + "');";
+        document.head.appendChild(ds);
+        var ns = document.createElement('noscript');
+        var iframe = document.createElement('iframe');
+        iframe.src = 'https://www.googletagmanager.com/ns.html?id=' + gtmId;
+        iframe.height = '0'; iframe.width = '0';
+        iframe.style.cssText = 'display:none;visibility:hidden';
+        ns.appendChild(iframe);
+        document.body.insertBefore(ns, document.body.firstChild);
+      }
+    }
+    // Facebook Pixel
+    if (cfg.fbPixelId && cfg.fbPixelId.trim()) {
+      var pixelId = cfg.fbPixelId.trim();
+      if (!window.fbq) {
+        var fp = document.createElement('script');
+        fp.innerHTML = "!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','" + pixelId + "');fbq('track','PageView');";
+        document.head.appendChild(fp);
+      }
+    }
+    // Vapaa koodi
+    if (cfg.customScripts && cfg.customScripts.trim()) {
+      try { new Function(cfg.customScripts)(); } catch(e) { console.warn('[UI Manager] customScripts error:', e); }
+    }
+  }
+
+  function clearTrackingCookies() {
+    var names = ['_ga','_gid','_gat','_fbp','_fbc','_gcl_au','_gcl_dc','_gcl_gb'];
+    var host = location.hostname;
+    var domains = ['', '; domain=' + host, '; domain=.' + host];
+    names.forEach(function(n) {
+      domains.forEach(function(d) {
+        document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + d;
+      });
+    });
+    // GA4 session cookies (_ga_XXXXXXXX)
+    document.cookie.split(';').forEach(function(c) {
+      var name = c.trim().split('=')[0];
+      if (name.indexOf('_ga_') === 0) {
+        domains.forEach(function(d) {
+          document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + d;
+        });
+      }
+    });
+  }
+
   function renderCookieConsent(el) {
     var cfg = el.elementConfig || {};
     var COOKIE_KEY = 'cc_consent';
@@ -692,7 +760,13 @@ if (!window.ShowElement) {
 
     // 'always' = näytetään aina, ohitetaan muistit
     if (freq !== 'always') {
-      if (getCookie(COOKIE_KEY)) return;
+      // Jos jo hyväksytty → lataa skriptit heti, ei banneria
+      if (getCookie(COOKIE_KEY) === 'accepted') {
+        loadTrackingScripts(cfg);
+        return;
+      }
+      // Jos jo hylätty → ei banneria, ei skriptejä
+      if (getCookie(COOKIE_KEY) === 'declined') return;
       if (freq === 'once' && sessionStorage.getItem(SESSION_KEY)) return;
       if ((freq === 'annual' || freq === 'monthly') && getCookie(SESSION_KEY)) return;
     }
@@ -766,8 +840,9 @@ if (!window.ShowElement) {
       padding: '8px 16px', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', fontWeight: '600'
     });
     denyBtn.addEventListener('click', function () {
-      if (denyDays > 0) setCookie(SESSION_KEY, '1', denyDays);
-      else sessionStorage.setItem(SESSION_KEY, '1');
+      setCookie(COOKIE_KEY, 'declined', denyDays > 0 ? denyDays : 365);
+      if (freq === 'once') sessionStorage.setItem(SESSION_KEY, '1');
+      clearTrackingCookies();
       bar.remove();
       document.dispatchEvent(new CustomEvent('cc_consent', { detail: 'declined' }));
       trackClick(el._id);
@@ -783,6 +858,7 @@ if (!window.ShowElement) {
     });
     allowBtn.addEventListener('click', function () {
       setCookie(COOKIE_KEY, 'accepted', allowDays);
+      loadTrackingScripts(cfg);
       bar.remove();
       document.dispatchEvent(new CustomEvent('cc_consent', { detail: 'accepted' }));
       trackClick(el._id);

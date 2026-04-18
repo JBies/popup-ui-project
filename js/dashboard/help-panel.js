@@ -88,10 +88,18 @@ function renderHelp() {
           ['Yhteydenottopyyntö','Uutiskirjetilaus','Varaa demo -lomake','Kilpailun osallistuminen'],
           ['Kentät – teksti / email / puhelin / textarea','Lähetä-napin teksti muokattavissa','Onnistumisviesti tallentuvan jälkeen','Kaikki liidit tallentuvat automaattisesti']),
 
-        card('fa-cookie-bite','#16a34a','Cookie Consent',
-          'GDPR-yhteensopiva evästeilmoitusbanneri sivun alareunassa. Kävijä voi hyväksyä tai hylätä evästeet. Sisältää valinnaisen "Lisätietoja"-napin joka avaa tietosuojatekstin. Ilmainen kaikille käyttäjille.',
-          ['GDPR-evästeilmoitus kaikille sivustoille','Tietosuojaselostepopup yhdellä napilla','Estää kävijän häiritsemisen jos jo hyväksynyt','Toimii ilman Pro-tiliä'],
-          ['"Hyväksy"-nappi → tallentaa cc_consent=accepted 365 pv','"Hylkää"-nappi → tallentaa sessioon (banneri näkyy taas seuraavalla käynnillä)','Napit värit muokattavissa editorissa','Kuuntele tapahtumia: document.addEventListener("cc_consent", e => { if(e.detail==="accepted") { /* aktivoi analytics */ } })']),
+        card('fa-cookie-bite','#16a34a','Cookie Consent + Tracking-integraatiot',
+          'GDPR- ja ePrivacy-yhteensopiva evästebanneri joka oikeasti estää seurannan ennen suostumusta. Syötä Google Analytics 4-, GTM- tai Facebook Pixel -tunnuksesi suoraan editoriin — ne aktivoituvat automaattisesti vasta kun kävijä klikkaa Hyväksy. Ei erillistä Cookiebotia tarvita.',
+          ['Consent-first: GA/Pixel ei lataudu ennen hyväksyntää','Deny pyyhkii _ga, _gid, _fbp -evästeet automaattisesti','Syötä GA4/GTM/Pixel-tunnus editorissa — ei koodausta','GDPR & ePrivacy -yhteensopiva','Toimii ilman Pro-tiliä'],
+          [
+            '🔑 GA4-tunnus: analytics.google.com → Hallinta → Tietovirrat → kopioi Mittaustunnus (G-XXXXXXXXXX)',
+            '🔑 GTM-tunnus: tagmanager.google.com → valitse tili → kopioi Säilötunnus (GTM-XXXXXXX)',
+            '🔑 Facebook Pixel: business.facebook.com → Tapahtumienhallintatyökalu → kopioi Pikselin ID (15-numeroinen)',
+            '💡 Muu koodi (Hotjar, LinkedIn jne.): liitä JS-koodi "Muu koodi" -kenttään ilman <script>-tageja',
+            '✅ Hyväksy → lataa skriptit + tallentaa cc_consent=accepted evästeeseen',
+            '🚫 Hylkää → ei skriptejä + pyyhkii tracking-evästeet + tallentaa valinnan',
+            '📡 Kuuntele itse: document.addEventListener("cc_consent", e => { if(e.detail==="accepted") { ... } })'
+          ]),
 
         card('fa-chart-bar','#64748b','Tilastojen kerääjä',
           'Näkymätön tilastopiste – ei näytä kävijöille mitään. Rekisteröi ainoastaan näyttökerran kun skripti suoritetaan. Hyödyllinen sivun kävijämäärän seurantaan ilman häiritseviä elementtejä.',
