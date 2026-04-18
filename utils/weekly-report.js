@@ -106,6 +106,38 @@ async function getTopElements(userId) {
 }
 
 /**
+ * Hakee elementit joilla oli näyttöjä mutta ei klikkauksia kyseisellä viikolla.
+ * Nämä ovat potentiaalisia parannuskohteita.
+ */
+async function getSilentElements(userId, from, to) {
+  const fromStr = from.toISOString().slice(0, 10);
+  const toStr   = to.toISOString().slice(0, 10);
+
+  const agg = await DailyStats.aggregate([
+    { $match: { userId, date: { $gte: fromStr, $lte: toStr } } },
+    { $group: { _id: '$popupId', views: { $sum: '$views' }, clicks: { $sum: '$clicks' } } },
+    { $match: { views: { $gt: 0 }, clicks: { $eq: 0 } } },
+    { $sort: { views: -1 } },
+    { $limit: 5 },
+  ]);
+
+  if (!agg.length) return [];
+
+  const ids = agg.map(a => a._id);
+  const popups = await Popup.find({ _id: { $in: ids }, elementType: { $ne: 'stats_only' } })
+    .select('name elementType').lean();
+  const popupMap = Object.fromEntries(popups.map(p => [String(p._id), p]));
+
+  return agg
+    .filter(a => popupMap[String(a._id)])
+    .map(a => ({
+      name:  popupMap[String(a._id)].name || 'Nimetön',
+      type:  popupMap[String(a._id)].elementType || 'popup',
+      views: a.views,
+    }));
+}
+
+/**
  * Hakee viikon liidit (max 10 uusinta)
  */
 async function getWeekLeads(userId, from, to) {
@@ -156,10 +188,12 @@ async function sendWeeklyReports() {
 
       const stats = {
         // Jaksokohtaiset (viikko)
-        views:     thisPeriod.views,
-        clicks:    thisPeriod.clicks,
-        leads:     thisPeriod.leads,
-        prevLeads: prevPeriod.leads,
+        views:      thisPeriod.views,
+        clicks:     thisPeriod.clicks,
+        leads:      thisPeriod.leads,
+        prevViews:  prevPeriod.views,
+        prevClicks: prevPeriod.clicks,
+        prevLeads:  prevPeriod.leads,
         // Kaikki aika
         allViews:  allTime.views,
         allClicks: allTime.clicks,
@@ -172,10 +206,13 @@ async function sendWeeklyReports() {
         continue;
       }
 
-      const topElements = await getTopElements(user._id);
-      const weekLeads   = await getWeekLeads(user._id, lastMonday, lastSunday);
+      const [topElements, weekLeads, silentElements] = await Promise.all([
+        getTopElements(user._id),
+        getWeekLeads(user._id, lastMonday, lastSunday),
+        getSilentElements(user._id, lastMonday, lastSunday),
+      ]);
 
-      const { subject, html } = buildWeeklyReport(user, stats, topElements, weekLeads, weekLabel);
+      const { subject, html } = buildWeeklyReport(user, stats, topElements, weekLeads, weekLabel, silentElements);
       const ok = await sendMail(toEmail, subject, html);
 
       if (ok) sent++;

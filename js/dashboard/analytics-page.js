@@ -1,24 +1,39 @@
 // js/dashboard/analytics-page.js
 
+let cachedSites    = [];
+let allElements    = [];
+let filterSiteId   = '';
+let analyticsReady = false;
+
 export function initAnalyticsPage() {
   window.addEventListener('hashchange', () => {
-    if (window.location.hash === '#analytics') renderAnalytics();
+    if (window.location.hash === '#analytics') onEnterAnalytics();
   });
-  if (window.location.hash === '#analytics') renderAnalytics();
+  if (window.location.hash === '#analytics') onEnterAnalytics();
   window.addEventListener('refresh-elements', () => {
-    if (window.location.hash === '#analytics') renderAnalytics();
+    if (window.location.hash === '#analytics') onEnterAnalytics();
   });
 }
 
-async function renderAnalytics() {
+async function onEnterAnalytics() {
+  if (!analyticsReady) {
+    await Promise.all([
+      fetch('/api/sites').then(r => r.ok ? r.json() : []).then(d => { cachedSites = d; }),
+      fetch('/api/popups').then(r => r.ok ? r.json() : []).then(d => { allElements = d; }),
+    ]);
+    analyticsReady = true;
+  }
+  renderAnalytics();
+}
+
+function renderAnalytics() {
   const container = document.getElementById('analytics-content');
   if (!container) return;
-  container.innerHTML = '<div style="color:#64748b;padding:24px">Ladataan tilastoja...</div>';
 
   try {
-    const r = await fetch('/api/popups');
-    if (!r.ok) throw new Error('fetch failed');
-    const elements = await r.json();
+    const elements = filterSiteId
+      ? allElements.filter(el => filterSiteId === '_none' ? !el.siteId : String(el.siteId) === filterSiteId)
+      : allElements;
 
     const totals = elements.reduce((acc, el) => {
       acc.views  += el.statistics?.views  || 0;
@@ -36,7 +51,21 @@ async function renderAnalytics() {
       lead_form: 'badge-lead'
     };
 
+    // Sivuvalitsin
+    const siteOpts = cachedSites.map(s =>
+      `<option value="${s._id}"${filterSiteId === String(s._id) ? ' selected' : ''}>${esc(s.name)}${s.domain ? ' ('+esc(s.domain)+')' : ''}</option>`
+    ).join('');
+    const siteFilter = cachedSites.length ? `
+      <div style="margin-bottom:20px">
+        <select id="analytics-site-filter" style="font-size:13px;padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#374151;cursor:pointer">
+          <option value="">Kaikki sivustot</option>
+          ${siteOpts}
+          <option value="_none"${filterSiteId === '_none' ? ' selected' : ''}>– Ei sivustoa –</option>
+        </select>
+      </div>` : '';
+
     container.innerHTML = `
+      ${siteFilter}
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px">
         ${[
           { label: 'Näyttöjä yhteensä', value: totals.views.toLocaleString(), icon: 'fa-eye', color: '#3b82f6' },
@@ -94,7 +123,15 @@ async function renderAnalytics() {
           </tbody>
         </table>
       </div>`;
+    document.getElementById('analytics-site-filter')?.addEventListener('change', e => {
+      filterSiteId = e.target.value;
+      renderAnalytics();
+    });
   } catch (e) {
     container.innerHTML = '<div style="color:#ef4444;padding:24px">Tilastojen lataus epäonnistui.</div>';
   }
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }

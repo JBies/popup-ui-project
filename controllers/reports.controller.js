@@ -85,6 +85,7 @@ exports.getReport = async (req, res) => {
         _id:    p._id,
         name:   p.name || 'Nimetön',
         type:   p.elementType || 'popup',
+        siteId: p.siteId || null,
         views:  p.statistics?.views  || 0,
         clicks: p.statistics?.clicks || 0,
         leads:  p.statistics?.leads  || 0,
@@ -96,12 +97,14 @@ exports.getReport = async (req, res) => {
     const recentLeadsRaw = await Lead
       .find({ userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } })
       .sort({ submittedAt: -1 })
-      .limit(20)
-      .populate('popupId', 'name')
+      .limit(50)
+      .populate('popupId', 'name elementType siteId')
       .lean();
 
     const recentLeads = recentLeadsRaw.map(l => ({
       popupName:   l.popupId?.name || 'Tuntematon',
+      elementType: l.popupId?.elementType || null,
+      siteId:      l.popupId?.siteId || null,
       data:        l.data || {},
       submittedAt: l.submittedAt,
     }));
@@ -141,7 +144,7 @@ exports.emailReport = async (req, res) => {
     if (siteId === '_none') popupFilter.siteId = null;
     else if (siteId) popupFilter.siteId = siteId;
 
-    const popups = await Popup.find(popupFilter).select('_id name elementType statistics').lean();
+    const popups = await Popup.find(popupFilter).select('_id name elementType statistics siteId').lean();
     const popupIds = popups.map(p => p._id);
 
     const [dailyAgg, periodLeads, recentLeadsRaw] = await Promise.all([
@@ -151,7 +154,7 @@ exports.emailReport = async (req, res) => {
       ]),
       Lead.countDocuments({ userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } }),
       Lead.find({ userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } })
-        .sort({ submittedAt: -1 }).limit(10).populate('popupId', 'name').lean(),
+        .sort({ submittedAt: -1 }).limit(10).populate('popupId', 'name elementType siteId').lean(),
     ]);
 
     const period  = { views: dailyAgg[0]?.views || 0, clicks: dailyAgg[0]?.clicks || 0, leads: periodLeads };

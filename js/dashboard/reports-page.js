@@ -269,20 +269,25 @@ function renderResults(data, from, to) {
               <th style="padding:10px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:left">Nimi</th>
               <th style="padding:10px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Näytöt</th>
               <th style="padding:10px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Klikkaukset</th>
+              <th style="padding:10px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">CTR</th>
               <th style="padding:10px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Liidit</th>
             </tr>
           </thead>
           <tbody>
             ${topElements.map((el, i) => {
               const isStats = el.type === 'stats_only';
+              const elCtr = el.views > 0 ? ((el.clicks / el.views) * 100).toFixed(1) : '0.0';
+              const site = cachedSites.find(s => String(s._id) === String(el.siteId));
+              const siteLabel = site ? esc(site.name) : '';
               return `
               <tr style="border-top:1px solid #f1f5f9;${i%2===1?'background:#fafbfc':''}">
                 <td style="padding:10px 16px">
                   <div style="font-size:13px;font-weight:600;color:#0f172a">${esc(el.name)}</div>
-                  <div style="font-size:11px;color:#94a3b8">${typeBadge(el.type)}</div>
+                  <div style="font-size:11px;color:#94a3b8;margin-top:1px">${typeBadge(el.type)}${siteLabel ? ' · <span style="color:#64748b">'+siteLabel+'</span>' : ''}</div>
                 </td>
-                <td style="padding:10px 8px;font-size:13px;color:#374151;text-align:right">${el.views}</td>
-                <td style="padding:10px 8px;font-size:13px;color:#94a3b8;text-align:right">${isStats ? '–' : el.clicks}</td>
+                <td style="padding:10px 8px;font-size:13px;color:#374151;text-align:right">${el.views.toLocaleString()}</td>
+                <td style="padding:10px 8px;font-size:13px;color:#94a3b8;text-align:right">${isStats ? '–' : el.clicks.toLocaleString()}</td>
+                <td style="padding:10px 8px;font-size:13px;text-align:right;color:${isStats?'#94a3b8':parseFloat(elCtr)>5?'#16a34a':'#64748b'}">${isStats ? '–' : elCtr+'%'}</td>
                 <td style="padding:10px 16px;font-size:13px;font-weight:700;color:${isStats?'#94a3b8':'#1d4ed8'};text-align:right">${isStats ? '–' : el.leads}</td>
               </tr>`;
             }).join('')}
@@ -302,13 +307,20 @@ function renderResults(data, from, to) {
           ${recentLeads.length ? `<span style="font-size:11px;color:#3b82f6;font-weight:600;margin-left:auto;background:#eff6ff;padding:2px 8px;border-radius:10px">${recentLeads.length} kpl</span>` : ''}
         </div>
         ${recentLeads.length ? `
-        <div style="max-height:420px;overflow-y:auto">
+        <div style="max-height:520px;overflow-y:auto">
           ${recentLeads.map(l => {
             const preview = Object.values(l.data || {}).filter(Boolean).slice(0, 2).join(' · ') || '(tyhjä)';
+            const site = cachedSites.find(s => String(s._id) === String(l.siteId));
+            const typeIcon = TYPE_ICONS[l.elementType] || '◻';
+            const meta = [typeBadge(l.elementType), site ? esc(site.name) : ''].filter(Boolean).join(' · ');
             return `<div style="padding:12px 16px;border-bottom:1px solid #f8fafc">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
                 <div style="flex:1;min-width:0">
-                  <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:2px">${esc(l.popupName)}</div>
+                  <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+                    <span style="font-size:11px">${typeIcon}</span>
+                    <span style="font-size:12px;font-weight:600;color:#64748b">${esc(l.popupName)}</span>
+                  </div>
+                  ${meta ? `<div style="font-size:11px;color:#94a3b8;margin-bottom:3px">${meta}</div>` : ''}
                   <div style="font-size:13px;color:#0f172a;word-break:break-word">${esc(preview)}</div>
                 </div>
                 <div style="font-size:11px;color:#94a3b8;white-space:nowrap;flex-shrink:0">${fmtDate(l.submittedAt)}</div>
@@ -364,7 +376,11 @@ function statCard(icon, value, label, bg, accentColor) {
 const TYPE_LABELS = {
   sticky_bar: 'Sticky Bar', fab: 'Floating Button',
   slide_in: 'Slide-in', popup: 'Popup', lead_form: 'Lead Form',
-  stats_only: '📊 Tilastojen kerääjä',
+  stats_only: 'Tilastojen kerääjä',
+};
+const TYPE_ICONS = {
+  sticky_bar: '📌', fab: '🔘', slide_in: '💬',
+  popup: '⬜', lead_form: '📝', stats_only: '📊',
 };
 function typeBadge(type) { return TYPE_LABELS[type] || type; }
 

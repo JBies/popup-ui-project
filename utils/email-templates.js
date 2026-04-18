@@ -122,7 +122,7 @@ function buildLeadNotification(popup, lead) {
  * @param {string} weekLabel – Esim. "17.–23.6.2025"
  * @returns {{ subject: string, html: string }}
  */
-function buildWeeklyReport(user, stats, topEls, leads, weekLabel) {
+function buildWeeklyReport(user, stats, topEls, leads, weekLabel, silentEls = []) {
   const subject = `📊 Viikkoraportti ${weekLabel} – ${BRAND}`;
   const firstName = (user.displayName || 'Hei').split(' ')[0];
 
@@ -142,9 +142,9 @@ function buildWeeklyReport(user, stats, topEls, leads, weekLabel) {
     <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Tällä viikolla</div>
     <table width="100%" cellpadding="6" cellspacing="0" style="margin-bottom:16px">
       <tr>
-        ${statBox('👁️', 'Näyttöä', stats.views)}
+        ${statBox('👁️', 'Näyttöä', stats.views, pct(stats.views, stats.prevViews))}
         <td width="8"></td>
-        ${statBox('🖱️', 'Klikkausta', stats.clicks)}
+        ${statBox('🖱️', 'Klikkausta', stats.clicks, pct(stats.clicks, stats.prevClicks))}
         <td width="8"></td>
         ${statBox('📋', 'Liidiä', stats.leads, pct(stats.leads, stats.prevLeads))}
       </tr>
@@ -160,17 +160,38 @@ function buildWeeklyReport(user, stats, topEls, leads, weekLabel) {
       </tr>
     </table>`;
 
+  const TYPE_LABELS_EMAIL = {
+    sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in',
+    popup: 'Popup', lead_form: 'Lead Form', stats_only: 'Tilastojen kerääjä',
+  };
+
   const topElsHtml = topEls.length > 0
     ? `<div style="margin-top:28px">
         <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px">🏆 Parhaat elementit</div>
-        ${topEls.slice(0, 3).map((el, i) => `
+        ${topEls.slice(0, 3).map((el, i) => {
+          const elCtr = el.views > 0 ? ((el.clicks / el.views) * 100).toFixed(1) : '0.0';
+          const typeLabel = TYPE_LABELS_EMAIL[el.type] || el.type;
+          return `
           <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${i===0?'#eff6ff':'#f8fafc'};border-radius:8px;margin-bottom:6px">
             <span style="font-size:16px">${['🥇','🥈','🥉'][i]}</span>
             <div style="flex:1">
               <div style="font-size:13px;font-weight:600;color:#0f172a">${escHtml(el.name)}</div>
-              <div style="font-size:11px;color:#64748b">${el.views} näyttöä · ${el.clicks} klikkausta · ${el.leads} liidiä</div>
+              <div style="font-size:11px;color:#64748b;margin-top:2px">${typeLabel} · ${el.views} näyttöä · ${el.clicks} klikkausta · CTR ${elCtr}% · ${el.leads} liidiä</div>
             </div>
-          </div>`).join('')}
+          </div>`;
+        }).join('')}
+      </div>`
+    : '';
+
+  const silentElsHtml = silentEls.length > 0
+    ? `<div style="margin-top:24px;padding:14px 16px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px">
+        <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:10px">💡 Parannuskohteet – näyttöjä mutta ei klikkauksia</div>
+        ${silentEls.map(el => {
+          const typeLabel = TYPE_LABELS_EMAIL[el.type] || el.type;
+          return `<div style="font-size:12px;color:#78350f;margin-bottom:5px">
+            • ${escHtml(el.name)} <span style="color:#b45309">(${typeLabel})</span> – ${el.views} näyttöä, 0 klikkausta
+          </div>`;
+        }).join('')}
       </div>`
     : '';
 
@@ -195,6 +216,7 @@ function buildWeeklyReport(user, stats, topEls, leads, weekLabel) {
     <p style="font-size:16px;color:#374151;margin:0 0 20px">Hei ${escHtml(firstName)}! Tässä viikkosi yhteenveto <strong>${escHtml(weekLabel)}</strong>:</p>
     ${statsRow}
     ${topElsHtml}
+    ${silentElsHtml}
     ${leadsHtml}
     <div style="margin-top:28px">
       ${btn(`${APP_URL}/dashboard`, '📊 Avaa dashboard')}
