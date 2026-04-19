@@ -20,6 +20,7 @@ router.get('/webhooks', UserController.getWebhooks);
 router.post('/webhooks', UserController.addWebhook);
 router.delete('/webhooks/:id', UserController.deleteWebhook);
 
+router.patch('/language', UserController.updateLanguage);
 router.post('/upgrade-request', UserController.requestUpgrade);
 router.post('/contact', UserController.contactRequest);
 

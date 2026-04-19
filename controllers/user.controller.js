@@ -249,6 +249,19 @@ static async updateUserPopupLimit(req, res) {
   /**
    * Päivittää kirjautuneen käyttäjän sähköposti-ilmoitusasetukset
    */
+  static async updateLanguage(req, res) {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    const { language } = req.body;
+    if (!['en', 'fi'].includes(language)) return res.status(400).json({ message: 'Invalid language' });
+    try {
+      await User.findByIdAndUpdate(req.user._id, { $set: { language } });
+      req.user.language = language;
+      res.json({ success: true, language });
+    } catch (err) {
+      res.status(500).json({ message: 'Language save failed', error: err.toString() });
+    }
+  }
+
   static async updateNotificationSettings(req, res) {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
     try {

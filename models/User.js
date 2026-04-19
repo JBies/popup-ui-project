@@ -112,7 +112,8 @@ const userSchema = new mongoose.Schema({
         leadAlert:    { type: Boolean, default: true },   // Ilmoitus uudesta liidistä
         weeklyReport: { type: Boolean, default: true },   // Viikkoraportti maanantaisin
         notifyEmail:  { type: String,  default: '' }      // Tyhjä = käytetään tili-emailia
-    }
+    },
+    language: { type: String, default: 'en', enum: ['en', 'fi'] }
 });
 
 // Luo User-malli

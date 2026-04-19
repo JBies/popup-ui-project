@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-i18n="idx.title">UI Manager – Turn visitors into customers without coding</title>
+  <title>UI Manager – Muuta kävijät asiakkaiksi ilman koodausta</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -30,18 +30,320 @@
       }
     }
   </script>
-  <!-- Our refactored CSS -->
-  <link rel="stylesheet" href="css/landing/main.css">
-  
-  <!-- Inline styles that need to remain (temporarily) -->
   <style>
-    /* Minimal inline styles for critical elements */
+    /* ── Base ─────────────────────────────── */
     body { font-family: 'Inter', sans-serif; }
-    
-    /* Contact modal styles (will be moved to CSS file later) */
-    #contact-modal { display: none; position: fixed; inset: 0; z-index: 99999; align-items: center; justify-content: center; padding: 16px; }
-    #contact-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-    #contact-card { position: relative; background: #fff; border-radius: 24px; padding: 40px 44px; max-width: 520px; width: 100%; box-shadow: 0 32px 80px rgba(0,0,0,0.35); transform: scale(0.85) translateY(40px); opacity: 0; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease; }
+
+    /* ── Hero gradient ────────────────────── */
+    .hero-gradient {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #1d4ed8 75%, #2563eb 100%);
+    }
+
+    /* ── Animated glow blobs in hero ─────── */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+      animation: float 8s ease-in-out infinite;
+    }
+    .blob-1 { width: 420px; height: 420px; background: #3b82f6; top: -100px; left: -120px; animation-delay: 0s; }
+    .blob-2 { width: 320px; height: 320px; background: #6d28d9; top: 60px; right: -60px; animation-delay: 3s; }
+    .blob-3 { width: 260px; height: 260px; background: #0ea5e9; bottom: -40px; left: 50%; animation-delay: 1.5s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50%       { transform: translateY(-24px) scale(1.04); }
+    }
+
+    /* ── Fake browser / dashboard mockup ─── */
+    .browser-window {
+      background: #1e293b;
+      border-radius: 12px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .browser-bar {
+      background: #0f172a;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .browser-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .browser-url {
+      flex: 1;
+      background: #1e293b;
+      border-radius: 5px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: #94a3b8;
+      font-family: monospace;
+    }
+
+    /* Sticky bar mock */
+    .mock-sticky {
+      background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+      color: #fff;
+      padding: 6px 14px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mock-sticky-btn {
+      background: #fff;
+      color: #1d4ed8;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* Mock page content */
+    .mock-page {
+      background: #f8fafc;
+      padding: 14px;
+      position: relative;
+      min-height: 160px;
+    }
+    .mock-line { height: 8px; background: #e2e8f0; border-radius: 4px; margin-bottom: 8px; }
+    .mock-line.short { width: 60%; }
+    .mock-line.medium { width: 80%; }
+    .mock-line.title { width: 50%; height: 12px; background: #cbd5e1; margin-bottom: 14px; }
+
+    /* Floating button mock */
+    .mock-fab {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      box-shadow: 0 4px 16px rgba(109,40,217,0.5);
+      animation: pulse-fab 2s ease-in-out infinite;
+    }
+    @keyframes pulse-fab {
+      0%, 100% { box-shadow: 0 4px 16px rgba(109,40,217,0.5); }
+      50%       { box-shadow: 0 4px 28px rgba(109,40,217,0.8), 0 0 0 8px rgba(139,92,246,0.15); }
+    }
+
+    /* Slide-in mock */
+    .mock-slidein {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      width: 150px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border-left: 3px solid #16a34a;
+      animation: slide-in-anim 3s ease-in-out infinite;
+    }
+    @keyframes slide-in-anim {
+      0%   { transform: translateX(-180px); opacity: 0; }
+      15%  { transform: translateX(0); opacity: 1; }
+      75%  { transform: translateX(0); opacity: 1; }
+      90%  { transform: translateX(-180px); opacity: 0; }
+      100% { transform: translateX(-180px); opacity: 0; }
+    }
+    .mock-slidein-title { font-size: 10px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .mock-slidein-text  { font-size: 9px; color: #64748b; margin-bottom: 6px; }
+    .mock-slidein-btn   { background: #16a34a; color: #fff; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+
+    /* ── Feature cards ───────────────────── */
+    .feature-card {
+      transition: transform 0.22s cubic-bezier(.4,0,.2,1), box-shadow 0.22s cubic-bezier(.4,0,.2,1);
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.10);
+    }
+
+    /* ── Element type visual previews ───── */
+    .elem-preview {
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 14px;
+      border: 1px solid rgba(0,0,0,0.07);
+    }
+
+    /* Sticky bar preview */
+    .prev-sticky-bar {
+      background: #1d4ed8;
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .prev-sticky-bar span { font-size: 9px; color: #fff; }
+    .prev-sticky-bar button { background: #fff; color: #1d4ed8; font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 3px; border: none; }
+    .prev-sticky-body { background: #f0f9ff; padding: 8px; }
+    .prev-line { height: 6px; background: #bfdbfe; border-radius: 3px; margin-bottom: 5px; }
+    .prev-line.s { width: 55%; }
+
+    /* Floating btn preview */
+    .prev-fab-body { background: #f5f3ff; padding: 8px; position: relative; min-height: 56px; }
+    .prev-fab-btn {
+      position: absolute; bottom: 8px; right: 8px;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg,#6d28d9,#8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 11px;
+      box-shadow: 0 3px 10px rgba(109,40,217,0.45);
+    }
+
+    /* Slide-in preview */
+    .prev-slidein-body { background: #f0fdf4; padding: 8px; position: relative; min-height: 60px; }
+    .prev-slidein-box {
+      position: absolute; bottom: 6px; left: 6px;
+      background: #fff; border-radius: 6px; padding: 6px 8px;
+      border-left: 3px solid #16a34a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100px;
+    }
+    .prev-slidein-box .t { font-size: 8px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+    .prev-slidein-box .b { background: #16a34a; color: #fff; font-size: 7px; font-weight: 700; padding: 2px 5px; border-radius: 3px; display:inline-block; }
+
+    /* Popup preview */
+    .prev-popup-body { background: #fff7ed; padding: 8px; position: relative; min-height: 68px; }
+    .prev-popup-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+    .prev-popup-box {
+      background: #fff; border-radius: 6px; padding: 8px 10px;
+      text-align: center; width: 90px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .prev-popup-box .t { font-size: 8px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .prev-popup-box .b { background: #ea580c; color: #fff; font-size: 7px; font-weight: 700; padding: 2px 6px; border-radius: 3px; display:inline-block; }
+
+    /* Social proof preview */
+    .prev-social-body { background: #fdf2f8; padding: 8px; position: relative; min-height: 60px; }
+    .prev-social-box {
+      position: absolute; bottom: 8px; left: 6px;
+      background: #fff; border-radius: 6px; padding: 5px 8px;
+      display: flex; align-items: center; gap: 5px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+    .prev-social-dot { width: 8px; height: 8px; border-radius: 50%; background: #ec4899; }
+    .prev-social-text { font-size: 8px; color: #0f172a; font-weight: 600; }
+
+    /* Scroll progress preview */
+    .prev-progress-body { background: #f0fdfa; padding: 8px; }
+    .prev-progress-bar { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+    .prev-progress-fill { height: 100%; width: 62%; background: linear-gradient(90deg,#0d9488,#14b8a6); border-radius: 3px; }
+
+    /* Lead form preview */
+    .prev-leadform-body { background: #f0fdf4; padding: 8px; }
+    .prev-input { height: 12px; background: #fff; border: 1px solid #d1fae5; border-radius: 3px; margin-bottom: 5px; }
+    .prev-submit { background: #059669; height: 14px; border-radius: 3px; display: flex; align-items: center; justify-content: center; }
+    .prev-submit span { font-size: 7px; color: #fff; font-weight: 700; }
+
+    /* ── Power features grid ─────────────── */
+    .power-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 28px;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .power-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+      border-color: #bfdbfe;
+    }
+    .power-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Steps ───────────────────────────── */
+    .step-connector {
+      position: absolute;
+      top: 26px;
+      left: calc(50% + 32px);
+      width: calc(100% - 64px);
+      height: 2px;
+      background: linear-gradient(90deg, #bfdbfe, #e2e8f0);
+    }
+    @media (max-width: 768px) { .step-connector { display: none; } }
+
+    /* ── Email mockups ───────────────────── */
+    .email-mock {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      border: 1px solid #e2e8f0;
+    }
+    .email-header {
+      padding: 14px 18px;
+      font-size: 11px;
+      color: #64748b;
+      border-bottom: 1px solid #f1f5f9;
+      background: #f8fafc;
+    }
+    .email-subject { font-weight: 700; color: #0f172a; font-size: 13px; margin-bottom: 2px; }
+    .email-body { padding: 16px 18px; }
+    .email-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+
+    /* ── CTA gradient ────────────────────── */
+    .cta-gradient {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%);
+    }
+
+    /* ── Stats bar ───────────────────────── */
+    .stats-bar-item:not(:last-child) {
+      border-right: 1px solid #e2e8f0;
+    }
+    @media (max-width: 640px) {
+      .stats-bar-item:not(:last-child) { border-right: none; border-bottom: 1px solid #e2e8f0; }
+    }
+
+    /* ── Scroll fade-in ──────────────────── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Code block ──────────────────────── */
+    .code-block {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 18px 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #e2e8f0;
+      overflow-x: auto;
+    }
+    .code-tag    { color: #f472b6; }
+    .code-attr   { color: #a5f3fc; }
+    .code-string { color: #86efac; }
+    .code-comment { color: #64748b; font-style: italic; }
+
+    /* ── Tag pills ───────────────────────── */
+    .tag-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #eff6ff; color: #1d4ed8;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
   </style>
 </head>
 <body class="bg-white text-gray-900">
@@ -97,7 +399,7 @@
         </div>
 
         <!-- Headline -->
-        <h1 class="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] mb-6 tracking-tight" data-i18n="idx.hero.h1">
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] mb-6 tracking-tight">
           Turn your website<br>
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-sky-300 to-indigo-200">
             visitors into customers
@@ -106,7 +408,7 @@
         </h1>
 
         <!-- Subheadline -->
-        <p class="text-xl md:text-2xl text-blue-100/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light" data-i18n="idx.hero.sub">
+        <p class="text-xl md:text-2xl text-blue-100/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
           Create sticky bars, popups, lead forms and other conversion elements from your dashboard.
           Paste <strong class="text-white font-semibold">one line of code</strong> on your page and you're ready.
         </p>
@@ -747,13 +1049,13 @@
             <p class="text-sm text-gray-600" data-i18n="idx.price.free.tagline">Perfect for trying out and running a single element.</p>
           </div>
           <ul class="space-y-3 mb-8 flex-1 text-sm text-gray-700">
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.f1">1 element at a time</span></li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.f2">All element types</span></li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.f3">Cookie consent banner</span></li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.f4">5 image uploads</span></li>
-            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> <span data-i18n="idx.price.free.no1">Analytics</span></li>
-            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> <span data-i18n="idx.price.free.no2">Targeting rules</span></li>
-            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> <span data-i18n="idx.price.free.no3">Lead forms</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.li1">1 element at a time</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.li2">All element types</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.li3">Cookie consent banner</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.li4">5 image uploads</span></li>
+            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> <span data-i18n="idx.price.free.li5">Analytics</span></li>
+            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> <span data-i18n="idx.price.free.li6">Targeting rules</span></li>
+            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> <span data-i18n="idx.price.free.li7">Lead forms</span></li>
           </ul>
           <a href="/auth/google" class="block text-center py-3 px-6 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-gray-400 transition-colors" data-i18n="idx.price.free.cta">
             Start for free
@@ -765,45 +1067,22 @@
           <div class="absolute -top-4 left-1/2 -translate-x-1/2">
             <span class="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide" data-i18n="idx.price.pro.badge">Most popular</span>
           </div>
-          <div class="mb-4">
-            <p class="text-sm font-semibold text-brand-200 uppercase tracking-wide mb-1">Pro</p>
-            <p class="text-sm text-brand-100 mb-3" data-i18n="idx.price.pro.tagline">Everything you need for a growing business.</p>
-            <div class="inline-flex items-center gap-1.5 bg-yellow-400/20 border border-yellow-400/40 text-yellow-300 text-xs font-bold px-2.5 py-1 rounded-full mb-3">
-              <i class="fa fa-star text-yellow-400" style="font-size:9px"></i>
-              <span data-i18n="idx.price.pro.betaBadge">BETA –50%</span>
+          <div class="mb-6">
+            <p class="text-sm font-semibold text-brand-200 uppercase tracking-wide mb-2">Pro</p>
+            <div class="flex items-end gap-1 mb-4">
+              <span class="text-4xl font-bold text-white">4,90€</span>
+              <span class="text-brand-200 mb-1" data-i18n="idx.price.perMonth">/mo</span>
             </div>
-            <div class="space-y-2">
-              <div class="bg-white/10 rounded-xl p-3 border border-white/20">
-                <span class="text-white text-xs font-semibold" data-i18n="idx.price.pro.6mo.label">6 months</span>
-                <div class="flex items-end gap-1 mt-1">
-                  <span class="text-2xl font-black text-white" data-i18n="idx.price.pro.6mo.price">20 €</span>
-                  <span class="text-brand-200 text-sm mb-0.5" data-i18n="idx.price.pro.6mo.period">/ 6 months</span>
-                </div>
-                <div class="text-brand-300 text-xs line-through" data-i18n="idx.price.pro.6mo.normal">Normally 40 € / 6 mo</div>
-                <div class="text-emerald-300 text-xs" data-i18n="idx.price.pro.6mo.monthly">= 3.33 € / mo</div>
-              </div>
-              <div class="bg-white/15 rounded-xl p-3 border border-yellow-400/40 relative">
-                <div class="absolute -top-2 right-2">
-                  <span class="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full" data-i18n="idx.price.pro.12mo.badge">BEST VALUE</span>
-                </div>
-                <span class="text-white text-xs font-semibold" data-i18n="idx.price.pro.12mo.label">12 months</span>
-                <div class="flex items-end gap-1 mt-1">
-                  <span class="text-2xl font-black text-white" data-i18n="idx.price.pro.12mo.price">30 €</span>
-                  <span class="text-brand-200 text-sm mb-0.5" data-i18n="idx.price.pro.12mo.period">/ year</span>
-                </div>
-                <div class="text-brand-300 text-xs line-through" data-i18n="idx.price.pro.12mo.normal">Normally 60 € / year</div>
-                <div class="text-emerald-300 text-xs" data-i18n="idx.price.pro.12mo.monthly">= 2.50 € / mo</div>
-              </div>
-            </div>
+            <p class="text-sm text-brand-100" data-i18n="idx.price.pro.tagline">Everything you need for a growing business.</p>
           </div>
-          <ul class="space-y-2 mb-5 flex-1 text-sm text-white">
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.f1">20 elements</span></li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.f2">All element types</span></li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.f3">100 image uploads</span></li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.f4">Analytics & stats</span></li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.f5">Targeting rules</span></li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.f6">Lead forms</span></li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.f7">Email notifications</span></li>
+          <ul class="space-y-3 mb-8 flex-1 text-sm text-white">
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li1">20 elements</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li2">All element types</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li3">100 image uploads</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li4">Analytics &amp; stats</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li5">Targeting rules</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li6">Lead forms</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li7">Email notifications</span></li>
           </ul>
           <button onclick="requestProUpgrade()" class="block w-full text-center py-3 px-6 rounded-xl bg-white text-brand-700 font-bold hover:bg-brand-50 transition-colors" data-i18n="idx.price.pro.cta">
             Subscribe Pro →
@@ -815,7 +1094,7 @@
           <div class="mb-6">
             <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2" data-i18n="idx.price.custom.tier">Custom</p>
             <div class="flex items-end gap-1 mb-4">
-              <span class="text-4xl font-bold text-gray-900" data-i18n="idx.price.custom.price">?</span>
+              <span class="text-4xl font-bold text-gray-900">?</span>
             </div>
             <p class="text-sm text-gray-600" data-i18n="idx.price.custom.tagline">Multiple sites, unlimited elements, custom integrations.</p>
           </div>
@@ -1028,7 +1307,33 @@
   <!-- ═══════════════════════════════════════
        SCRIPTS
   ═══════════════════════════════════════ -->
-  <script type="module" src="js/landing/main.js"></script>
+  <script>
+    // ── Scroll fade-in ────────────────────
+    const fadeEls = document.querySelectorAll('.fade-in');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    fadeEls.forEach(el => observer.observe(el));
+  </script>
+
+  <script>
+    // Kirjautunut käyttäjä → ohjaa suoraan dashboardiin
+    // API palauttaa { user: {...} } tai { user: null } – täytyy purkaa wrapper
+    fetch('/api/user').then(r => {
+      if (!r.ok) return;
+      r.json().then(data => {
+        const u = data.user || null;   // puretaan { user: ... } -wrapper
+        if (!u) return;                // ei kirjautunut → jää landing-sivulle
+        if (u.role === 'pending') window.location.href = '/pending';
+        else window.location.href = '/dashboard';
+      });
+    }).catch(() => {});
+  </script>
   <script src="https://popupmanager.net/ui-embed.js" data-site="6083666a-263e-4f1b-a5e9-d76317210bda"></script>
   <script type="module" src="js/i18n.js"></script>
 
