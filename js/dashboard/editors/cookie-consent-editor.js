@@ -158,11 +158,7 @@ export function renderCookieConsentFields(container, cfg = {}, data = {}) {
         style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:monospace">
     </div>
 
-    <div class="form-group">
-      <label>Muu koodi <span style="color:#94a3b8;font-weight:400">(ajetaan suostumuksen jälkeen — esim. Hotjar, LinkedIn)</span></label>
-      <textarea name="customScripts" rows="4" placeholder="// Esim. Hotjar:\n(function(h,o,t,j,a,r){ ... })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');"
-        style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:12px;resize:vertical;font-family:monospace">${cfg.customScripts || ''}</textarea>
-    </div>
+    <div class="form-group" id="cc-custom-scripts-wrapper"></div>
 
     <div class="form-group" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px">
       <p style="margin:0;font-size:12px;color:#15803d;line-height:1.6">
@@ -175,6 +171,42 @@ export function renderCookieConsentFields(container, cfg = {}, data = {}) {
     </div>
     </div>
   `;
+
+  // customScripts: Pro-gate tai varoituksellinen kenttä
+  const scriptWrapper = container.querySelector('#cc-custom-scripts-wrapper');
+  if (scriptWrapper) {
+    const user = window.__currentUser__;
+    const canUse = user?.role === 'admin' || user?.limits?.canUseCustomScripts;
+    if (canUse) {
+      scriptWrapper.innerHTML = `
+        <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px">
+          Muu koodi <span style="color:#94a3b8;font-weight:400;text-transform:none">(ajetaan suostumuksen jälkeen — esim. Hotjar, LinkedIn)</span>
+        </label>
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:7px;padding:8px 12px;margin-bottom:6px;font-size:12px;color:#b91c1c;line-height:1.5">
+          ⚠️ <strong>Turvallisuushuomio:</strong> Tämä koodi ajetaan kävijöiden selaimessa täydellä pääsyllä sivun sisältöön.
+          Liitä koodi ainoastaan lähteistä joihin luotat täysin. Muutokset kirjataan tietoturva-auditlogiin.
+        </div>
+        <textarea name="customScripts" rows="4"
+          placeholder="// Esim. Hotjar:\n(function(h,o,t,j,a,r){ ... })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');"
+          style="width:100%;padding:8px 10px;border:1px solid #fca5a5;border-radius:7px;font-size:12px;resize:vertical;font-family:monospace;box-sizing:border-box">${(cfg.customScripts || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>`;
+    } else {
+      scriptWrapper.innerHTML = `
+        <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px">
+          Muu koodi <span style="color:#94a3b8;font-weight:400;text-transform:none">(Hotjar, LinkedIn jne.)</span>
+        </label>
+        <div style="background:#f8fafc;border:2px dashed #cbd5e1;border-radius:8px;padding:14px 16px;text-align:center">
+          <div style="font-size:13px;font-weight:600;color:#475569;margin-bottom:4px">🔒 Pro-ominaisuus</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:10px">
+            Vapaa JS-koodi on saatavilla Pro-tilissä. GA4, GTM ja Facebook Pixel toimivat ilman koodausta.
+          </div>
+          <button type="button" onclick="window.__dashboardUpgrade && window.__dashboardUpgrade('pro')"
+            style="background:#2563eb;color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer">
+            Päivitä Pro-tiliin →
+          </button>
+        </div>
+        <input type="hidden" name="customScripts" value="${(cfg.customScripts || '').replace(/"/g,'&quot;')}">`;
+    }
+  }
 
   // Toggle: piilota bannerin asetukset jos "hideBanner" on valittu
   const hideCb = container.querySelector('[name="hideBanner"]');

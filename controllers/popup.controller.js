@@ -5,6 +5,7 @@ const Popup      = require('../models/Popup');
 const Image      = require('../models/Image');
 const User       = require('../models/User');
 const DailyStats = require('../models/DailyStats');
+const AuditLog   = require('../models/AuditLog');
 const { triggerWebhooks } = require('../utils/webhooks');
 
 const { bucket } = require('../firebase');
@@ -79,6 +80,14 @@ class PopupController {
               limitReached: true, limitType: 'per_type', feature: elType
             });
           }
+        }
+        // customScripts Pro-tarkistus
+        const createCustomScripts = req.body.elementConfig?.customScripts;
+        if (createCustomScripts?.trim() && !req.user.limits?.canUseCustomScripts) {
+          return res.status(403).json({
+            message: 'Vapaa JS-koodi (Muu koodi -kenttä) on saatavilla Pro-tilissä. Ota yhteyttä tukeen.',
+            feature: 'custom_scripts'
+          });
         }
       }
     } catch (err) {
@@ -221,6 +230,17 @@ class PopupController {
       });
     }
 
+    // customScripts Pro-tarkistus
+    const incomingCustomScripts = req.body.elementConfig?.customScripts;
+    if (req.user.role !== 'admin' && incomingCustomScripts?.trim()) {
+      if (!req.user.limits?.canUseCustomScripts) {
+        return res.status(403).json({
+          message: 'Vapaa JS-koodi (Muu koodi -kenttä) on saatavilla Pro-tilissä. Ota yhteyttä tukeen.',
+          feature: 'custom_scripts'
+        });
+      }
+    }
+
     const {
       name,
       popupType,
@@ -348,7 +368,32 @@ class PopupController {
       if (!updatedPopup) {
         return res.status(404).json({ message: 'Popup not found' });
       }
-      
+
+      // Audit log: jos customScripts muuttui, kirjaa se
+      const oldScripts = (oldPopup.elementConfig?.customScripts || '').trim();
+      const newScripts = (incomingCustomScripts || '').trim();
+      if (oldScripts !== newScripts) {
+        try {
+          await AuditLog.create({
+            action: 'custom_scripts_changed',
+            adminId:    req.user._id,
+            adminEmail: req.user.email,
+            targetId:   req.user._id,
+            targetEmail:req.user.email,
+            details: {
+              popupId:   req.params.id,
+              popupName: updatedPopup.name,
+              hadScript: oldScripts.length > 0,
+              hasScript: newScripts.length > 0,
+              scriptLength: newScripts.length,
+            },
+            ip: req.ip,
+          });
+        } catch (logErr) {
+          console.warn('[AuditLog] custom_scripts_changed kirjaus epäonnistui:', logErr.message);
+        }
+      }
+
       res.json(updatedPopup);
     } catch (err) {
       console.error("Error updating popup:", err);

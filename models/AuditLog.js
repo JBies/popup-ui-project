@@ -7,12 +7,13 @@ const auditLogSchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: [
-      'login',           // käyttäjä kirjautui sisään
-      'user_approved',   // pending → user
-      'role_change',     // roolin vaihto
-      'user_deleted',    // käyttäjä poistettu
-      'limits_updated',  // rajoitukset päivitetty
-      'tier_preset',     // tieri-preset asetettu (free/pro/agency)
+      'login',                  // käyttäjä kirjautui sisään
+      'user_approved',          // pending → user
+      'role_change',            // roolin vaihto
+      'user_deleted',           // käyttäjä poistettu
+      'limits_updated',         // rajoitukset päivitetty
+      'tier_preset',            // tieri-preset asetettu (free/pro/agency)
+      'custom_scripts_changed', // käyttäjä muutti cookie consent -vapaakenttäkoodia
     ]
   },
 

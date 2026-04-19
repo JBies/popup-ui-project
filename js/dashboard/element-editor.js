@@ -466,6 +466,12 @@ async function saveElement() {
         else showToast(err.message, 'error');
         return;
       }
+      if (err.feature === 'custom_scripts' || err.feature === 'targeting') {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-save"></i> Tallenna'; }
+        if (typeof window.__dashboardUpgrade === 'function') window.__dashboardUpgrade('pro');
+        else showToast(err.message, 'error');
+        return;
+      }
       throw new Error(err.message || 'Tallennusvirhe');
     }
     showToast(currentElement ? 'Elementti päivitetty!' : 'Elementti luotu!');
