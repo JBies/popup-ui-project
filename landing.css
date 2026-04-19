@@ -1,5 +1,22 @@
 /* landing.css */
 
+/* Language toggle button */
+.lang-toggle {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid currentColor;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.lang-toggle:hover { background: rgba(0,0,0,0.07); }
+.dark .lang-toggle { border-color: rgba(255,255,255,0.4); }
+
 /* Perustyylit */
 body {
     font-family: 'Poppins', sans-serif;

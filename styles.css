@@ -1,3 +1,19 @@
+/* Language toggle button */
+.lang-toggle {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  color: #475569;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.lang-toggle:hover { background: #f1f5f9; }
+
 @media (max-width: 768px) {
     .container {
         padding: 10px;

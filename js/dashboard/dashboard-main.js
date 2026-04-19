@@ -1,4 +1,5 @@
 // js/dashboard/dashboard-main.js
+import { t, initLanguage } from '../i18n.js';
 import { initSidebar } from './sidebar.js';
 import { initElementList } from './element-list.js';
 import { initTemplateLibrary } from './template-library.js';
@@ -31,7 +32,7 @@ async function init() {
   const roleEl = document.getElementById('user-role');
   const avatarEl = document.getElementById('user-avatar');
   if (nameEl) nameEl.textContent = user.displayName || user.email || '';
-  if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Admin' : 'Käyttäjä';
+  if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Admin' : t('role.user');
   if (avatarEl && user.profilePicture) { avatarEl.src = user.profilePicture; avatarEl.style.display = ''; }
   if (user.role === 'admin') {
     const adminLink = document.getElementById('nav-admin');
@@ -54,6 +55,10 @@ async function init() {
   setupCreateDropdown();
   setupNavigation();
   setupLogout();
+  initLanguage();
+
+  // Re-render title on language change
+  window.addEventListener('languagechange', () => showView(currentView));
 
   // Kuuntele editor-avauksia
   window.addEventListener('open-editor', e => {
@@ -81,9 +86,8 @@ export function showView(name) {
     a.classList.toggle('active', a.dataset.view === name || a.getAttribute('href') === '#' + name);
   });
 
-  const titles = { elements: 'Omat elementit', reports: 'Raportit', analytics: 'Tilastot', settings: 'Asennuskoodi', help: 'Ohjeet', leads: 'Liidit' };
   const titleEl = document.getElementById('topbar-title');
-  if (titleEl) titleEl.textContent = titles[name] || 'UI Manager';
+  if (titleEl) titleEl.textContent = t('view.' + name) || 'UI Manager';
 }
 
 function setupNavigation() {

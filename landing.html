@@ -1,10 +1,10 @@
 <!-- landing.html -->
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Popup Manager - Tehosta verkkosivujesi konversiota</title>
+    <title>Popup Manager - Boost Your Website Conversions</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="landing.css" rel="stylesheet">
@@ -55,22 +55,25 @@
                 <!-- Kirjautumispainike -->
                 <div id="loginSection">
                     <a href="/auth/google" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors">
-                        <i class="fab fa-google mr-2"></i> Kirjaudu Googlella
+                        <i class="fab fa-google mr-2"></i> <span data-i18n="nav.signin">Sign in with Google</span>
                     </a>
                 </div>
-                
-                <!-- Käyttäjätiedot (piilotettu oletuksena) -->
+
+                <!-- User info (hidden by default) -->
                 <div id="userInfo" class="hidden items-center space-x-3">
                     <span id="userName" class="text-dark-800 dark:text-white"></span>
                     <a href="/dashboard" class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors">
-                        Hallintapaneeli
+                        <span data-i18n="nav.dashboard">Dashboard</span>
                     </a>
                     <button id="logoutButton" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors">
-                        Kirjaudu ulos
+                        <span data-i18n="nav.signout">Sign out</span>
                     </button>
                 </div>
-                
-                <!-- Teemavaihtopainike -->
+
+                <!-- Language toggle -->
+                <button class="lang-toggle" aria-label="Switch to Finnish">FI</button>
+
+                <!-- Theme toggle -->
                 <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-dark-700 text-dark-700 dark:text-white transition-colors" aria-label="Toggle dark mode">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -86,17 +89,17 @@
         <!-- Hero-sisältö -->
         <div class="container mx-auto px-4 relative z-10 flex flex-col items-center justify-center flex-grow text-center">
             <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Tehosta Verkkosivusi <span class="text-primary-600 dark:text-primary-500">Popupeilla</span>
+                <span data-i18n="hero.title">Boost Your Website with</span> <span class="text-primary-600 dark:text-primary-500">Popups</span>
             </h2>
-            <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-10 max-w-3xl">
-                Helppo työkalu popupien hallintaan. Seuraa, testaa ja optimoi verkkosivusi konversiota.
+            <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-10 max-w-3xl" data-i18n="hero.subtitle">
+                Easy tool for managing popups. Track, test and optimise your website conversions.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="/auth/google" class="px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-bold text-lg transition-colors shadow-lg hover:shadow-xl flex items-center justify-center">
-                    <i class="fas fa-rocket mr-2"></i> Aloita tästä!
+                    <i class="fas fa-rocket mr-2"></i> <span data-i18n="hero.cta">Get Started!</span>
                 </a>
-                <a href="#features" class="px-8 py-4 bg-white dark:bg-dark-800 hover:bg-gray-100 dark:hover:bg-dark-700 text-dark-800 dark:text-white border border-gray-300 dark:border-dark-600 rounded-lg font-bold text-lg transition-colors shadow-lg hover:shadow-xl">
-                    Lue lisää
+                <a href="#features" class="px-8 py-4 bg-white dark:bg-dark-800 hover:bg-gray-100 dark:hover:bg-dark-700 text-dark-800 dark:text-white border border-gray-300 dark:border-dark-600 rounded-lg font-bold text-lg transition-colors shadow-lg hover:shadow-xl" data-i18n="hero.learn">
+                    Learn More
                 </a>
             </div>
         </div>
@@ -105,61 +108,55 @@
     <!-- Ominaisuudet -->
     <section id="features" class="py-20 bg-white dark:bg-dark-800">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">Miksi valita Popup Manager?</h2>
-            
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12" data-i18n="features.heading">Why Choose Popup Manager?</h2>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Ominaisuus 1 -->
                 <div class="bg-gray-50 dark:bg-dark-700 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                     <div class="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mb-4">
                         <i class="fas fa-chart-line text-primary-600 dark:text-primary-400 text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Tilastot ja analytiikka</h3>
-                    <p class="text-gray-600 dark:text-gray-300">Seuraa popupien suorituskykyä reaaliajassa. Näe mitkä popupit toimivat parhaiten.</p>
+                    <h3 class="text-xl font-bold mb-3" data-i18n="feature1.title">Analytics</h3>
+                    <p class="text-gray-600 dark:text-gray-300" data-i18n="feature1.desc">Track popup performance in real time. See which popups work best.</p>
                 </div>
-                
-                <!-- Ominaisuus 2 -->
+
                 <div class="bg-gray-50 dark:bg-dark-700 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                     <div class="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mb-4">
                         <i class="fas fa-paint-brush text-primary-600 dark:text-primary-400 text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Helppo muokkaus</h3>
-                    <p class="text-gray-600 dark:text-gray-300">Luo ja muokkaa popupeja ilman koodausosaamista. Intuitiivinen käyttöliittymä.</p>
+                    <h3 class="text-xl font-bold mb-3" data-i18n="feature2.title">Easy Editing</h3>
+                    <p class="text-gray-600 dark:text-gray-300" data-i18n="feature2.desc">Create and edit popups without coding skills. Intuitive interface.</p>
                 </div>
-                
-                <!-- Ominaisuus 3 -->
+
                 <div class="bg-gray-50 dark:bg-dark-700 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                     <div class="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mb-4">
                         <i class="fas fa-clock text-primary-600 dark:text-primary-400 text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Ajoituksen hallinta</h3>
-                    <p class="text-gray-600 dark:text-gray-300">Aseta popupit näkymään juuri oikeaan aikaan. Määritä näyttöaika ja -taajuus.</p>
+                    <h3 class="text-xl font-bold mb-3" data-i18n="feature3.title">Timing Control</h3>
+                    <p class="text-gray-600 dark:text-gray-300" data-i18n="feature3.desc">Set popups to appear at exactly the right moment. Define display time and frequency.</p>
                 </div>
-                
-                <!-- Ominaisuus 4 -->
+
                 <div class="bg-gray-50 dark:bg-dark-700 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                     <div class="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mb-4">
                         <i class="fas fa-mobile-alt text-primary-600 dark:text-primary-400 text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Mobiiliyhteensopiva</h3>
-                    <p class="text-gray-600 dark:text-gray-300">Popupit toimivat saumattomasti kaikilla laitteilla ja selaimilla.</p>
+                    <h3 class="text-xl font-bold mb-3" data-i18n="feature4.title">Mobile Compatible</h3>
+                    <p class="text-gray-600 dark:text-gray-300" data-i18n="feature4.desc">Popups work seamlessly on all devices and browsers.</p>
                 </div>
-                
-                <!-- Ominaisuus 5 -->
+
                 <div class="bg-gray-50 dark:bg-dark-700 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                     <div class="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mb-4">
                         <i class="fas fa-code text-primary-600 dark:text-primary-400 text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Helppo integrointi</h3>
-                    <p class="text-gray-600 dark:text-gray-300">Lisää popup sivustolle yhdellä script-tagilla. Ei monimutkaisia asennuksia.</p>
+                    <h3 class="text-xl font-bold mb-3" data-i18n="feature5.title">Easy Integration</h3>
+                    <p class="text-gray-600 dark:text-gray-300" data-i18n="feature5.desc">Add popups to your site with a single script tag. No complex setup.</p>
                 </div>
-                
-                <!-- Ominaisuus 6 -->
+
                 <div class="bg-gray-50 dark:bg-dark-700 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                     <div class="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mb-4">
                         <i class="fas fa-palette text-primary-600 dark:text-primary-400 text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Mukautettava ulkoasu</h3>
-                    <p class="text-gray-600 dark:text-gray-300">Sovita popupit sivustosi ilmeeseen. Täysi kontrolli väreihin, kokoihin ja animaatioihin.</p>
+                    <h3 class="text-xl font-bold mb-3" data-i18n="feature6.title">Customisable Design</h3>
+                    <p class="text-gray-600 dark:text-gray-300" data-i18n="feature6.desc">Match popups to your site's look. Full control over colours, sizes and animations.</p>
                 </div>
             </div>
         </div>
@@ -168,10 +165,10 @@
     <!-- Call to Action -->
     <section class="py-16 bg-primary-600 dark:bg-primary-700 text-white">
         <div class="container mx-auto px-4 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6">Valmiina tehostamaan verkkosivujasi?</h2>
-            <p class="text-xl mb-8 max-w-3xl mx-auto">Aloita popupien käyttö jo tänään ja näe ero konversioprosentissasi.</p>
+            <h2 class="text-3xl md:text-4xl font-bold mb-6" data-i18n="cta.heading">Ready to boost your website?</h2>
+            <p class="text-xl mb-8 max-w-3xl mx-auto" data-i18n="cta.sub">Start using popups today and see the difference in your conversion rate.</p>
             <a href="/auth/google" class="px-8 py-4 bg-white text-primary-600 hover:bg-gray-100 rounded-lg font-bold text-lg transition-colors shadow-lg hover:shadow-xl inline-flex items-center">
-                <i class="fab fa-google mr-2"></i> Kirjaudu Googlella
+                <i class="fab fa-google mr-2"></i> <span data-i18n="cta.btn">Sign in with Google</span>
             </a>
         </div>
     </section>
@@ -182,7 +179,7 @@
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="mb-4 md:mb-0">
                     <h3 class="text-xl font-bold text-primary-500">Popup Manager</h3>
-                    <p class="text-gray-400">© 2025 Kaikki oikeudet pidätetään</p>
+                    <p class="text-gray-400" data-i18n="footer.copy">© 2025 All rights reserved</p>
                 </div>
                 <div class="flex space-x-4">
                     <a href="https://www.facebook.com/Joensuunkuntokeidas?locale=fi_FI" class="text-gray-400 hover:text-white transition-colors">
@@ -199,8 +196,9 @@
         </div>
     </footer>
 
-    <!-- Teemasiirtymäskripti -->
+    <!-- Theme + language scripts -->
     <script src="themes.js"></script>
+    <script src="js/i18n.js" type="module"></script>
     
     <!-- Pääskripti -->
     <script src="floating-bubbles.js"></script>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,6 +21,8 @@
     .admin-header a:hover { color: #fff; }
     .admin-header h1 { font-size: 15px; font-weight: 700; flex: 1; text-align: center; }
     .admin-badge { background: #ef4444; color: #fff; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+    .lang-toggle { padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4); background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; color: #fff; transition: background 0.15s; line-height: 1; }
+    .lang-toggle:hover { background: rgba(255,255,255,0.1); }
 
     /* Summary cards */
     .summary-bar { display: flex; gap: 12px; padding: 20px 24px 0; flex-wrap: wrap; }
@@ -166,49 +168,49 @@
 <body>
 
 <header class="admin-header">
-  <a href="/dashboard"><i class="fa fa-arrow-left"></i> Dashboard</a>
-  <h1><i class="fa fa-shield-alt" style="color:#60a5fa;margin-right:6px"></i>Admin-paneeli</h1>
+  <a href="/dashboard"><i class="fa fa-arrow-left"></i> <span data-i18n="admin.back">Dashboard</span></a>
+  <h1><i class="fa fa-shield-alt" style="color:#60a5fa;margin-right:6px"></i><span data-i18n="admin.title">Admin Panel</span></h1>
   <span class="admin-badge">ADMIN</span>
+  <button class="lang-toggle" style="margin-left:auto" aria-label="Switch to Finnish">FI</button>
 </header>
 
-<!-- Navigointitabit -->
 <div class="admin-tabs">
-  <button class="admin-tab active" data-tab="users"><i class="fa fa-users"></i> Käyttäjät</button>
-  <button class="admin-tab" data-tab="audit"><i class="fa fa-history"></i> Audit-loki</button>
+  <button class="admin-tab active" data-tab="users"><i class="fa fa-users"></i> <span data-i18n="admin.tab.users">Users</span></button>
+  <button class="admin-tab" data-tab="audit"><i class="fa fa-history"></i> <span data-i18n="admin.tab.audit">Audit Log</span></button>
 </div>
 
 <div id="users-view">
 <div class="summary-bar" id="summary-bar">
   <div class="summary-card">
     <div class="summary-icon" style="background:#dbeafe"><i class="fa fa-users" style="color:#3b82f6"></i></div>
-    <div><div class="summary-val" id="s-total">–</div><div class="summary-lbl">Käyttäjät yhteensä</div></div>
+    <div><div class="summary-val" id="s-total">–</div><div class="summary-lbl" data-i18n="admin.totalUsers">Total Users</div></div>
   </div>
   <div class="summary-card">
     <div class="summary-icon" style="background:#fef3c7"><i class="fa fa-clock" style="color:#f59e0b"></i></div>
-    <div><div class="summary-val" id="s-pending">–</div><div class="summary-lbl">Odottaa hyväksyntää</div></div>
+    <div><div class="summary-val" id="s-pending">–</div><div class="summary-lbl" data-i18n="admin.pending">Pending Approval</div></div>
   </div>
   <div class="summary-card">
     <div class="summary-icon" style="background:#dcfce7"><i class="fa fa-check-circle" style="color:#10b981"></i></div>
-    <div><div class="summary-val" id="s-active">–</div><div class="summary-lbl">Aktiivisia käyttäjiä</div></div>
+    <div><div class="summary-val" id="s-active">–</div><div class="summary-lbl" data-i18n="admin.active">Active Users</div></div>
   </div>
   <div class="summary-card">
     <div class="summary-icon" style="background:#f5f3ff"><i class="fa fa-layer-group" style="color:#8b5cf6"></i></div>
-    <div><div class="summary-val" id="s-elements">–</div><div class="summary-lbl">Elementtejä yhteensä</div></div>
+    <div><div class="summary-val" id="s-elements">–</div><div class="summary-lbl" data-i18n="admin.totalElements">Total Elements</div></div>
   </div>
 </div>
 
 <div class="toolbar">
   <div class="search-box">
     <i class="fa fa-search"></i>
-    <input type="text" id="search-input" placeholder="Hae nimellä tai sähköpostilla…">
+    <input type="text" id="search-input" data-i18n-placeholder="search.placeholder" placeholder="Search by name or email…">
   </div>
   <div class="filter-pills">
-    <button class="pill active" data-filter="all">Kaikki</button>
-    <button class="pill" data-filter="pending">⏳ Odottaa</button>
-    <button class="pill" data-filter="user">Käyttäjät</button>
-    <button class="pill" data-filter="admin">Admin</button>
+    <button class="pill active" data-filter="all" data-i18n="filter.all">All</button>
+    <button class="pill" data-filter="pending" data-i18n="filter.pending">⏳ Pending</button>
+    <button class="pill" data-filter="user" data-i18n="filter.users">Users</button>
+    <button class="pill" data-filter="admin" data-i18n="filter.admin">Admin</button>
   </div>
-  <button class="btn-refresh" id="btn-refresh"><i class="fa fa-sync"></i> Päivitä</button>
+  <button class="btn-refresh" id="btn-refresh"><i class="fa fa-sync"></i> <span data-i18n="btn.refresh">Refresh</span></button>
 </div>
 
 <div class="users-grid" id="users-grid">
@@ -222,29 +224,29 @@
   <div class="audit-toolbar">
     <div class="search-box" style="max-width:240px">
       <i class="fa fa-search"></i>
-      <input type="text" id="audit-search" placeholder="Hae sähköpostilla…">
+      <input type="text" id="audit-search" data-i18n-placeholder="audit.search" placeholder="Search by email…">
     </div>
     <select id="audit-action-filter" style="padding:9px 12px;border:1px solid #e2e8f0;border-radius:9px;font-size:13px;background:#fff;outline:none">
-      <option value="">Kaikki tapahtumat</option>
-      <option value="login">Kirjautumiset</option>
-      <option value="user_approved">Hyväksynnät</option>
-      <option value="role_change">Roolin muutokset</option>
-      <option value="user_deleted">Poistetut käyttäjät</option>
-      <option value="limits_updated">Rajoitusten muutokset</option>
+      <option value="" data-i18n="audit.allEvents">All events</option>
+      <option value="login" data-i18n="audit.logins">Logins</option>
+      <option value="user_approved" data-i18n="audit.approvals">Approvals</option>
+      <option value="role_change" data-i18n="audit.roleChanges">Role changes</option>
+      <option value="user_deleted" data-i18n="audit.deletions">Deleted users</option>
+      <option value="limits_updated" data-i18n="audit.limitChanges">Limit changes</option>
     </select>
-    <button class="btn-refresh" id="audit-refresh"><i class="fa fa-sync"></i> Päivitä</button>
+    <button class="btn-refresh" id="audit-refresh"><i class="fa fa-sync"></i> <span data-i18n="btn.refresh">Refresh</span></button>
     <span id="audit-total" style="font-size:12px;color:#64748b;margin-left:auto"></span>
   </div>
 
   <table class="audit-table" id="audit-table">
     <thead>
       <tr>
-        <th>Aika</th>
-        <th>Tapahtuma</th>
-        <th>Tekijä</th>
-        <th>Kohde</th>
-        <th>Lisätiedot</th>
-        <th>IP</th>
+        <th data-i18n="audit.col.time">Time</th>
+        <th data-i18n="audit.col.event">Event</th>
+        <th data-i18n="audit.col.actor">Actor</th>
+        <th data-i18n="audit.col.target">Target</th>
+        <th data-i18n="audit.col.details">Details</th>
+        <th data-i18n="audit.col.ip">IP</th>
       </tr>
     </thead>
     <tbody id="audit-tbody">
@@ -253,14 +255,15 @@
   </table>
 
   <div class="audit-pagination" id="audit-pagination">
-    <button class="audit-page-btn" id="audit-prev">← Edellinen</button>
+    <button class="audit-page-btn" id="audit-prev" data-i18n="audit.prev">← Previous</button>
     <span id="audit-page-info"></span>
-    <button class="audit-page-btn" id="audit-next">Seuraava →</button>
+    <button class="audit-page-btn" id="audit-next" data-i18n="audit.next">Next →</button>
   </div>
 </div>
 
 <div id="toast"></div>
 
+<script type="module" src="js/i18n.js"></script>
 <script type="module">
 // ─── State ────────────────────────────────────────────────
 let allUsers = [];
