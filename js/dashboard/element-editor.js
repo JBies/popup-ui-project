@@ -61,6 +61,27 @@ export async function openEditor(data = {}) {
     radio.addEventListener('change', () => {
       const delayOptions = panel.querySelector('#delay-options');
       if (delayOptions) delayOptions.style.display = radio.value === 'delay' ? 'block' : 'none';
+      panel.querySelectorAll('input[name="timing-mode"]').forEach(r => {
+        const lbl = r.closest('label');
+        if (!lbl) return;
+        const active = r.checked;
+        lbl.style.borderColor = active ? '#3b82f6' : '#e2e8f0';
+        lbl.style.background  = active ? '#eff6ff' : '#fff';
+      });
+    });
+  });
+
+  // Kuinka usein + näyttöväli: päivitä label-tyylit valintaa vaihdettaessa
+  ['el-frequency', 'el-viewCooldown'].forEach(name => {
+    panel.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
+      radio.addEventListener('change', () => {
+        panel.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+          const lbl = r.closest('label');
+          if (!lbl) return;
+          lbl.style.borderColor = r.checked ? '#3b82f6' : '#e2e8f0';
+          lbl.style.background  = r.checked ? '#eff6ff' : '#fff';
+        });
+      });
     });
   });
 

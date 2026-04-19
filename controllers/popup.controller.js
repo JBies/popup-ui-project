@@ -286,6 +286,7 @@ class PopupController {
       campaign,
       abTest,
       frequency,
+      viewCooldown,
       siteId
     } = req.body;
 
