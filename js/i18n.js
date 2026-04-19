@@ -858,12 +858,14 @@ export function toggleLanguage() {
   applyTranslations();
   updateLangButton();
   window.dispatchEvent(new CustomEvent('languagechange', { detail: { lang: next } }));
-  // Persist to account if logged in (fire-and-forget)
-  fetch('/api/user/language', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ language: next })
-  }).catch(() => {});
+  // Persist to account only if logged in (skip silently if not)
+  if (window._i18nUserLoggedIn) {
+    fetch('/api/user/language', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language: next })
+    }).catch(() => {});
+  }
 }
 
 export function initLanguage() {
@@ -878,7 +880,9 @@ export async function syncLanguageFromAccount() {
     const res = await fetch('/api/user');
     if (!res.ok) return;
     const data = await res.json();
-    const lang = data?.user?.language;
+    if (!data?.user) return;
+    window._i18nUserLoggedIn = true;
+    const lang = data.user.language;
     if (lang && ['en', 'fi'].includes(lang)) {
       localStorage.setItem('language', lang);
       applyTranslations();
