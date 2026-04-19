@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test - Refactored Landing Page</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Our refactored CSS -->
+  <link rel="stylesheet" href="css/landing/main.css">
+  
+  <style>
+    /* Test page styles */
+    body { 
+      font-family: 'Inter', sans-serif; 
+      padding: 20px;
+      background: #f8fafc;
+    }
+    
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .test-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #1e3a8a;
+      margin-bottom: 10px;
+    }
+    
+    .test-subtitle {
+      color: #64748b;
+      font-size: 1.125rem;
+    }
+    
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .test-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .test-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .test-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    .test-status--success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .test-status--warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .test-status--error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .test-button {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #3b82f6;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 10px 5px;
+      transition: background 0.2s;
+    }
+    
+    .test-button:hover {
+      background: #2563eb;
+    }
+    
+    .test-section {
+      margin-bottom: 40px;
+    }
+    
+    .preview-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      border: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <header class="test-header">
+      <h1 class="test-title">Refactoring Test Page</h1>
+      <p class="test-subtitle">Testing the refactored CSS and JavaScript components</p>
+    </header>
+    
+    <div class="test-grid">
+      <!-- CSS Components Test -->
+      <div class="test-card">
+        <h3>CSS Components</h3>
+        <div class="test-status test-status--success">Loaded Successfully</div>
+        
+        <div class="test-section">
+          <h4>Feature Card</h4>
+          <div class="feature-card">
+            <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-4">
+              <i class="fa fa-star text-blue-600 text-xl"></i>
+            </div>
+            <h5 class="font-bold text-gray-900 text-lg mb-2">Test Feature Card</h5>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              This is a test feature card with hover effects.
+            </p>
+          </div>
+        </div>
+        
+        <div class="test-section">
+          <h4>Buttons</h4>
+          <a href="#" class="test-button">Primary Button</a>
+          <button class="lang-toggle">FI/EN Toggle</button>
+        </div>
+        
+        <div class="test-section">
+          <h4>Tag Pill</h4>
+          <div class="tag-pill">
+            <i class="fa fa-check"></i>
+            <span>Test Tag</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- JavaScript Test -->
+      <div class="test-card">
+        <h3>JavaScript Modules</h3>
+        <div class="test-status test-status--success">Loaded Successfully</div>
+        
+        <div class="test-section">
+          <h4>Scroll Animations</h4>
+          <p class="text-gray-600 mb-3">Elements with .fade-in class should animate when scrolled into view.</p>
+          <div class="fade-in preview-container">
+            <p>This element has the <code>.fade-in</code> class.</p>
+            <p>Scroll down to see the animation.</p>
+          </div>
+        </div>
+        
+        <div class="test-section">
+          <h4>Contact Modal</h4>
+          <p class="text-gray-600 mb-3">Test the contact modal functionality.</p>
+          <button onclick="window.openContactModal()" class="test-button">Open Contact Modal</button>
+          <button onclick="window.requestProUpgrade()" class="test-button" style="background: #8b5cf6;">Pro Upgrade</button>
+        </div>
+        
+        <div class="test-section">
+          <h4>User Detection</h4>
+          <p class="text-gray-600">User detection script is loaded. Check console for logs.</p>
+        </div>
+      </div>
+      
+      <!-- Preview Components Test -->
+      <div class="test-card">
+        <h3>Preview Components</h3>
+        <div class="test-status test-status--success">Loaded Successfully</div>
+        
+        <div class="test-section">
+          <h4>Browser Mockup</h4>
+          <div class="browser-window" style="max-width: 400px;">
+            <div class="browser-bar">
+              <div class="browser-dot" style="background:#ef4444"></div>
+              <div class="browser-dot" style="background:#f59e0b"></div>
+              <div class="browser-dot" style="background:#22c55e"></div>
+              <div class="browser-url">test.example.com</div>
+            </div>
+            <div class="mock-page">
+              <div class="mock-line title"></div>
+              <div class="mock-line medium"></div>
+              <div class="mock-line"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="test-section">
+          <h4>Element Previews</h4>
+          <div class="elem-preview">
+            <div class="prev-sticky-bar">
+              <span>🎉 Test Offer</span>
+              <button class="sticky-bar-button">Click Me</button>
+            </div>
+            <div class="prev-sticky-body">
+              <div class="prev-line"></div>
+              <div class="prev-line s"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Spacer for scroll test -->
+    <div style="height: 800px; display: flex; align-items: center; justify-content: center; color: #64748b;">
+      <div class="fade-in">
+        <i class="fa fa-arrow-down fa-2x mb-4"></i>
+        <p>Scroll back up to test fade-in animations</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Contact Modal (from original) -->
+  <div id="contact-modal" style="display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;padding:16px">
+    <div id="contact-backdrop" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)"></div>
+    
+    <div id="contact-card" style="position:relative;background:#fff;border-radius:24px;padding:40px 44px;max-width:520px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,0.35);transform:scale(0.85) translateY(40px);opacity:0;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease">
+      <button style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;color:#94a3b8;cursor:pointer;line-height:1">✕</button>
+      
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:16px;margin-bottom:14px;box-shadow:0 8px 24px rgba(99,102,241,0.4)">
+          <i class="fa fa-paper-plane" style="color:#fff;font-size:22px"></i>
+        </div>
+        <h2 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 6px">Test Contact Modal</h2>
+        <p style="font-size:14px;color:#64748b;margin:0">This is a test modal from the refactored code.</p>
+      </div>
+      
+      <form id="contact-form" novalidate>
+        <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;height:0">
+        
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Name *</label>
+          <input id="cf-name" type="text" required placeholder="Test User"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s">
+        </div>
+        
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Email *</label>
+          <input id="cf-email" type="email" required placeholder="test@example.com"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s">
+        </div>
+        
+        <div style="margin-bottom:22px">
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Message *</label>
+          <textarea id="cf-message" required rows="3" placeholder="Test message..."
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;resize:vertical;transition:border-color 0.2s;font-family:inherit"></textarea>
+        </div>
+        
+        <div id="cf-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:13px;color:#dc2626;margin-bottom:14px"></div>
+        
+        <button type="submit" id="cf-submit"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(99,102,241,0.4);transition:transform 0.15s,box-shadow 0.15s">
+          <i class="fa fa-paper-plane" style="margin-right:8px"></i>Send Test Message
+        </button>
+      </form>
+      
+      <div id="cf-success" style="display:none;text-align:center;padding:20px 0">
+        <div style="font-size:52px;margin-bottom:12px">🎉</div>
+        <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px">Message Sent!</h3>
+        <p style="font-size:14px;color:#64748b;margin:0">Test successful. This would close automatically.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Load JavaScript modules -->
+  <script type="module">
+    import { initLandingPage } from './js/landing/main.js';
+    import { openContactModal, requestProUpgrade } from './js/landing/contact-modal.js';
+    
+    // Make functions available globally for test buttons
+    window.openContactModal = openContactModal;
+    window.requestProUpgrade = requestProUpgrade;
+    
+    // Initialize the landing page
+    document.addEventListener('DOMContentLoaded', () => {
+      initLandingPage();
+      console.log('Test page initialized with refactored code');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Manager – Muuta kävijät asiakkaiksi ilman koodausta</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: {
+              50:  '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Our refactored CSS -->
+  <link rel="stylesheet" href="css/landing/main.css">
+  
+  <!-- Inline styles that need to remain (temporarily) -->
+  <style>
+    /* Minimal inline styles for critical elements */
+    body { font-family: 'Inter', sans-serif; }
+    
+    /* Contact modal styles (will be moved to CSS file later) */
+    #contact-modal { display: none; position: fixed; inset: 0; z-index: 99999; align-items: center; justify-content: center; padding: 16px; }
+    #contact-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    #contact-card { position: relative; background: #fff; border-radius: 24px; padding: 40px 44px; max-width: 520px; width: 100%; box-shadow: 0 32px 80px rgba(0,0,0,0.35); transform: scale(0.85) translateY(40px); opacity: 0; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease; }
+  </style>
+</head>
+<body class="bg-white text-gray-900">
+
+  <!-- ═══════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════ -->
+  <header class="bg-white/95 backdrop-blur border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-gradient-to-br from-brand-600 to-brand-800 rounded-xl flex items-center justify-center shadow-md">
+          <i class="fa fa-layer-group text-white text-sm"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-lg text-gray-900 leading-none">UI Manager</span>
+          <div class="text-xs text-gray-400 leading-none mt-0.5">Conversion Platform</div>
+        </div>
+      </div>
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
+        <a href="#elementit" class="hover:text-gray-900 transition-colors" data-i18n="idx.nav.elements">Elements</a>
+        <a href="#ominaisuudet" class="hover:text-gray-900 transition-colors" data-i18n="idx.nav.features">Features</a>
+        <a href="#kayttoonotto" class="hover:text-gray-900 transition-colors" data-i18n="idx.nav.setup">Setup</a>
+        <a href="#hinnoittelu" class="hover:text-gray-900 transition-colors" data-i18n="idx.nav.pricing">Pricing</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button class="lang-toggle" aria-label="Switch to Finnish">FI</button>
+        <a href="/auth/google"
+           class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold px-3 py-2 md:px-5 md:py-2.5 rounded-xl transition-all text-xs md:text-sm shadow-md hover:shadow-lg whitespace-nowrap">
+          <i class="fab fa-google text-white/90"></i>
+          <span class="hidden sm:inline" data-i18n="idx.nav.signin">Sign in with Google</span>
+          <span class="sm:hidden" data-i18n="idx.nav.signinShort">Sign in</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- ═══════════════════════════════════════
+       HERO
+  ═══════════════════════════════════════ -->
+  <section class="hero-gradient text-white relative overflow-hidden py-24 md:py-32 px-6">
+    <!-- Animated blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="max-w-3xl mx-auto text-center mb-14">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm font-medium mb-8">
+          <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+          <span data-i18n="idx.hero.badge">7 element types · One line of code · No installation</span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] mb-6 tracking-tight">
+          Turn your website<br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-sky-300 to-indigo-200">
+            visitors into customers
+          </span><br>
+          – without coding
+        </h1>
+
+        <!-- Subheadline -->
+        <p class="text-xl md:text-2xl text-blue-100/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+          Create sticky bars, popups, lead forms and other conversion elements from your dashboard.
+          Paste <strong class="text-white font-semibold">one line of code</strong> on your page and you're ready.
+        </p>
+
+        <!-- CTAs -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
+          <a href="/auth/google"
+             class="inline-flex items-center gap-3 bg-white text-brand-800 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-all text-lg shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transform">
+            <i class="fab fa-google text-red-500 text-xl"></i>
+            <span data-i18n="idx.hero.cta1">Get started with Google</span>
+          </a>
+          <a href="#elementit"
+             class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/25 text-white font-semibold px-8 py-4 rounded-2xl transition-all text-lg backdrop-blur">
+            <span data-i18n="idx.hero.cta2">See features</span>
+            <i class="fa fa-arrow-down text-sm"></i>
+          </a>
+        </div>
+        <p class="text-blue-300/80 text-sm" data-i18n="idx.hero.note">No credit card. No installation. Just one line of code.</p>
+      </div>
+
+      <!-- Hero mockup – fake browser window -->
+      <div class="max-w-2xl mx-auto">
+        <div class="browser-window">
+          <!-- Browser chrome -->
+          <div class="browser-bar">
+            <div class="browser-dot" style="background:#ef4444"></div>
+            <div class="browser-dot" style="background:#f59e0b"></div>
+            <div class="browser-dot" style="background:#22c55e"></div>
+            <div class="browser-url">popupmanager.net/dashboard</div>
+          </div>
+          <!-- Simulated sticky bar on a page -->
+          <div class="mock-sticky">
+            <span>🎉 &nbsp;Erikoistarjous – käytä koodi <strong>TALVI25</strong> ja säästä!</span>
+            <span class="mock-sticky-btn">Tilaa nyt</span>
+          </div>
+          <!-- Simulated page -->
+          <div class="mock-page">
+            <div class="mock-line title"></div>
+            <div class="mock-line medium"></div>
+            <div class="mock-line"></div>
+            <div class="mock-line short"></div>
+            <div class="mock-line medium"></div>
+            <div class="mock-line short"></div>
+            <!-- Slide-in from left -->
+            <div class="mock-slidein">
+              <div class="mock-slidein-title">📩 Tilaa uutiskirje</div>
+              <div class="mock-slidein-text">Saat viikottaiset vinkit suoraan sähköpostiisi.</div>
+              <span class="mock-slidein-btn">Tilaa ilmaiseksi</span>
+            </div>
+            <!-- Floating button -->
+            <div class="mock-fab">
+              <i class="fa fa-comment" style="font-size:14px"></i>
+            </div>
+          </div>
+        </div>
+        <p class="text-center text-blue-200/60 text-xs mt-4" data-i18n="idx.hero.caption">
+          Live preview in dashboard · Changes appear instantly
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       STATS BAR
+  ═══════════════════════════════════════ -->
+  <section class="bg-white border-b border-gray-100">
+    <div class="max-w-5xl mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100">
+        <div class="stats-bar-item text-center py-6 px-4">
+          <div class="text-3xl font-black text-brand-700 mb-1">7</div>
+          <div class="text-sm text-gray-500 font-medium" data-i18n="idx.stats.types">Element types</div>
+        </div>
+        <div class="stats-bar-item text-center py-6 px-4">
+          <div class="text-3xl font-black text-brand-700 mb-1">1</div>
+          <div class="text-sm text-gray-500 font-medium" data-i18n="idx.stats.lines">Lines of code</div>
+        </div>
+        <div class="stats-bar-item text-center py-6 px-4">
+          <div class="text-3xl font-black text-brand-700 mb-1"><i class="fa fa-eye text-2xl"></i></div>
+          <div class="text-sm text-gray-500 font-medium" data-i18n="idx.stats.preview">Real-time preview</div>
+        </div>
+        <div class="stats-bar-item text-center py-6 px-4">
+          <div class="text-3xl font-black text-brand-700 mb-1"><i class="fa fa-envelope text-2xl"></i></div>
+          <div class="text-sm text-gray-500 font-medium" data-i18n="idx.stats.email">Automatic emails</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+        7 ELEMENT TYPES
+  ═══════════════════════════════════════ -->
+  <section id="elementit" class="py-24 px-6 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16 fade-in">
+        <div class="tag-pill mb-4"><i class="fa fa-layer-group"></i> <span data-i18n="idx.el.badge">7 element types</span></div>
+        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4" data-i18n="idx.el.h2">
+          All conversion tools in one place
+        </h2>
+        <p class="text-xl text-gray-500 max-w-2xl mx-auto" data-i18n="idx.el.sub">
+          Choose a type, customise in the dashboard, preview in real time – activated with one line of code.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+        <!-- Sticky Bar -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-minus text-blue-600 text-xl"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Sticky Bar</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1" data-i18n="idx.el.sticky.desc">
+            Fixed notification bar that stays visible while scrolling. Ideal for campaigns, offers and GDPR banners.
+          </p>
+          <!-- Visual preview -->
+          <div class="elem-preview">
+            <div class="prev-sticky-bar"><span>🎉 Erikoistarjous – koodi TALVI25</span><button class="sticky-bar-button">Tilaa</button></div>
+            <div class="prev-sticky-body">
+              <div class="prev-line"></div><div class="prev-line s"></div><div class="prev-line"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Button -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-circle text-purple-600 text-xl"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Floating Button</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1" data-i18n="idx.el.fab.desc">
+            Floating action button in the corner – chat, phone, CTA. Always visible, never in the way.
+          </p>
+          <div class="elem-preview">
+            <div class="prev-fab-body">
+              <div class="prev-line"></div><div class="prev-line s"></div>
+              <div class="prev-fab-btn"><i class="fa fa-comment" style="font-size:11px"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide-in -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-comment-dots text-green-600 text-xl"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Slide-in</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-1" data-i18n="idx.el.slidein.desc">
+            Animated box slides into view. Triggered by scroll, time or exit intent. Great for newsletter signups and lead forms.
+          </p>
+          <div class="elem-preview">
+            <div class="prev-slidein-body">
+              <div class="prev-line medium"></div>
+              <div class="prev-slidein-box">
+                <div class="t">📩 Tilaa uutiskirje</div>
+                <span class="slidein-button">Tilaa ilmaiseksi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popup -->
+        <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm fade-in">
+          <div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center mb-4">
+            <i class="fa fa-square text-orange-500 text-xl"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Popup</h3>
+          <p class="text-gray

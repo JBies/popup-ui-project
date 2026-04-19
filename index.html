@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -363,17 +363,20 @@
         </div>
       </div>
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-        <a href="#elementit" class="hover:text-gray-900 transition-colors">Elementit</a>
-        <a href="#ominaisuudet" class="hover:text-gray-900 transition-colors">Ominaisuudet</a>
-        <a href="#kayttoonotto" class="hover:text-gray-900 transition-colors">Käyttöönotto</a>
-        <a href="#hinnoittelu" class="hover:text-gray-900 transition-colors">Hinnoittelu</a>
+        <a href="#elementit" class="hover:text-gray-900 transition-colors" data-i18n="idx.nav.elements">Elements</a>
+        <a href="#ominaisuudet" class="hover:text-gray-900 transition-colors" data-i18n="idx.nav.features">Features</a>
+        <a href="#kayttoonotto" class="hover:text-gray-900 transition-colors" data-i18n="idx.nav.setup">Setup</a>
+        <a href="#hinnoittelu" class="hover:text-gray-900 transition-colors" data-i18n="idx.nav.pricing">Pricing</a>
       </nav>
-      <a href="/auth/google"
-         class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold px-3 py-2 md:px-5 md:py-2.5 rounded-xl transition-all text-xs md:text-sm shadow-md hover:shadow-lg whitespace-nowrap">
-        <i class="fab fa-google text-white/90"></i>
-        <span class="hidden sm:inline">Kirjaudu Google-tilillä</span>
-        <span class="sm:hidden">Kirjaudu</span>
-      </a>
+      <div class="flex items-center gap-2">
+        <button class="lang-toggle" style="border:1px solid #e2e8f0;background:#f8fafc;color:#475569;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer" aria-label="Switch to Finnish">FI</button>
+        <a href="/auth/google"
+           class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold px-3 py-2 md:px-5 md:py-2.5 rounded-xl transition-all text-xs md:text-sm shadow-md hover:shadow-lg whitespace-nowrap">
+          <i class="fab fa-google text-white/90"></i>
+          <span class="hidden sm:inline" data-i18n="idx.nav.signin">Sign in with Google</span>
+          <span class="sm:hidden" data-i18n="idx.nav.signinShort">Sign in</span>
+        </a>
+      </div>
     </div>
   </header>
 
@@ -392,22 +395,22 @@
         <!-- Badge -->
         <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm font-medium mb-8">
           <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-          7 elementtityyppiä · Yksi koodirivi · Ei asennusta
+          <span data-i18n="idx.hero.badge">7 element types · One line of code · No installation</span>
         </div>
 
         <!-- Headline -->
         <h1 class="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] mb-6 tracking-tight">
-          Muuta sivustosi<br>
+          Turn your website<br>
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-sky-300 to-indigo-200">
-            kävijät asiakkaiksi
+            visitors into customers
           </span><br>
-          – ilman koodausta
+          – without coding
         </h1>
 
         <!-- Subheadline -->
         <p class="text-xl md:text-2xl text-blue-100/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
-          Luo sticky bareja, ponnahdusviestejä, liidilomakkeita ja muita konversioelementtejä
-          dashboardista. Liitä <strong class="text-white font-semibold">yksi koodirivi</strong> sivullesi ja olet valmis.
+          Create sticky bars, popups, lead forms and other conversion elements from your dashboard.
+          Paste <strong class="text-white font-semibold">one line of code</strong> on your page and you're ready.
         </p>
 
         <!-- CTAs -->
@@ -415,15 +418,15 @@
           <a href="/auth/google"
              class="inline-flex items-center gap-3 bg-white text-brand-800 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-all text-lg shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transform">
             <i class="fab fa-google text-red-500 text-xl"></i>
-            Aloita Google-tilillä
+            <span data-i18n="idx.hero.cta1">Get started with Google</span>
           </a>
           <a href="#elementit"
              class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/25 text-white font-semibold px-8 py-4 rounded-2xl transition-all text-lg backdrop-blur">
-            Katso ominaisuudet
+            <span data-i18n="idx.hero.cta2">See features</span>
             <i class="fa fa-arrow-down text-sm"></i>
           </a>
         </div>
-        <p class="text-blue-300/80 text-sm">Ei luottokorttia. Ei asennusta. Vain yksi koodirivi.</p>
+        <p class="text-blue-300/80 text-sm" data-i18n="idx.hero.note">No credit card. No installation. Just one line of code.</p>
       </div>
 
       <!-- Hero mockup – fake browser window -->
@@ -461,8 +464,8 @@
             </div>
           </div>
         </div>
-        <p class="text-center text-blue-200/60 text-xs mt-4">
-          Live-esikatselu dashboardissa · Muutokset näkyvät välittömästi
+        <p class="text-center text-blue-200/60 text-xs mt-4" data-i18n="idx.hero.caption">
+          Live preview in dashboard · Changes appear instantly
         </p>
       </div>
     </div>
@@ -477,19 +480,19 @@
       <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100">
         <div class="stats-bar-item text-center py-6 px-4">
           <div class="text-3xl font-black text-brand-700 mb-1">7</div>
-          <div class="text-sm text-gray-500 font-medium">Elementtityyppiä</div>
+          <div class="text-sm text-gray-500 font-medium" data-i18n="idx.stats.types">Element types</div>
         </div>
         <div class="stats-bar-item text-center py-6 px-4">
           <div class="text-3xl font-black text-brand-700 mb-1">1</div>
-          <div class="text-sm text-gray-500 font-medium">Rivi koodia</div>
+          <div class="text-sm text-gray-500 font-medium" data-i18n="idx.stats.lines">Lines of code</div>
         </div>
         <div class="stats-bar-item text-center py-6 px-4">
           <div class="text-3xl font-black text-brand-700 mb-1"><i class="fa fa-eye text-2xl"></i></div>
-          <div class="text-sm text-gray-500 font-medium">Reaaliaikainen esikatselu</div>
+          <div class="text-sm text-gray-500 font-medium" data-i18n="idx.stats.preview">Real-time preview</div>
         </div>
         <div class="stats-bar-item text-center py-6 px-4">
           <div class="text-3xl font-black text-brand-700 mb-1"><i class="fa fa-envelope text-2xl"></i></div>
-          <div class="text-sm text-gray-500 font-medium">Automaattiset sähköpostit</div>
+          <div class="text-sm text-gray-500 font-medium" data-i18n="idx.stats.email">Automatic emails</div>
         </div>
       </div>
     </div>
@@ -502,12 +505,12 @@
   <section id="elementit" class="py-24 px-6 bg-gray-50">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-16 fade-in">
-        <div class="tag-pill mb-4"><i class="fa fa-layer-group"></i> 7 elementtityyppiä</div>
-        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
-          Kaikki konversiotyökalut<br class="hidden md:block"> yhdessä paikassa
+        <div class="tag-pill mb-4"><i class="fa fa-layer-group"></i> <span data-i18n="idx.el.badge">7 element types</span></div>
+        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4" data-i18n="idx.el.h2">
+          All conversion tools in one place
         </h2>
-        <p class="text-xl text-gray-500 max-w-2xl mx-auto">
-          Valitse tyyppi, mukauta dashboardissa, esikatsele reaaliajassa – aktivoituu yhdellä koodirivillä.
+        <p class="text-xl text-gray-500 max-w-2xl mx-auto" data-i18n="idx.el.sub">
+          Choose a type, customise in the dashboard, preview in real time – activated with one line of code.
         </p>
       </div>
 
@@ -519,8 +522,8 @@
             <i class="fa fa-minus text-blue-600 text-xl"></i>
           </div>
           <h3 class="font-bold text-gray-900 text-lg mb-2">Sticky Bar</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-1">
-            Kiinteä ilmoituspalkki joka pysyy näkyvissä scrollatessa. Ihanteellinen kampanjoille, tarjouksille ja GDPR-bannereille.
+          <p class="text-gray-500 text-sm leading-relaxed mb-1" data-i18n="idx.el.sticky.desc">
+            Fixed notification bar that stays visible while scrolling. Ideal for campaigns, offers and GDPR banners.
           </p>
           <!-- Visual preview -->
           <div class="elem-preview">
@@ -537,8 +540,8 @@
             <i class="fa fa-circle text-purple-600 text-xl"></i>
           </div>
           <h3 class="font-bold text-gray-900 text-lg mb-2">Floating Button</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-1">
-            Kelluva toimintanappi sivun kulmassa – chat, puhelin, CTA. Näkyy aina kaikkialla, ei häiritse sisältöä.
+          <p class="text-gray-500 text-sm leading-relaxed mb-1" data-i18n="idx.el.fab.desc">
+            Floating action button in the corner – chat, phone, CTA. Always visible, never in the way.
           </p>
           <div class="elem-preview">
             <div class="prev-fab-body">
@@ -554,8 +557,8 @@
             <i class="fa fa-comment-dots text-green-600 text-xl"></i>
           </div>
           <h3 class="font-bold text-gray-900 text-lg mb-2">Slide-in</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-1">
-            Animoitu boksi liukuu esiin. Triggeröi scroll, aika tai exit intent. Sopii uutiskirjetilauksiin ja liidilomakkeisiin.
+          <p class="text-gray-500 text-sm leading-relaxed mb-1" data-i18n="idx.el.slidein.desc">
+            Animated box slides into view. Triggered by scroll, time or exit intent. Great for newsletter signups and lead forms.
           </p>
           <div class="elem-preview">
             <div class="prev-slidein-body">
@@ -574,8 +577,8 @@
             <i class="fa fa-square text-orange-500 text-xl"></i>
           </div>
           <h3 class="font-bold text-gray-900 text-lg mb-2">Popup</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-1">
-            Ponnahdusikkuna näytön keskellä. Lataa kuva suoraan (nopein tapa) tai kirjoita otsikko, teksti ja nappi – ei koodausta.
+          <p class="text-gray-500 text-sm leading-relaxed mb-1" data-i18n="idx.el.popup.desc">
+            Modal window in the centre of the screen. Upload an image directly (fastest) or write a title, text and button – no coding.
           </p>
           <div class="elem-preview">
             <div class="prev-popup-body">
@@ -595,8 +598,8 @@
             <i class="fa fa-envelope text-emerald-600 text-xl"></i>
           </div>
           <h3 class="font-bold text-gray-900 text-lg mb-2">Lead Form</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-1">
-            Kerää yhteystietoja suoraan — liidit tallentuvat dashboardiin <strong class="text-gray-700">ja tulevat sähköpostiisi automaattisesti ilman mitään konfigurointia</strong>. Mukauta kentät, lähetysnappi ja onnistumisviesti.
+          <p class="text-gray-500 text-sm leading-relaxed mb-1" data-i18n="idx.el.leadform.desc">
+            Collect contact details directly — leads are saved to the dashboard <strong class="text-gray-700">and emailed to you automatically with zero configuration</strong>. Customise fields, submit button and success message.
           </p>
           <div class="elem-preview">
             <div class="prev-leadform-body">
@@ -610,25 +613,25 @@
         <!-- Cookie Consent -->
         <div class="feature-card bg-white rounded-2xl p-6 border-2 border-green-200 shadow-sm fade-in relative">
           <div class="absolute -top-3 left-6">
-            <span class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Ilmainen</span>
+            <span class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full" data-i18n="idx.el.free">Free</span>
           </div>
           <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-4">
             <i class="fa fa-cookie-bite text-green-600 text-xl"></i>
           </div>
           <h3 class="font-bold text-gray-900 text-lg mb-2">Cookie Consent + GA & Pixel</h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
-            GDPR-yhteensopiva banneri joka <strong class="text-gray-700">oikeasti estää seurannan</strong> ennen suostumusta. Syötä GA4-, GTM- tai Facebook Pixel -tunnuksesi — ne aktivoituvat automaattisesti vasta hyväksynnän jälkeen. <strong class="text-green-700">Ei Cookiebotia tarvita.</strong>
+          <p class="text-gray-500 text-sm leading-relaxed" data-i18n="idx.el.cookie.desc">
+            GDPR-compliant banner that <strong class="text-gray-700">actually blocks tracking</strong> before consent. Enter your GA4, GTM or Facebook Pixel ID — they activate automatically only after approval. <strong class="text-green-700">No Cookiebot needed.</strong>
           </p>
           <ul class="mt-3 space-y-1 text-xs text-gray-500">
             <li class="flex items-center gap-1.5"><i class="fa fa-check text-green-500"></i> Google Analytics 4 &amp; Tag Manager</li>
             <li class="flex items-center gap-1.5"><i class="fa fa-check text-green-500"></i> Facebook Pixel</li>
-            <li class="flex items-center gap-1.5"><i class="fa fa-check text-green-500"></i> Deny pyyhkii _ga, _fbp -evästeet</li>
-            <li class="flex items-center gap-1.5"><i class="fa fa-check text-green-500"></i> GDPR &amp; ePrivacy -yhteensopiva</li>
+            <li class="flex items-center gap-1.5"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.el.cookie.li3">Deny clears _ga, _fbp cookies</span></li>
+            <li class="flex items-center gap-1.5"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.el.cookie.li4">GDPR &amp; ePrivacy compliant</span></li>
           </ul>
           <div class="mt-4 bg-gray-900 rounded-xl p-3 flex items-center gap-3 text-xs">
-            <div class="flex-1 text-gray-300">Käytämme evästeitä...</div>
-            <button class="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold pointer-events-none">Hyväksy</button>
-            <button class="border border-gray-500 text-gray-300 px-2 py-1 rounded text-xs pointer-events-none">Hylkää</button>
+            <div class="flex-1 text-gray-300" data-i18n="idx.el.cookie.preview">We use cookies...</div>
+            <button class="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold pointer-events-none" data-i18n="idx.el.cookie.accept">Accept</button>
+            <button class="border border-gray-500 text-gray-300 px-2 py-1 rounded text-xs pointer-events-none" data-i18n="idx.el.cookie.deny">Deny</button>
           </div>
         </div>
 
@@ -637,20 +640,20 @@
           <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
             <i class="fa fa-chart-bar text-slate-600 text-xl"></i>
           </div>
-          <h3 class="font-bold text-gray-900 text-lg mb-2">Näkymätön datankerääjä</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-3">
-            Täysin näkymätön mittauspiste — ei häiritse kävijää, ei muuta sivustosi ulkoasua. Rekisteröi kävijämäärät tietylle sivulle tai sivuston osaan. Täydellinen funnel-analytiikkaan.
+          <h3 class="font-bold text-gray-900 text-lg mb-2" data-i18n="idx.el.stats.title">Invisible data collector</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-3" data-i18n="idx.el.stats.desc">
+            Completely invisible tracking point — doesn't disturb visitors, doesn't change your site's appearance. Records visitor counts for a specific page or section. Perfect for funnel analytics.
           </p>
           <ul class="space-y-1 text-xs text-gray-500 mb-4">
-            <li class="flex items-center gap-1.5"><i class="fa fa-check text-slate-400"></i> Mittaa kävijöitä tietyllä sivulla</li>
-            <li class="flex items-center gap-1.5"><i class="fa fa-check text-slate-400"></i> Funnel: kuinka moni saavuttaa kohdan X</li>
-            <li class="flex items-center gap-1.5"><i class="fa fa-check text-slate-400"></i> Suosituimpien osioiden kartoitus</li>
-            <li class="flex items-center gap-1.5"><i class="fa fa-check text-slate-400"></i> Datan keruu ennen muun elementin aktivointia</li>
+            <li class="flex items-center gap-1.5"><i class="fa fa-check text-slate-400"></i> <span data-i18n="idx.el.stats.li1">Measure visitors on a specific page</span></li>
+            <li class="flex items-center gap-1.5"><i class="fa fa-check text-slate-400"></i> <span data-i18n="idx.el.stats.li2">Funnel: how many reach point X</span></li>
+            <li class="flex items-center gap-1.5"><i class="fa fa-check text-slate-400"></i> <span data-i18n="idx.el.stats.li3">Map most popular sections</span></li>
+            <li class="flex items-center gap-1.5"><i class="fa fa-check text-slate-400"></i> <span data-i18n="idx.el.stats.li4">Collect data before activating an element</span></li>
           </ul>
           <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-semibold text-slate-500">Tuotesivu</span>
-              <span class="text-xs text-slate-400">viim. 7 pv</span>
+              <span class="text-xs font-semibold text-slate-500" data-i18n="idx.el.stats.previewLabel">Product page</span>
+              <span class="text-xs text-slate-400" data-i18n="idx.el.stats.previewRange">last 7 days</span>
             </div>
             <div class="flex items-end gap-1 h-8">
               <div style="height:40%;background:#cbd5e1;border-radius:2px;flex:1"></div>
@@ -661,7 +664,7 @@
               <div style="height:90%;background:#475569;border-radius:2px;flex:1"></div>
               <div style="height:75%;background:#475569;border-radius:2px;flex:1"></div>
             </div>
-            <div class="text-xs text-slate-400 mt-1.5 text-center">1 247 näyttöä — näkymätön kävijälle</div>
+            <div class="text-xs text-slate-400 mt-1.5 text-center" data-i18n="idx.el.stats.previewNote">1 247 impressions — invisible to visitor</div>
           </div>
         </div>
 
@@ -671,17 +674,17 @@
             <div class="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center mb-4">
               <i class="fa fa-bolt text-yellow-300 text-xl"></i>
             </div>
-            <h3 class="font-bold text-lg mb-3">Plus paljon muuta</h3>
+            <h3 class="font-bold text-lg mb-3" data-i18n="idx.el.more.title">And much more</h3>
             <div class="space-y-2 text-sm text-blue-100">
-              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> Sähköposti-ilmoitukset</div>
-              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> Multi-sivusto tuki</div>
-              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> Kuvakirjasto pilvessä</div>
-              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> Live-esikatselu editorissa</div>
-              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> CSV-vienti liideille</div>
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> <span data-i18n="idx.el.more.li1">Email notifications</span></div>
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> <span data-i18n="idx.el.more.li2">Multi-site support</span></div>
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> <span data-i18n="idx.el.more.li3">Cloud image library</span></div>
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> <span data-i18n="idx.el.more.li4">Live preview in editor</span></div>
+              <div class="flex items-center gap-2"><i class="fa fa-check text-emerald-400 text-xs"></i> <span data-i18n="idx.el.more.li5">CSV export for leads</span></div>
             </div>
           </div>
-          <a href="/auth/google" class="mt-6 block text-center bg-white text-brand-700 font-bold text-sm py-2.5 rounded-xl hover:bg-blue-50 transition-colors">
-            Aloita nyt →
+          <a href="/auth/google" class="mt-6 block text-center bg-white text-brand-700 font-bold text-sm py-2.5 rounded-xl hover:bg-blue-50 transition-colors" data-i18n="idx.el.more.cta">
+            Start now →
           </a>
         </div>
 
@@ -696,12 +699,12 @@
   <section id="ominaisuudet" class="py-24 px-6 bg-white">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-16 fade-in">
-        <div class="tag-pill mb-4"><i class="fa fa-star"></i> Älykkäät ominaisuudet</div>
-        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
-          Älykkäät ominaisuudet<br class="hidden md:block"> jotka tekevät eron
+        <div class="tag-pill mb-4"><i class="fa fa-star"></i> <span data-i18n="idx.feat.badge">Smart features</span></div>
+        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4" data-i18n="idx.feat.h2">
+          Smart features<br class="hidden md:block"> that make the difference
         </h2>
-        <p class="text-xl text-gray-500 max-w-2xl mx-auto">
-          Enemmän kuin pelkkiä popuppeja – täydellinen konversio- ja analytiikka-alusta.
+        <p class="text-xl text-gray-500 max-w-2xl mx-auto" data-i18n="idx.feat.sub">
+          More than just popups – a complete conversion and analytics platform.
         </p>
       </div>
 
@@ -712,22 +715,22 @@
           <div class="power-icon bg-blue-100">
             <i class="fa fa-mouse-pointer text-blue-600"></i>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Helppo kuin kuvan lataus</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-4">
-            Luo popup muutamassa sekunnissa: suunnittele kuva Canvassa → lataa dashboardiin → aseta linkki → valmis. Ei koodausta, ei asetuksia.
+          <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="idx.feat.easy.title">As easy as uploading an image</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4" data-i18n="idx.feat.easy.desc">
+            Create a popup in seconds: design in Canva → upload to dashboard → set a link → done. No coding, no setup.
           </p>
           <div class="space-y-2">
             <div class="flex items-center gap-2 text-xs text-gray-600 bg-blue-50 rounded-lg px-3 py-2">
-              <i class="fa fa-upload text-blue-500 text-xs w-3"></i> Drag &amp; drop kuvan lataus
+              <i class="fa fa-upload text-blue-500 text-xs w-3"></i> <span data-i18n="idx.feat.easy.li1">Drag &amp; drop image upload</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-600 bg-blue-50 rounded-lg px-3 py-2">
-              <i class="fa fa-eye text-blue-500 text-xs w-3"></i> Live-esikatselu heti editorissa
+              <i class="fa fa-eye text-blue-500 text-xs w-3"></i> <span data-i18n="idx.feat.easy.li2">Live preview in editor instantly</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-600 bg-blue-50 rounded-lg px-3 py-2">
-              <i class="fa fa-clock text-blue-500 text-xs w-3"></i> Ajastus yhdellä napin painalluksella
+              <i class="fa fa-clock text-blue-500 text-xs w-3"></i> <span data-i18n="idx.feat.easy.li3">Scheduling with one click</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-600 bg-blue-50 rounded-lg px-3 py-2">
-              <i class="fa fa-sort text-blue-500 text-xs w-3"></i> Järjestä elementtejä vetämällä
+              <i class="fa fa-sort text-blue-500 text-xs w-3"></i> <span data-i18n="idx.feat.easy.li4">Reorder elements by dragging</span>
             </div>
           </div>
         </div>
@@ -737,12 +740,12 @@
           <div class="power-icon bg-purple-100">
             <i class="fa fa-code text-purple-600"></i>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Yksi koodirivi – ikuisesti</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-4">
-            Lisää skripti sivustosi head-osioon kerran. Sen jälkeen kaikki elementtisi aktivoituvat automaattisesti – ei enää koodimuutoksia tarvita.
+          <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="idx.feat.code.title">One line of code – forever</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4" data-i18n="idx.feat.code.desc">
+            Add the script to your site's head section once. After that all your elements activate automatically – no more code changes needed.
           </p>
           <div class="bg-gray-900 rounded-xl p-4 font-mono text-xs text-emerald-400 leading-relaxed">
-            <div class="text-gray-500 mb-1">&lt;!-- Lisää kerran head-osioon --&gt;</div>
+            <div class="text-gray-500 mb-1">&lt;!-- <span data-i18n="idx.feat.code.comment">Add once to head section</span> --&gt;</div>
             <div>&lt;script src="ui-embed.js"</div>
             <div>&nbsp;&nbsp;data-site="TOKEN"&gt;</div>
             <div>&lt;/script&gt;</div>
@@ -754,23 +757,23 @@
           <div class="power-icon bg-amber-100">
             <i class="fa fa-bell text-amber-600"></i>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Sähköposti-ilmoitukset</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-4">
-            Saat heti tiedon uudesta liidistä sähköpostiin. Viikkoraportti joka maanantai – näyttökerrat, klikkaukset, liidit ja vertailu edelliseen viikkoon. Ei integraatiota tarvita.
+          <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="idx.feat.email.title">Email notifications</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4" data-i18n="idx.feat.email.desc">
+            Get instant notification of a new lead by email. Weekly report every Monday – impressions, clicks, leads and comparison to the previous week. No integration needed.
           </p>
           <div class="space-y-2">
             <div class="flex items-start gap-3 bg-amber-50 rounded-lg p-3">
               <i class="fa fa-user-plus text-amber-500 mt-0.5 text-xs w-4"></i>
               <div>
-                <div class="text-xs font-bold text-gray-900">Liidi-ilmoitus</div>
-                <div class="text-xs text-gray-500">Välitön sähköposti uudesta yhteystiedosta</div>
+                <div class="text-xs font-bold text-gray-900" data-i18n="idx.feat.email.li1title">Lead notification</div>
+                <div class="text-xs text-gray-500" data-i18n="idx.feat.email.li1sub">Instant email for every new contact</div>
               </div>
             </div>
             <div class="flex items-start gap-3 bg-amber-50 rounded-lg p-3">
               <i class="fa fa-chart-bar text-amber-500 mt-0.5 text-xs w-4"></i>
               <div>
-                <div class="text-xs font-bold text-gray-900">Viikkoraportti</div>
-                <div class="text-xs text-gray-500">Maanantaisin: tilastot + top 3 elementtiä</div>
+                <div class="text-xs font-bold text-gray-900" data-i18n="idx.feat.email.li2title">Weekly report</div>
+                <div class="text-xs text-gray-500" data-i18n="idx.feat.email.li2sub">Mondays: stats + top 3 elements</div>
               </div>
             </div>
           </div>
@@ -781,20 +784,20 @@
           <div class="power-icon bg-teal-100">
             <i class="fa fa-chart-line text-teal-600"></i>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Tilastot & Analytiikka</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-4">
-            Näyttökerrat, klikkaukset ja liidit per elementti. Konversioaste automaattisesti laskettuna. Seuraa mikä toimii parhaiten.
+          <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="idx.feat.analytics.title">Stats &amp; Analytics</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4" data-i18n="idx.feat.analytics.desc">
+            Impressions, clicks and leads per element. Conversion rate calculated automatically. Track what works best.
           </p>
           <!-- Mini stats visual -->
           <div class="bg-teal-50 rounded-xl p-4">
             <div class="grid grid-cols-3 gap-3 text-center">
               <div>
                 <div class="text-lg font-black text-teal-700">2.4k</div>
-                <div class="text-xs text-gray-500">Näyttöä</div>
+                <div class="text-xs text-gray-500" data-i18n="idx.feat.analytics.impressions">Impressions</div>
               </div>
               <div>
                 <div class="text-lg font-black text-teal-700">187</div>
-                <div class="text-xs text-gray-500">Klikkausta</div>
+                <div class="text-xs text-gray-500" data-i18n="idx.feat.analytics.clicks">Clicks</div>
               </div>
               <div>
                 <div class="text-lg font-black text-teal-700">7.8%</div>
@@ -820,22 +823,22 @@
           <div class="power-icon bg-emerald-100">
             <i class="fa fa-inbox text-emerald-600"></i>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Liidit & CRM-vienti</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-4">
-            Kaikki Lead Form -lähetykset tallentuvat automaattisesti. Näytä, suodata, lataa CSV. Vastaa liidiin suoraan sähköpostista yhdellä klikkauksella.
+          <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="idx.feat.leads.title">Leads &amp; CRM export</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4" data-i18n="idx.feat.leads.desc">
+            All Lead Form submissions are saved automatically. View, filter, download CSV. Reply to a lead directly from email with one click.
           </p>
           <div class="space-y-1.5">
             <div class="flex items-center gap-2 text-xs text-gray-600 bg-emerald-50 rounded-lg px-3 py-2">
-              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> Automaattinen tallennus tietokantaan
+              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> <span data-i18n="idx.feat.leads.li1">Automatic save to database</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-600 bg-emerald-50 rounded-lg px-3 py-2">
-              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> Suodata elementin tai päivämäärän mukaan
+              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> <span data-i18n="idx.feat.leads.li2">Filter by element or date</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-600 bg-emerald-50 rounded-lg px-3 py-2">
-              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> Lataa CSV yhdellä napin painalluksella
+              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> <span data-i18n="idx.feat.leads.li3">Download CSV with one click</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-600 bg-emerald-50 rounded-lg px-3 py-2">
-              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> Sähköposti-ilmoitus uudesta liidistä
+              <i class="fa fa-check-circle text-emerald-500 text-xs"></i> <span data-i18n="idx.feat.leads.li4">Email notification for new lead</span>
             </div>
           </div>
         </div>
@@ -846,9 +849,9 @@
           <div class="power-icon bg-sky-100">
             <i class="fa fa-images text-sky-600"></i>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Kuvakirjasto</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-4">
-            Lataa ja hallinnoi kuvia pilvessä. Käytä kuvia suoraan popup-editorissa. Automaattinen pakkaus, turvalliset linkit.
+          <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="idx.feat.images.title">Image library</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4" data-i18n="idx.feat.images.desc">
+            Upload and manage images in the cloud. Use images directly in the popup editor. Automatic compression, secure links.
           </p>
           <div class="grid grid-cols-3 gap-2">
             <div class="aspect-square bg-sky-100 rounded-lg flex items-center justify-center">
@@ -877,28 +880,28 @@
           <div class="power-icon bg-orange-100">
             <i class="fa fa-globe text-orange-600"></i>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Multi-sivusto tuki</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-4">
-            Hallinnoi useita verkkosivustoja yhdestä dashboardista. Kullekin sivustolle oma asennuskoodi ja omat elementit.
+          <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="idx.feat.multisite.title">Multi-site support</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4" data-i18n="idx.feat.multisite.desc">
+            Manage multiple websites from one dashboard. Each site gets its own install code and elements.
           </p>
           <div class="space-y-2">
             <div class="flex items-center gap-3 bg-orange-50 rounded-lg px-3 py-2">
               <i class="fa fa-globe text-orange-500 text-xs"></i>
               <div>
-                <div class="text-xs font-bold text-gray-900">yritys.fi</div>
-                <div class="text-xs text-gray-500">5 elementtiä · 1.2k näyttöä/vk</div>
+                <div class="text-xs font-bold text-gray-900">company.com</div>
+                <div class="text-xs text-gray-500" data-i18n="idx.feat.multisite.site1">5 elements · 1.2k views/wk</div>
               </div>
             </div>
             <div class="flex items-center gap-3 bg-orange-50 rounded-lg px-3 py-2">
               <i class="fa fa-globe text-orange-500 text-xs"></i>
               <div>
-                <div class="text-xs font-bold text-gray-900">kauppa.fi</div>
-                <div class="text-xs text-gray-500">8 elementtiä · 3.4k näyttöä/vk</div>
+                <div class="text-xs font-bold text-gray-900">shop.com</div>
+                <div class="text-xs text-gray-500" data-i18n="idx.feat.multisite.site2">8 elements · 3.4k views/wk</div>
               </div>
             </div>
             <div class="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
               <i class="fa fa-plus text-gray-400 text-xs"></i>
-              <div class="text-xs text-gray-400">Lisää sivusto...</div>
+              <div class="text-xs text-gray-400" data-i18n="idx.feat.multisite.add">Add site...</div>
             </div>
           </div>
         </div>
@@ -908,9 +911,9 @@
           <div class="power-icon bg-violet-100">
             <i class="fa fa-eye text-violet-600"></i>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Live-esikatselu</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-4">
-            Näet muutokset reaaliajassa editorissa. Desktop- ja mobiiliesikatselu rinnakkain. Ei tarvitse julkaista testataksesi.
+          <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="idx.feat.preview.title">Live preview</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4" data-i18n="idx.feat.preview.desc">
+            See changes in real time in the editor. Desktop and mobile preview side by side. No need to publish to test.
           </p>
           <div class="flex gap-3">
             <div class="flex-1 bg-gray-900 rounded-lg overflow-hidden">
@@ -948,11 +951,11 @@
   <section id="kayttoonotto" class="py-24 px-6 bg-gray-50">
     <div class="max-w-5xl mx-auto">
       <div class="text-center mb-16 fade-in">
-        <div class="tag-pill mb-4"><i class="fa fa-rocket"></i> Käyttöönotto</div>
-        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
-          Kolme askelta käyttöönottoon
+        <div class="tag-pill mb-4"><i class="fa fa-rocket"></i> <span data-i18n="idx.how.badge">Getting started</span></div>
+        <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4" data-i18n="idx.how.h2">
+          Three steps to get started
         </h2>
-        <p class="text-xl text-gray-500">Ensimmäinen elementti on käytössä alle 5 minuutissa</p>
+        <p class="text-xl text-gray-500" data-i18n="idx.how.sub">Your first element is live in under 5 minutes</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
@@ -961,10 +964,10 @@
         <div class="relative text-center fade-in">
           <div class="step-connector hidden md:block"></div>
           <div class="w-14 h-14 bg-gradient-to-br from-brand-600 to-brand-800 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-5 shadow-lg">1</div>
-          <h3 class="font-bold text-gray-900 text-lg mb-3">Kirjaudu sisään</h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
-            Google-tili riittää. Ei lomakkeita, ei sähköpostivahvistuksia, ei luottokorttia.
-            Tili on valmis sekunneissa.
+          <h3 class="font-bold text-gray-900 text-lg mb-3" data-i18n="idx.how.step1.title">Sign in</h3>
+          <p class="text-gray-500 text-sm leading-relaxed" data-i18n="idx.how.step1.desc">
+            A Google account is enough. No forms, no email verification, no credit card.
+            Account ready in seconds.
           </p>
           <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 text-brand-700 text-xs font-semibold px-3 py-1.5 rounded-lg">
             <i class="fab fa-google text-red-500"></i> Google OAuth
@@ -975,26 +978,26 @@
         <div class="relative text-center fade-in">
           <div class="step-connector hidden md:block"></div>
           <div class="w-14 h-14 bg-gradient-to-br from-brand-600 to-brand-800 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-5 shadow-lg">2</div>
-          <h3 class="font-bold text-gray-900 text-lg mb-3">Luo elementti dashboardissa</h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
-            Valitse tyyppi, mukauta teksti, värit ja asetukset visuaalisessa editorissa.
-            Esikatsele reaaliajassa – desktop ja mobiili rinnakkain.
+          <h3 class="font-bold text-gray-900 text-lg mb-3" data-i18n="idx.how.step2.title">Create an element in the dashboard</h3>
+          <p class="text-gray-500 text-sm leading-relaxed" data-i18n="idx.how.step2.desc">
+            Choose a type, customise text, colours and settings in the visual editor.
+            Preview in real time – desktop and mobile side by side.
           </p>
           <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 text-brand-700 text-xs font-semibold px-3 py-1.5 rounded-lg">
-            <i class="fa fa-eye"></i> Live-esikatselu
+            <i class="fa fa-eye"></i> <span data-i18n="idx.how.step2.badge">Live preview</span>
           </div>
         </div>
 
         <!-- Step 3 -->
         <div class="relative text-center fade-in">
           <div class="w-14 h-14 bg-gradient-to-br from-brand-600 to-brand-800 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-5 shadow-lg">3</div>
-          <h3 class="font-bold text-gray-900 text-lg mb-3">Liitä yksi koodi sivulle</h3>
-          <p class="text-gray-500 text-sm leading-relaxed mb-4">
-            Kopioi yksi rivi sivustosi <code class="bg-gray-100 px-1 rounded text-xs">&lt;head&gt;</code>-osioon –
-            <strong>kaikki</strong> luomasi elementit aktivoituvat automaattisesti.
+          <h3 class="font-bold text-gray-900 text-lg mb-3" data-i18n="idx.how.step3.title">Paste one line of code on your site</h3>
+          <p class="text-gray-500 text-sm leading-relaxed mb-4" data-i18n="idx.how.step3.desc">
+            Copy one line into your site's <code class="bg-gray-100 px-1 rounded text-xs">&lt;head&gt;</code> –
+            <strong>all</strong> your elements activate automatically.
           </p>
           <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 text-brand-700 text-xs font-semibold px-3 py-1.5 rounded-lg">
-            <i class="fa fa-check-circle text-emerald-500"></i> Kaikki elementit yhdellä rivillä
+            <i class="fa fa-check-circle text-emerald-500"></i> <span data-i18n="idx.how.step3.badge">All elements in one line</span>
           </div>
         </div>
 
@@ -1012,9 +1015,9 @@
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-attr">data-site</span>=<span class="code-string">"sinun-token"</span><span class="code-tag">&gt;&lt;/script&gt;</span>
           </div>
         </div>
-        <p class="text-center text-gray-400 text-sm mt-3">
+        <p class="text-center text-gray-400 text-sm mt-3" data-i18n="idx.how.codeNote">
           <i class="fa fa-check-circle text-emerald-500 mr-1"></i>
-          Sticky bar + popup + lead form + floating button – kaikki yhdellä rivillä
+          Sticky bar + popup + lead form + floating button – all in one line
         </p>
       </div>
     </div>
@@ -1028,82 +1031,82 @@
     <div class="max-w-5xl mx-auto">
       <div class="text-center mb-16 fade-in">
         <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-700 rounded-full px-4 py-2 text-sm font-medium mb-6">
-          <i class="fa fa-tag"></i> Hinnoittelu
+          <i class="fa fa-tag"></i> <span data-i18n="idx.price.badge">Pricing</span>
         </div>
-        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Aloita ilmaiseksi, skaalaa tarpeen mukaan</h2>
-        <p class="text-lg text-gray-600">Ei sitoutumista. Ei luottokorttia. Aloita heti.</p>
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4" data-i18n="idx.price.h2">Start free, scale as you grow</h2>
+        <p class="text-lg text-gray-600" data-i18n="idx.price.sub">No commitment. No credit card. Start right now.</p>
       </div>
       <div class="grid md:grid-cols-3 gap-8 fade-in">
 
         <!-- FREE -->
         <div class="bg-gray-50 border border-gray-200 rounded-2xl p-8 flex flex-col">
           <div class="mb-6">
-            <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Ilmainen</p>
+            <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2" data-i18n="idx.price.free.tier">Free</p>
             <div class="flex items-end gap-1 mb-4">
               <span class="text-4xl font-bold text-gray-900">0€</span>
-              <span class="text-gray-500 mb-1">/kk</span>
+              <span class="text-gray-500 mb-1" data-i18n="idx.price.perMonth">/mo</span>
             </div>
-            <p class="text-sm text-gray-600">Täydellinen kokeiluun ja yksittäisen elementin käyttöön.</p>
+            <p class="text-sm text-gray-600" data-i18n="idx.price.free.tagline">Perfect for trying out and running a single element.</p>
           </div>
           <ul class="space-y-3 mb-8 flex-1 text-sm text-gray-700">
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> 1 elementti kerrallaan</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Kaikki elementtityypit</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Cookie consent -banneri</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> 5 kuvalatauksta</li>
-            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> Analytiikka</li>
-            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> Targeting-säännöt</li>
-            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> Lead-lomakkeet</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.li1">1 element at a time</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.li2">All element types</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.li3">Cookie consent banner</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.free.li4">5 image uploads</span></li>
+            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> <span data-i18n="idx.price.free.li5">Analytics</span></li>
+            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> <span data-i18n="idx.price.free.li6">Targeting rules</span></li>
+            <li class="flex items-center gap-2 text-gray-400"><i class="fa fa-times"></i> <span data-i18n="idx.price.free.li7">Lead forms</span></li>
           </ul>
-          <a href="/auth/google" class="block text-center py-3 px-6 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-gray-400 transition-colors">
-            Aloita ilmaiseksi
+          <a href="/auth/google" class="block text-center py-3 px-6 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-gray-400 transition-colors" data-i18n="idx.price.free.cta">
+            Start for free
           </a>
         </div>
 
         <!-- PRO -->
         <div class="bg-brand-600 border border-brand-700 rounded-2xl p-8 flex flex-col relative shadow-xl shadow-brand-200">
           <div class="absolute -top-4 left-1/2 -translate-x-1/2">
-            <span class="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Suosituin</span>
+            <span class="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide" data-i18n="idx.price.pro.badge">Most popular</span>
           </div>
           <div class="mb-6">
             <p class="text-sm font-semibold text-brand-200 uppercase tracking-wide mb-2">Pro</p>
             <div class="flex items-end gap-1 mb-4">
               <span class="text-4xl font-bold text-white">4,90€</span>
-              <span class="text-brand-200 mb-1">/kk</span>
+              <span class="text-brand-200 mb-1" data-i18n="idx.price.perMonth">/mo</span>
             </div>
-            <p class="text-sm text-brand-100">Kaikki mitä tarvitset kasvavaan liiketoimintaan.</p>
+            <p class="text-sm text-brand-100" data-i18n="idx.price.pro.tagline">Everything you need for a growing business.</p>
           </div>
           <ul class="space-y-3 mb-8 flex-1 text-sm text-white">
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> 20 elementtiä</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Kaikki elementtityypit</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> 100 kuvalatauksta</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Analytiikka &amp; tilastot</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Targeting-säännöt</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Lead-lomakkeet</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> Sähköposti-ilmoitukset</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li1">20 elements</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li2">All element types</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li3">100 image uploads</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li4">Analytics &amp; stats</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li5">Targeting rules</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li6">Lead forms</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-brand-200"></i> <span data-i18n="idx.price.pro.li7">Email notifications</span></li>
           </ul>
-          <button onclick="requestProUpgrade()" class="block w-full text-center py-3 px-6 rounded-xl bg-white text-brand-700 font-bold hover:bg-brand-50 transition-colors">
-            Tilaa Pro →
+          <button onclick="requestProUpgrade()" class="block w-full text-center py-3 px-6 rounded-xl bg-white text-brand-700 font-bold hover:bg-brand-50 transition-colors" data-i18n="idx.price.pro.cta">
+            Subscribe Pro →
           </button>
         </div>
 
         <!-- RÄÄTÄLÖITY -->
         <div class="bg-gray-50 border border-gray-200 rounded-2xl p-8 flex flex-col">
           <div class="mb-6">
-            <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Räätälöity</p>
+            <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2" data-i18n="idx.price.custom.tier">Custom</p>
             <div class="flex items-end gap-1 mb-4">
               <span class="text-4xl font-bold text-gray-900">?</span>
             </div>
-            <p class="text-sm text-gray-600">Useita sivustoja, rajattomasti elementtejä, omat integraatiot.</p>
+            <p class="text-sm text-gray-600" data-i18n="idx.price.custom.tagline">Multiple sites, unlimited elements, custom integrations.</p>
           </div>
           <ul class="space-y-3 mb-8 flex-1 text-sm text-gray-700">
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Rajaton elementtimäärä</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Useita sivustoja</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Kaikki Pro-ominaisuudet</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Prioriteettituki</li>
-            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> Räätälöidyt integraatiot</li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.custom.li1">Unlimited elements</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.custom.li2">Multiple sites</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.custom.li3">All Pro features</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.custom.li4">Priority support</span></li>
+            <li class="flex items-center gap-2"><i class="fa fa-check text-green-500"></i> <span data-i18n="idx.price.custom.li5">Custom integrations</span></li>
           </ul>
-          <button onclick="openContactModal()" class="block w-full text-center py-3 px-6 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-gray-400 transition-colors">
-            Ota yhteyttä
+          <button onclick="openContactModal()" class="block w-full text-center py-3 px-6 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-gray-400 transition-colors" data-i18n="idx.price.custom.cta">
+            Contact us
           </button>
         </div>
       </div>
@@ -1137,14 +1140,14 @@
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-16 fade-in">
         <div class="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/30 text-amber-300 rounded-full px-4 py-2 text-sm font-medium mb-6">
-          <i class="fa fa-bell"></i> Sähköposti-ilmoitukset
+          <i class="fa fa-bell"></i> <span data-i18n="idx.email.badge">Email notifications</span>
         </div>
-        <h2 class="text-4xl md:text-5xl font-black text-white mb-4">
-          Liidit suoraan sähköpostiisi<br class="hidden md:block">
-          <span class="text-amber-300">– automaattisesti</span>
+        <h2 class="text-4xl md:text-5xl font-black text-white mb-4" data-i18n="idx.email.h2">
+          Leads straight to your inbox<br class="hidden md:block">
+          <span class="text-amber-300">– automatically</span>
         </h2>
-        <p class="text-xl text-gray-400 max-w-2xl mx-auto">
-          Ei integraatioita, ei IFTTT, ei Zapier – toimii suoraan ilman lisätyötä.
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto" data-i18n="idx.email.sub">
+          No integrations, no IFTTT, no Zapier – works out of the box with zero extra effort.
         </p>
       </div>
 
@@ -1264,16 +1267,16 @@
   <section class="cta-gradient py-28 px-6 text-white text-center">
     <div class="max-w-3xl mx-auto fade-in">
       <div class="text-6xl mb-6">🚀</div>
-      <h2 class="text-4xl md:text-5xl font-black mb-5">Valmis aloittamaan?</h2>
-      <p class="text-xl text-blue-200 mb-10 leading-relaxed">
-        Luo ensimmäinen konversioelementtisi tänään. Yksi koodirivi, kaikki toiminnot käytössä.
+      <h2 class="text-4xl md:text-5xl font-black mb-5" data-i18n="idx.cta.h2">Ready to get started?</h2>
+      <p class="text-xl text-blue-200 mb-10 leading-relaxed" data-i18n="idx.cta.sub">
+        Create your first conversion element today. One line of code, all features active.
       </p>
       <a href="/auth/google"
          class="inline-flex items-center gap-3 bg-white text-brand-800 font-extrabold px-10 py-5 rounded-2xl hover:bg-blue-50 transition-all text-xl shadow-2xl hover:-translate-y-1 transform">
         <i class="fab fa-google text-red-500 text-2xl"></i>
-        Aloita Google-tilillä – ilmaiseksi
+        <span data-i18n="idx.cta.btn">Start with Google – for free</span>
       </a>
-      <p class="text-blue-300 text-sm mt-6">Ei luottokorttia · Ei asennusta · Yksi koodirivi</p>
+      <p class="text-blue-300 text-sm mt-6" data-i18n="idx.cta.note">No credit card · No installation · One line of code</p>
     </div>
   </section>
 
@@ -1332,6 +1335,7 @@
     }).catch(() => {});
   </script>
   <script src="https://popupmanager.net/ui-embed.js" data-site="6083666a-263e-4f1b-a5e9-d76317210bda"></script>
+  <script type="module" src="js/i18n.js"></script>
 
   <!-- ═══ OTA YHTEYTTÄ -MODAALI ═══ -->
   <div id="contact-modal" style="display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;padding:16px">

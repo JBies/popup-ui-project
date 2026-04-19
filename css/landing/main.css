@@ -1,0 +1,160 @@
+/* ==========================================================================
+   LANDING PAGE MAIN STYLES
+   ========================================================================== */
+
+/* Import base styles */
+@import url('base.css');
+
+/* Import component styles */
+@import url('components/cards.css');
+@import url('components/buttons.css');
+@import url('components/previews.css');
+
+/* Import animations */
+@import url('animations.css');
+
+/* Import section styles */
+@import url('sections/hero.css');
+@import url('sections/features.css');
+@import url('sections/pricing.css');
+@import url('sections/email.css');
+
+/* ==========================================================================
+   SECTION-SPECIFIC OVERRIDES & UTILITIES
+   ========================================================================== */
+
+/* Hero section specific */
+.hero-gradient {
+  background: var(--gradient-hero);
+}
+
+/* CTA section specific */
+.cta-gradient {
+  background: var(--gradient-cta);
+}
+
+/* Background color utilities */
+.bg-gray-50 {
+  background-color: var(--color-gray-50);
+}
+
+.bg-white {
+  background-color: white;
+}
+
+.bg-gray-900 {
+  background-color: var(--color-gray-900);
+}
+
+/* Text color utilities */
+.text-white {
+  color: white;
+}
+
+.text-gray-900 {
+  color: var(--color-gray-900);
+}
+
+.text-gray-500 {
+  color: var(--color-gray-500);
+}
+
+.text-brand-700 {
+  color: var(--color-brand-700);
+}
+
+.text-blue-100 {
+  color: rgba(219, 234, 254, 1);
+}
+
+.text-blue-200 {
+  color: rgba(191, 219, 254, 1);
+}
+
+/* Border utilities */
+.border-gray-100 {
+  border-color: var(--color-gray-100);
+}
+
+.border-gray-200 {
+  border-color: var(--color-gray-200);
+}
+
+/* Shadow utilities */
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.shadow-xl {
+  box-shadow: var(--shadow-xl);
+}
+
+.shadow-2xl {
+  box-shadow: var(--shadow-2xl);
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .md\:flex {
+    display: flex;
+  }
+  
+  .md\:hidden {
+    display: none;
+  }
+  
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .md\:grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .sm\:flex {
+    display: flex;
+  }
+  
+  .sm\:hidden {
+    display: none;
+  }
+  
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  a {
+    color: black !important;
+    text-decoration: underline !important;
+  }
+}
