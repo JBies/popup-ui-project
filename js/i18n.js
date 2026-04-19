@@ -361,6 +361,12 @@ const translations = {
 
     // --- Role label ---
     'role.user':            'User',
+
+    // --- Element editor: view interval ---
+    'editor.viewCooldown.label': 'View interval',
+    'editor.viewCooldown.always': 'Every time',
+    'editor.viewCooldown.1h':    '1-hour interval',
+    'editor.viewCooldown.24h':   '24-hour interval',
   },
 
   fi: {
@@ -840,6 +846,12 @@ const translations = {
 
     // --- Role label ---
     'role.user':            'Käyttäjä',
+
+    // --- Element editor: view interval ---
+    'editor.viewCooldown.label': 'Näyttöväli',
+    'editor.viewCooldown.always': 'Joka kerta',
+    'editor.viewCooldown.1h':    '1 tunnin toistumisväli',
+    'editor.viewCooldown.24h':   '24 tunnin toistumisväli',
   }
 };
 

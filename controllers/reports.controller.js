@@ -53,14 +53,19 @@ exports.getReport = async (req, res) => {
     }
 
     // ── Jaksokohtaiset tilastot ────────────────────────────────────────────────
+    // Liidit haetaan userId:llä (ei popupId-suodatuksella) jotta poistettujen
+    // elementtien liidit eivät katoa raportista.
+    const leadFilter = { userId, submittedAt: { $gte: fromDate, $lte: toDate } };
+    if (popupId) leadFilter.popupId = popupId; // yksittäinen elementtisuodatus säilyy
+
     const [dailyAgg, periodLeads] = await Promise.all([
-      // Views + clicks DailyStats-kokoelmasta
+      // Views + clicks DailyStats-kokoelmasta (vain olemassa olevat elementit)
       DailyStats.aggregate([
         { $match: { popupId: { $in: popupIds }, date: { $gte: fromStr, $lte: toStr } } },
         { $group: { _id: null, views: { $sum: '$views' }, clicks: { $sum: '$clicks' } } },
       ]),
-      // Liidit Lead-mallista
-      Lead.countDocuments({ userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } }),
+      // Liidit kaikilta käyttäjän elementeiltä, myös poistetuista
+      Lead.countDocuments(leadFilter),
     ]);
 
     const period = {
@@ -95,14 +100,14 @@ exports.getReport = async (req, res) => {
 
     // ── Viimeisimmät liidit jaksolla ──────────────────────────────────────────
     const recentLeadsRaw = await Lead
-      .find({ userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } })
+      .find(leadFilter)
       .sort({ submittedAt: -1 })
       .limit(50)
       .populate('popupId', 'name elementType siteId')
       .lean();
 
     const recentLeads = recentLeadsRaw.map(l => ({
-      popupName:   l.popupId?.name || 'Tuntematon',
+      popupName:   l.popupId?.name || '(poistettu elementti)',
       elementType: l.popupId?.elementType || null,
       siteId:      l.popupId?.siteId || null,
       data:        l.data || {},

@@ -10,6 +10,25 @@ const { triggerWebhooks } = require('../utils/webhooks');
 
 const { bucket } = require('../firebase');
 
+// IP-pohjainen näyttökertojen deduplikointi: sama IP + elementti lasketaan kerran tunnissa.
+// Avain: "<ip>:<popupId>", arvo: timestamp (ms) milloin viimeksi laskettiin.
+const viewCache = new Map();
+
+function isViewDuplicate(ip, popupId, cooldownMs) {
+  const key = `${ip}:${popupId}`;
+  const last = viewCache.get(key);
+  const now = Date.now();
+  if (last && now - last < cooldownMs) return true;
+  viewCache.set(key, now);
+  // Siivoa vanhentuneet merkinnät satunnaisesti (n. 1% kutsuista)
+  if (Math.random() < 0.01) {
+    for (const [k, t] of viewCache) {
+      if (now - t >= cooldownMs) viewCache.delete(k);
+    }
+  }
+  return false;
+}
+
 /**
  * Generoi allekirjoitetun URL:in Firebase Storagesta firebasePath:n perusteella.
  * Jos generointi epäonnistuu, palautetaan alkuperäinen URL.
@@ -120,6 +139,7 @@ class PopupController {
       campaign,
       abTest,
       frequency,
+      viewCooldown,
       siteId
     } = req.body;
 
@@ -128,7 +148,8 @@ class PopupController {
       const timingData = {
         delay: parseInt(delay) || 0,
         showDuration: parseInt(showDuration) || 0,
-        frequency: frequency || 'always'
+        frequency: frequency || 'always',
+        viewCooldown: [0, 3600, 86400].includes(parseInt(viewCooldown)) ? parseInt(viewCooldown) : 0
       };
 
       // Tallenna päivämäärät suoraan stringinä (ei new Date() — se rikkoo String-kentän)
@@ -312,7 +333,8 @@ class PopupController {
       const timingData = {
         delay: parseInt(delay) || 0,
         showDuration: parseInt(showDuration) || 0,
-        frequency: frequency || 'always'
+        frequency: frequency || 'always',
+        viewCooldown: [0, 3600, 86400].includes(parseInt(viewCooldown)) ? parseInt(viewCooldown) : 0
       };
 
       // Tallenna päivämäärät suoraan stringinä (ei new Date() — se rikkoo String-kentän)
@@ -499,6 +521,17 @@ class PopupController {
   static async registerView(req, res) {
     try {
       const popupId = req.params.id;
+      const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0].trim() || 'unknown';
+
+      // Hae elementin viewCooldown-asetus
+      const popup = await Popup.findById(popupId).select('userId timing').lean();
+      if (!popup) return res.status(404).json({ message: 'Not found' });
+
+      const cooldownMs = (popup.timing?.viewCooldown || 0) * 1000;
+      if (cooldownMs > 0 && isViewDuplicate(ip, popupId, cooldownMs)) {
+        return res.status(200).json({ success: true, duplicate: true });
+      }
+
       const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
       // Päivitä kumulatiiviset tilastot
@@ -508,7 +541,6 @@ class PopupController {
       });
 
       // Päivitä päiväkohtaiset tilastot
-      const popup = await Popup.findById(popupId).select('userId').lean();
       if (popup) {
         DailyStats.findOneAndUpdate(
           { userId: popup.userId, popupId, date: today },

@@ -73,6 +73,7 @@ function buildEditorHTML(type, data = {}, sites = []) {
   const timing = data.timing || {};
   const delay = timing.delay || 0;
   const frequency = timing.frequency || 'always';
+  const viewCooldown = timing.viewCooldown ?? 0;
 
   // Tunnista ajastustila tallennettua dataa varten
   let timingMode = 'immediate';
@@ -128,6 +129,23 @@ function buildEditorHTML(type, data = {}, sites = []) {
         <label style="flex:1;display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${frequency==='once'?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${frequency==='once'?'#eff6ff':'#fff'}">
           <input type="radio" name="el-frequency" value="once" ${frequency==='once'?'checked':''} style="accent-color:#3b82f6">
           <span style="font-size:13px;font-weight:500;color:#0f172a">Kerran per istunto</span>
+        </label>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label data-i18n="editor.viewCooldown.label">Näyttöväli</label>
+      <div style="display:flex;gap:8px;flex-direction:column">
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${viewCooldown===0?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${viewCooldown===0?'#eff6ff':'#fff'}">
+          <input type="radio" name="el-viewCooldown" value="0" ${viewCooldown===0?'checked':''} style="accent-color:#3b82f6">
+          <span style="font-size:13px;font-weight:500;color:#0f172a" data-i18n="editor.viewCooldown.always">Joka kerta</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${viewCooldown===3600?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${viewCooldown===3600?'#eff6ff':'#fff'}">
+          <input type="radio" name="el-viewCooldown" value="3600" ${viewCooldown===3600?'checked':''} style="accent-color:#3b82f6">
+          <span style="font-size:13px;font-weight:500;color:#0f172a" data-i18n="editor.viewCooldown.1h">1 tunnin toistumisväli</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${viewCooldown===86400?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${viewCooldown===86400?'#eff6ff':'#fff'}">
+          <input type="radio" name="el-viewCooldown" value="86400" ${viewCooldown===86400?'checked':''} style="accent-color:#3b82f6">
+          <span style="font-size:13px;font-weight:500;color:#0f172a" data-i18n="editor.viewCooldown.24h">24 tunnin toistumisväli</span>
         </label>
       </div>
     </div>
@@ -430,12 +448,13 @@ function buildPayload() {
   const timingMode = document.querySelector('input[name="timing-mode"]:checked')?.value || 'immediate';
   const delay = timingMode === 'delay' ? (parseInt(document.getElementById('el-delay')?.value) || 5) : 0;
   const frequency = document.querySelector('input[name="el-frequency"]:checked')?.value || 'always';
+  const viewCooldown = parseInt(document.querySelector('input[name="el-viewCooldown"]:checked')?.value ?? '0') || 0;
 
   return {
     name,
     elementType: currentType,
     popupType: typeData.popupType || 'rectangle',
-    delay, frequency,
+    delay, frequency, viewCooldown,
     targeting: readTargetingFromUI(),
     abTest: { enabled: false },
     siteId: siteId || null,

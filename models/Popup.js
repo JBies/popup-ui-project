@@ -34,7 +34,8 @@ const popupSchema = new mongoose.Schema({
         showDuration: { type: Number, default: 0 },
         frequency: { type: String, default: 'always' },
         startDate: { type: String, default: "default" },
-        endDate: { type: String, default: "default" }
+        endDate: { type: String, default: "default" },
+        viewCooldown: { type: Number, default: 0, enum: [0, 3600, 86400] }
     },
     // Tilastokenttä
     statistics: {
