@@ -112,6 +112,25 @@ function buildEditorHTML(type, data = {}, sites = []) {
       </select>
     </div>`;
 
+  const viewCooldownHTML = `
+    <div class="form-group" style="margin-top:12px">
+      <label data-i18n="editor.viewCooldown.label">Näyttöväli</label>
+      <div style="display:flex;gap:8px;flex-direction:column">
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${viewCooldown===0?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${viewCooldown===0?'#eff6ff':'#fff'}">
+          <input type="radio" name="el-viewCooldown" value="0" ${viewCooldown===0?'checked':''} style="accent-color:#3b82f6">
+          <span style="font-size:13px;font-weight:500;color:#0f172a" data-i18n="editor.viewCooldown.always">Joka kerta</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${viewCooldown===3600?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${viewCooldown===3600?'#eff6ff':'#fff'}">
+          <input type="radio" name="el-viewCooldown" value="3600" ${viewCooldown===3600?'checked':''} style="accent-color:#3b82f6">
+          <span style="font-size:13px;font-weight:500;color:#0f172a" data-i18n="editor.viewCooldown.1h">1 tunnin toistumisväli</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${viewCooldown===86400?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${viewCooldown===86400?'#eff6ff':'#fff'}">
+          <input type="radio" name="el-viewCooldown" value="86400" ${viewCooldown===86400?'checked':''} style="accent-color:#3b82f6">
+          <span style="font-size:13px;font-weight:500;color:#0f172a" data-i18n="editor.viewCooldown.24h">24 tunnin toistumisväli</span>
+        </label>
+      </div>
+    </div>`;
+
   const timingHTML = type !== 'stats_only' && type !== 'slide_in' ? `
     <div class="section-title" style="margin-top:20px">Milloin näytetään?</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
@@ -153,23 +172,6 @@ function buildEditorHTML(type, data = {}, sites = []) {
         </label>
       </div>
     </div>
-    <div class="form-group" style="margin-top:12px">
-      <label data-i18n="editor.viewCooldown.label">Näyttöväli</label>
-      <div style="display:flex;gap:8px;flex-direction:column">
-        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${viewCooldown===0?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${viewCooldown===0?'#eff6ff':'#fff'}">
-          <input type="radio" name="el-viewCooldown" value="0" ${viewCooldown===0?'checked':''} style="accent-color:#3b82f6">
-          <span style="font-size:13px;font-weight:500;color:#0f172a" data-i18n="editor.viewCooldown.always">Joka kerta</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${viewCooldown===3600?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${viewCooldown===3600?'#eff6ff':'#fff'}">
-          <input type="radio" name="el-viewCooldown" value="3600" ${viewCooldown===3600?'checked':''} style="accent-color:#3b82f6">
-          <span style="font-size:13px;font-weight:500;color:#0f172a" data-i18n="editor.viewCooldown.1h">1 tunnin toistumisväli</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid ${viewCooldown===86400?'#3b82f6':'#e2e8f0'};border-radius:8px;cursor:pointer;background:${viewCooldown===86400?'#eff6ff':'#fff'}">
-          <input type="radio" name="el-viewCooldown" value="86400" ${viewCooldown===86400?'checked':''} style="accent-color:#3b82f6">
-          <span style="font-size:13px;font-weight:500;color:#0f172a" data-i18n="editor.viewCooldown.24h">24 tunnin toistumisväli</span>
-        </label>
-      </div>
-    </div>
     <div class="form-row" style="margin-top:8px">
       <div class="form-group" style="margin-bottom:0">
         <label>Näytä alkaen <span style="font-size:11px;color:#94a3b8;font-weight:400">(vapaaehtoinen)</span></label>
@@ -200,6 +202,8 @@ function buildEditorHTML(type, data = {}, sites = []) {
         <div id="type-fields"></div>
 
         ${timingHTML}
+
+        ${viewCooldownHTML}
 
         <!-- Kohdistus -->
         <div style="margin-top:20px">
