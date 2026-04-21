@@ -54,6 +54,10 @@ if (!window.ShowElement) {
           }
         }
         trackView(elementId);
+        // Sivun seuranta – ennen type-dispatchin returnia
+        var cfg = el.elementConfig || {};
+        if (cfg.trackPageLinks) initPageLinkTracking(el);
+        if (cfg.trackScroll)    initScrollTracking(el);
         var type = el.elementType || 'popup';
         if (type === 'stats_only')           return; // vain käyntilaskuri, ei renderöintiä
         else if (type === 'sticky_bar')      renderStickyBar(el);
@@ -64,10 +68,6 @@ if (!window.ShowElement) {
         else if (type === 'lead_form')       renderLeadForm(el);
         else if (type === 'cookie_consent')  renderCookieConsent(el);
         else                                 renderLegacyPopup(el);
-        // Sivun seuranta
-        var cfg = el.elementConfig || {};
-        if (cfg.trackPageLinks) initPageLinkTracking(el);
-        if (cfg.trackScroll)    initScrollTracking(el);
       })
       .catch(function (e) { console.warn('[ui-embed] Elementtiä ei löydy:', e); });
   };
