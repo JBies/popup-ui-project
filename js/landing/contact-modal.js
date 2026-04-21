@@ -2,6 +2,8 @@
    CONTACT MODAL
    ========================================================================== */
 
+import { t } from '../i18n.js';
+
 /**
  * Open contact modal
  * @param {string} mode - 'pro' for Pro upgrade, undefined for custom quote
@@ -20,13 +22,13 @@ export function openContactModal(mode = '') {
   if (mode === 'pro') {
     const h2 = card.querySelector('h2');
     const p = card.querySelector('h2 + p');
-    
-    if (h2) h2.textContent = 'Aloita Pro-tili — 4,90€/kk';
-    if (p) p.textContent = 'Jätä yhteystietosi, niin lähetämme aktivointiohjeet sähköpostiin.';
-    
-    msgField.value = 'Hei!\n\nHaluaisin aktivoida Pro-tilin. Sivustoni on [sivustosi osoite] ja käytän palvelua [kerro lyhyesti mihin — esim. liidien keräämiseen / cookie consent -banneriin / myynninedistämiseen].\n\nOdotan aktivointiohjeitanne!';
+
+    if (h2) h2.textContent = t('contact.proTitle');
+    if (p) p.textContent = t('contact.proSubtitle');
+
+    msgField.value = t('contact.proMessage');
   } else {
-    msgField.value = 'Hei!\n\nOlen kiinnostunut räätälöidystä paketista. Meillä on [sivustojen määrä] sivustoa ja tarvitsisimme [kuvaile tarpeet lyhyesti — esim. useita tilejä / oman ulkoasun / CRM-integraation].\n\nVoidaanko sopia lyhyt palaveri?';
+    msgField.value = t('contact.customMessage');
   }
 
   // Show form, hide success message
@@ -84,20 +86,20 @@ export async function submitContactForm(e) {
   errEl.style.display = 'none';
   
   if (!name || !email || !message) {
-    errEl.textContent = 'Täytä pakolliset kentät (nimi, sähköposti, viesti).';
+    errEl.textContent = t('contact.errorRequired');
     errEl.style.display = 'block';
     return;
   }
-  
+
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errEl.textContent = 'Tarkista sähköpostiosoite.';
+    errEl.textContent = t('contact.errorEmail');
     errEl.style.display = 'block';
     return;
   }
-  
+
   // Disable submit button and show loading state
   submit.disabled = true;
-  submit.innerHTML = '<i class="fa fa-spinner fa-spin" style="margin-right:8px"></i>Lähetetään...';
+  submit.innerHTML = `<i class="fa fa-spinner fa-spin" style="margin-right:8px"></i>${t('contact.sending')}`;
   
   try {
     const response = await fetch('/api/user/contact', {
@@ -118,12 +120,12 @@ export async function submitContactForm(e) {
     }
   } catch (error) {
     // Show error message
-    errEl.textContent = 'Lähetys epäonnistui. Yritä uudelleen tai kirjoita suoraan: projektimanageri@gmail.com';
+    errEl.textContent = t('contact.errorSend') + 'projektimanageri@gmail.com';
     errEl.style.display = 'block';
-    
+
     // Re-enable submit button
     submit.disabled = false;
-    submit.innerHTML = '<i class="fa fa-paper-plane" style="margin-right:8px"></i>Lähetä tarjouspyyntö';
+    submit.innerHTML = `<i class="fa fa-paper-plane" style="margin-right:8px"></i>${t('contact.submitBtn')}`;
   }
 }
 
