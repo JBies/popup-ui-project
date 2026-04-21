@@ -170,7 +170,7 @@ exports.emailReport = async (req, res) => {
       return a;
     }, { views: 0, clicks: 0, leads: 0 });
 
-    // Top-elementit kumulatiivisesta datasta (kaikki aika)
+    // Kaikki elementit näyttöjen mukaan järjestettynä
     const topElements = popups
       .map(p => ({
         name:   p.name || 'Nimetön',
@@ -179,8 +179,7 @@ exports.emailReport = async (req, res) => {
         clicks: p.statistics?.clicks || 0,
         leads:  p.statistics?.leads  || 0,
       }))
-      .sort((a, b) => b.leads - a.leads || b.clicks - a.clicks || b.views - a.views)
-      .slice(0, 5);
+      .sort((a, b) => b.views - a.views || b.clicks - a.clicks || b.leads - a.leads);
 
     const recentLeads = recentLeadsRaw.map(l => ({
       popupName:   l.popupId?.name || 'Tuntematon',
@@ -235,7 +234,7 @@ function buildReportEmail(user, period, allTime, topElements, leads, label) {
   // Top elementit -osio
   const topElsHtml = topElements.length
     ? `<div style="margin-top:28px">
-        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px">🏆 Top elementit (kaikki aika)</div>
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px">📊 Elementit (${topElements.length} kpl) – kaikki aika</div>
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px">
           <tr style="background:#f8fafc">
             <th style="padding:8px 10px;text-align:left;color:#64748b;font-weight:600">Elementti</th>

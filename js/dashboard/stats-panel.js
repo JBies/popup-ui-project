@@ -26,7 +26,7 @@ export function openStats(el) {
   renderStatusRow(el);
 
   const cfg = el.elementConfig || {};
-  if (cfg.trackPageLinks || cfg.trackScroll) {
+  if (canUsePageTracking()) {
     const toggleBtn = root.querySelector('#s-pt-toggle');
     const ptDiv     = root.querySelector('#s-page-tracking');
     const arrow     = root.querySelector('#s-pt-arrow');
@@ -51,9 +51,14 @@ export function openStats(el) {
   });
 }
 
+function canUsePageTracking() {
+  const u = window.__currentUser__;
+  return u?.role === 'admin' || (u?.popupLimit || 1) > 1 || u?.limits?.canUsePageTracking;
+}
+
 function buildStatsHTML(el) {
   const cfg = el.elementConfig || {};
-  const hasTracking = cfg.trackPageLinks || cfg.trackScroll;
+  const hasTracking = canUsePageTracking();
 
   return `
     <div class="modal-overlay" id="stats-overlay">
@@ -227,7 +232,10 @@ async function loadPageTrackingStats(popupId, cfg) {
   }
 
   if (html) {
-    container.innerHTML = `<div style="border-top:1px solid #f1f5f9;padding-top:16px">${html}</div>`;
+    container.innerHTML = html;
+  } else if (!cfg.trackPageLinks && !cfg.trackScroll) {
+    container.innerHTML = `<div style="font-size:12px;color:#94a3b8;padding:4px 0">Seuranta ei ole käytössä tälle elementille.<br>
+      Avaa <strong>Muokkaa</strong> → Sivun seuranta → aktivoi ja tallenna.</div>`;
   }
 }
 
