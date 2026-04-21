@@ -26,7 +26,23 @@ export function openStats(el) {
   renderStatusRow(el);
 
   const cfg = el.elementConfig || {};
-  if (cfg.trackPageLinks || cfg.trackScroll) loadPageTrackingStats(el._id, cfg);
+  if (cfg.trackPageLinks || cfg.trackScroll) {
+    const toggleBtn = root.querySelector('#s-pt-toggle');
+    const ptDiv     = root.querySelector('#s-page-tracking');
+    const arrow     = root.querySelector('#s-pt-arrow');
+    let loaded = false;
+    if (toggleBtn && ptDiv) {
+      toggleBtn.addEventListener('click', async () => {
+        const open = ptDiv.style.display !== 'none';
+        ptDiv.style.display = open ? 'none' : 'block';
+        if (arrow) arrow.textContent = open ? '▼' : '▲';
+        if (!open && !loaded) {
+          loaded = true;
+          await loadPageTrackingStats(el._id, cfg);
+        }
+      });
+    }
+  }
 
   root.querySelectorAll('#close-stats').forEach(btn => btn.addEventListener('click', () => { root.innerHTML = ''; }));
   root.querySelector('#reset-stats')?.addEventListener('click', () => resetStats(el._id, el));
@@ -55,7 +71,15 @@ function buildStatsHTML(el) {
         </div>
         <div style="font-size:12px;color:#94a3b8;margin-bottom:16px" id="s-dates"></div>
 
-        ${hasTracking ? `<div id="s-page-tracking" style="margin-bottom:20px"></div>` : ''}
+        ${hasTracking ? `
+        <div style="margin-bottom:20px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">
+          <button id="s-pt-toggle" style="width:100%;display:flex;align-items:center;gap:8px;padding:12px 16px;background:#f8fafc;border:none;cursor:pointer;text-align:left">
+            <span style="font-size:14px">📎</span>
+            <span style="font-size:13px;font-weight:700;color:#0f172a;flex:1">Sivun seuranta</span>
+            <span id="s-pt-arrow" style="font-size:12px;color:#64748b">▼</span>
+          </button>
+          <div id="s-page-tracking" style="display:none;padding:12px 16px"></div>
+        </div>` : ''}
 
         <div style="display:flex;justify-content:space-between;align-items:center">
           <button class="btn btn-danger btn-sm" id="reset-stats">
