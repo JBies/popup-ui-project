@@ -415,6 +415,8 @@ const translations = {
     'rpt.stat.views':      'Views',
     'rpt.stat.clicks':     'Clicks',
     'rpt.stat.leads':      'Leads',
+    'rpt.stat.pageClicks': 'Page Clicks',
+    'rpt.stat.scrollSessions': 'Scroll Sessions',
     'rpt.period.custom':   'Custom period',
     'rpt.type.stats':      'Stats collector',
 
@@ -953,6 +955,8 @@ const translations = {
     'rpt.stat.views':      'Näyttöä',
     'rpt.stat.clicks':     'Klikkausta',
     'rpt.stat.leads':      'Liidiä',
+    'rpt.stat.pageClicks': 'Sivun klikit',
+    'rpt.stat.scrollSessions': 'Vierityskäyntejä',
     'rpt.period.custom':   'Valittu aikaväli',
     'rpt.type.stats':      'Tilastojen kerääjä',
 

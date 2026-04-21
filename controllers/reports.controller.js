@@ -1,9 +1,11 @@
 // controllers/reports.controller.js
 // Raporttidata dashboardiin ja sähköpostilähetykseen
 
-const Popup      = require('../models/Popup');
-const Lead       = require('../models/Lead');
-const DailyStats = require('../models/DailyStats');
+const Popup       = require('../models/Popup');
+const Lead        = require('../models/Lead');
+const DailyStats  = require('../models/DailyStats');
+const PageElement = require('../models/PageElement');
+const ScrollStats = require('../models/ScrollStats');
 const { sendMail } = require('../utils/email');
 
 // Rate limiting: max 3 raporttisähköpostia tunnissa per käyttäjä
@@ -58,7 +60,7 @@ exports.getReport = async (req, res) => {
     const leadFilter = { userId, submittedAt: { $gte: fromDate, $lte: toDate } };
     if (popupId) leadFilter.popupId = popupId; // yksittäinen elementtisuodatus säilyy
 
-    const [dailyAgg, periodLeads] = await Promise.all([
+    const [dailyAgg, periodLeads, pageElementsAgg, scrollStatsAgg] = await Promise.all([
       // Views + clicks DailyStats-kokoelmasta (vain olemassa olevat elementit)
       DailyStats.aggregate([
         { $match: { popupId: { $in: popupIds }, date: { $gte: fromStr, $lte: toStr } } },
@@ -66,12 +68,25 @@ exports.getReport = async (req, res) => {
       ]),
       // Liidit kaikilta käyttäjän elementeiltä, myös poistetuista
       Lead.countDocuments(leadFilter),
+      // Sivuelementtien klikit yhteensä
+      PageElement.aggregate([
+        { $match: { popupId: { $in: popupIds } } },
+        { $group: { _id: null, totalClicks: { $sum: '$clicks' } } },
+      ]),
+      // Vieritystilastot yhteensä
+      ScrollStats.aggregate([
+        { $match: { popupId: { $in: popupIds } } },
+        { $group: { _id: null, totalSessions: { $sum: '$sessions' }, avgDepth: { $avg: '$avgDepth' } } },
+      ]),
     ]);
 
     const period = {
       views:  dailyAgg[0]?.views  || 0,
       clicks: dailyAgg[0]?.clicks || 0,
       leads:  periodLeads,
+      pageElementsClicks: pageElementsAgg[0]?.totalClicks || 0,
+      scrollSessions: scrollStatsAgg[0]?.totalSessions || 0,
+      scrollAvgDepth: scrollStatsAgg[0]?.avgDepth ? Math.round(scrollStatsAgg[0]?.avgDepth) : 0,
     };
 
     // ── Kaikki-aikainen summa ─────────────────────────────────────────────────

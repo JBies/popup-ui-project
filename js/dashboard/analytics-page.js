@@ -3,6 +3,7 @@
 let cachedSites    = [];
 let allElements    = [];
 let filterSiteId   = '';
+let filterPageUrl  = '';
 let analyticsReady = false;
 
 export function initAnalyticsPage() {
@@ -39,8 +40,10 @@ function renderAnalytics() {
       acc.views  += el.statistics?.views  || 0;
       acc.clicks += el.statistics?.clicks || 0;
       acc.leads  += el.statistics?.leads  || 0;
+      acc.pageElementsClicks += el.pageElementsClicks || 0;
+      acc.scrollSessions += el.scrollStats?.sessions || 0;
       return acc;
-    }, { views: 0, clicks: 0, leads: 0 });
+    }, { views: 0, clicks: 0, leads: 0, pageElementsClicks: 0, scrollSessions: 0 });
     const ctr = totals.views > 0 ? ((totals.clicks / totals.views) * 100).toFixed(1) : '0.0';
 
     const maxViews = Math.max(...elements.map(el => el.statistics?.views || 0), 1);
@@ -66,11 +69,13 @@ function renderAnalytics() {
 
     container.innerHTML = `
       ${siteFilter}
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px">
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-bottom:28px">
         ${[
           { label: 'Näyttöjä yhteensä', value: totals.views.toLocaleString(), icon: 'fa-eye', color: '#3b82f6' },
           { label: 'Klikkauksia',        value: totals.clicks.toLocaleString(), icon: 'fa-mouse-pointer', color: '#8b5cf6' },
           { label: 'Keskimäärin CTR',    value: ctr + '%', icon: 'fa-percentage', color: '#f59e0b' },
+          { label: 'Sivun klikit',       value: totals.pageElementsClicks.toLocaleString(), icon: 'fa-link', color: '#ec4899' },
+          { label: 'Vierityskäyntejä',   value: totals.scrollSessions ? totals.scrollSessions.toLocaleString() : '0', icon: 'fa-arrows-alt-v', color: '#14b8a6' },
           { label: 'Liidit kerätty',     value: totals.leads.toLocaleString(), icon: 'fa-envelope', color: '#10b981' }
         ].map(s => `
           <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px">
@@ -93,6 +98,8 @@ function renderAnalytics() {
               <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">Näytöt</th>
               <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">Klikkaukset</th>
               <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">CTR</th>
+              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">Sivun klikit</th>
+              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">Vieritys</th>
               <th style="text-align:right;padding:10px 20px;font-weight:600;color:#475569">Liidit</th>
             </tr>
           </thead>
@@ -103,9 +110,20 @@ function renderAnalytics() {
                 const v = el.statistics?.views || 0;
                 const c = el.statistics?.clicks || 0;
                 const l = el.statistics?.leads || 0;
+                const pageClicks = el.pageElementsClicks || 0;
                 const elCtr = v > 0 ? ((c / v) * 100).toFixed(1) : '0.0';
                 const pct = Math.round((v / maxViews) * 100);
                 const badge = TYPE_BADGE[el.elementType] || 'badge-popup';
+                
+                // Hae vieritystilastot
+                let scrollStats = '';
+                if (el.scrollStats?.sessions > 0) {
+                  const avgDepth = el.scrollStats?.avgDepth || 0;
+                  scrollStats = `${avgDepth}% (${el.scrollStats.sessions} käyntiä)`;
+                } else {
+                  scrollStats = '–';
+                }
+                
                 return `<tr style="border-bottom:1px solid #f1f5f9">
                   <td style="padding:12px 20px">
                     <div style="font-weight:500;color:#0f172a">${el.name || 'Nimetön'}</div>
@@ -117,6 +135,8 @@ function renderAnalytics() {
                   <td style="padding:12px;text-align:right;color:#0f172a;font-weight:500">${v.toLocaleString()}</td>
                   <td style="padding:12px;text-align:right;color:#0f172a">${c.toLocaleString()}</td>
                   <td style="padding:12px;text-align:right;color:${parseFloat(elCtr) > 5 ? '#16a34a' : '#64748b'}">${elCtr}%</td>
+                  <td style="padding:12px;text-align:right;color:#0f172a" title="Sivun elementtien klikit yhteensä">${pageClicks > 0 ? pageClicks.toLocaleString() : '–'}</td>
+                  <td style="padding:12px;text-align:right;color:#0f172a" title="Keskimääräinen vierityssyvyys (käyntien määrä)">${scrollStats}</td>
                   <td style="padding:12px 20px;text-align:right;color:#0f172a">${l > 0 ? l : '–'}</td>
                 </tr>`;
               }).join('')}

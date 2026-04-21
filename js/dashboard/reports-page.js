@@ -220,11 +220,16 @@ function renderResults(data, from, to) {
   const ctr    = period.views  > 0 ? ((period.clicks  / period.views)  * 100).toFixed(1) : '0.0';
   const allCtr = allTime.views > 0 ? ((allTime.clicks / allTime.views) * 100).toFixed(1) : '0.0';
 
-  const periodLabel = currentRange === 'all'   ? t('rpt.range.all') :
-                      currentRange === 'today'  ? t('rpt.range.today') :
-                      currentRange === 'week'   ? t('rpt.range.week') :
-                      currentRange === 'month'  ? t('rpt.range.month') :
-                      (from && to ? `${fmtDate(from)} – ${fmtDate(to)}` : t('rpt.period.custom'));
+    const periodLabel = currentRange === 'all'   ? t('rpt.range.all') :
+                        currentRange === 'today'  ? t('rpt.range.today') :
+                        currentRange === 'week'   ? t('rpt.range.week') :
+                        currentRange === 'month'  ? t('rpt.range.month') :
+                        (from && to ? `${fmtDate(from)} – ${fmtDate(to)}` : t('rpt.period.custom'));
+    
+    // Lisää sivuelementtien klikit ja vieritystilastot
+    const pageElementsClicks = data.period.pageElementsClicks || 0;
+    const scrollSessions = data.period.scrollSessions || 0;
+    const scrollAvgDepth = data.period.scrollAvgDepth || 0;
 
   const statsMap = {};
   topElements.forEach(e => { statsMap[String(e._id)] = e; });
@@ -258,6 +263,8 @@ function renderResults(data, from, to) {
         ${statCard('🖱️', period.clicks, t('rpt.stat.clicks'), '#fff', '#3b82f6')}
         ${statCard('📋', period.leads,  t('rpt.stat.leads'),  '#fff', '#3b82f6')}
         ${statCard('📈', ctr + '%',     'CTR',                '#fff', '#3b82f6')}
+        ${statCard('🔗', pageElementsClicks, t('rpt.stat.pageClicks'), '#fff', '#ec4899')}
+        ${statCard('📊', scrollSessions, t('rpt.stat.scrollSessions'), '#fff', '#14b8a6')}
       </div>
     </div>
 

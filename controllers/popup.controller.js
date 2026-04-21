@@ -221,13 +221,52 @@ class PopupController {
 
     try {
       const popups = await Popup.find({ userId: req.user._id }).lean();
-      // Päivitä kuvan URL:it jos firebasePath on tallennettu
-      await Promise.all(popups.map(async p => {
+      
+      // Hae lisätilastot jokaiselle popupille rinnakkain
+      const enhancedPopups = await Promise.all(popups.map(async p => {
+        // Päivitä kuvan URL:it jos firebasePath on tallennettu
         if (p.imageUrl && p.imageFirebasePath) {
           p.imageUrl = await refreshImageUrl(p.imageUrl, p.imageFirebasePath);
         }
+        
+        // Hae sivuelementtien klikit yhteensä
+        let pageElementsClicks = 0;
+        try {
+          const pageElements = await PageElement.find({ popupId: p._id }).lean();
+          pageElementsClicks = pageElements.reduce((sum, el) => sum + (el.clicks || 0), 0);
+        } catch (e) {
+          console.error('Error fetching page elements for popup', p._id, e);
+        }
+        
+        // Hae vieritystilastot
+        let scrollStats = null;
+        try {
+          const scrollData = await ScrollStats.find({ popupId: p._id }).lean();
+          if (scrollData.length > 0) {
+            const totalSessions = scrollData.reduce((sum, s) => sum + (s.sessions || 0), 0);
+            const totalDepth = scrollData.reduce((sum, s) => sum + (s.avgDepth || 0) * (s.sessions || 0), 0);
+            const avgDepth = totalSessions > 0 ? Math.round(totalDepth / totalSessions) : 0;
+            
+            scrollStats = {
+              sessions: totalSessions,
+              avgDepth: avgDepth,
+              lastUpdated: scrollData[scrollData.length - 1]?.date || new Date()
+            };
+          }
+        } catch (e) {
+          console.error('Error fetching scroll stats for popup', p._id, e);
+        }
+        
+        // Lisää sivuelementtien klikit ja vieritystilastot popup-objektiin
+        p.pageElementsClicks = pageElementsClicks;
+        if (scrollStats) {
+          p.scrollStats = scrollStats;
+        }
+        
+        return p;
       }));
-      res.json(popups);
+      
+      res.json(enhancedPopups);
     } catch (err) {
       console.error('Error fetching popups:', err);
       res.status(500).json({ message: 'Error fetching popups', error: err });
