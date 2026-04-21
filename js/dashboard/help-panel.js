@@ -217,6 +217,24 @@ function renderHelp() {
         </div>`
       ])}
 
+      <!-- Sivun seuranta -->
+      ${section('fa-mouse-pointer','Sivun seuranta (Pro) / Page Tracking (Pro)','Seuraa minkä linkkien, nappien ja sivun alueiden käyttäjät klikkaa – ja kuinka pitkälle he vierittävät', [
+        infoBlock(isAdmin
+          ? 'Saatavilla Pro-käyttäjille tai käyttäjille joille on myönnetty enemmän kuin 1 elementti.'
+          : 'Sivun seuranta on Pro-ominaisuus. Päivitä tili saadaksesi käyttöön.',
+        [
+          ['Miten aktivoidaan (FI)','Avaa elementin muokkausnäkymä → rullaa alas "Sivun seuranta" -osioon → laita rasti "Hae linkit ja seuraa sivun dataa" -kohtaan → tallenna. Seuraava sivulataus alkaa automaattisesti seurata.'],
+          ['Miten se toimii (FI)','Embed-skripti ajetaan asiakkaan sivustolla. Kun kävijä lataa sivun, skripti etsii automaattisesti kaikki linkit (<a>) ja napit (<button>), lähettää listan palvelimelle ja lisää kuuntelijat. Jokainen klikkaus tilastoituu erikseen.'],
+          ['Scroll-seuranta (FI)','Aktivoi "Seuraa vierityskäyttäytymistä" → skripti seuraa kuinka pitkälle (%) kävijä vierittää ja missä hän pysähtyy yli 2 sekunniksi. Tilastot näkyvät Tilastot-painikkeen alla.'],
+          ['Manuaalinen lisäys (FI)','Jos skripti ei automaattisesti löydä jotain elementtiä, voit lisätä CSS-selectorin käsin: kirjoita selektori (esim. #osta-nyt tai .cta-button) ja kuvaus → klikkaa Lisää.'],
+          ['Tilastot (FI)','Avaa elementin Tilastot → näet top-klikatut linkit/napit ja scroll-syvyyskaavion. Raportit-sivulla voit laajentaa yksittäisen elementin rivin nähdäksesi sivun seuranta-datan.'],
+          ['How to activate (EN)','Open element editor → scroll to "Sivun seuranta" section → check "Hae linkit ja seuraa sivun dataa" → save. The next page load on the client site starts tracking automatically.'],
+          ['How it works (EN)','The embed script runs on the client website. When a visitor loads the page, the script scans all links and buttons, sends the list to the server, and attaches click listeners. Each click is tracked individually.'],
+          ['Scroll tracking (EN)','Enable "Seuraa vierityskäyttäytymistä" → the script tracks how far (%) visitors scroll and where they pause for 2+ seconds. Stats are shown in the Stats modal.'],
+          ['Manual additions (EN)','If auto-detection misses an element, add a CSS selector manually (e.g. #buy-now or .cta-btn) with a label. The embed will track that specific element on the next page load.'],
+        ])
+      ])}
+
       <!-- Sähköposti-ilmoitukset -->
       ${section('fa-envelope','Sähköposti-ilmoitukset','Automaattiset ilmoitukset ja viikkoraportti', [
         infoBlock('Asetukset löytyvät <strong>Asennuskoodi → Sähköposti-ilmoitukset</strong> -osiosta.',

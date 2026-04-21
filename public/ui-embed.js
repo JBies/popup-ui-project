@@ -64,6 +64,10 @@ if (!window.ShowElement) {
         else if (type === 'lead_form')       renderLeadForm(el);
         else if (type === 'cookie_consent')  renderCookieConsent(el);
         else                                 renderLegacyPopup(el);
+        // Sivun seuranta
+        var cfg = el.elementConfig || {};
+        if (cfg.trackPageLinks) initPageLinkTracking(el);
+        if (cfg.trackScroll)    initScrollTracking(el);
       })
       .catch(function (e) { console.warn('[ui-embed] Elementtiä ei löydy:', e); });
   };
@@ -944,6 +948,163 @@ if (!window.ShowElement) {
   function getCookie(name) {
     var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
     return v ? v.pop() : '';
+  }
+
+  // ─── Sivun linkkien ja nappien seuranta ─────────────────────────────────────
+
+  function djb2(str) {
+    var hash = 5381;
+    for (var i = 0; i < str.length; i++) {
+      hash = ((hash << 5) + hash) + str.charCodeAt(i);
+      hash = hash & hash;
+    }
+    return (hash >>> 0).toString(16);
+  }
+
+  function generateSelector(el) {
+    if (el.id) return '#' + el.id;
+    var parts = [];
+    var node = el;
+    for (var depth = 0; depth < 5; depth++) {
+      if (!node || node === document.body) break;
+      var tag = node.tagName.toLowerCase();
+      var cls = node.className && typeof node.className === 'string'
+        ? node.className.trim().split(/\s+/).slice(0, 2).map(function(c) { return '.' + c; }).join('')
+        : '';
+      var siblings = node.parentNode ? node.parentNode.children : [];
+      var idx = 1;
+      for (var s = 0; s < siblings.length; s++) {
+        if (siblings[s] === node) { idx = s + 1; break; }
+      }
+      parts.unshift(tag + cls + ':nth-child(' + idx + ')');
+      node = node.parentNode;
+      try {
+        if (document.querySelectorAll(parts.join(' > ')).length === 1) break;
+      } catch(e) { break; }
+    }
+    return parts.join(' > ');
+  }
+
+  function initPageLinkTracking(el) {
+    var popupId = el._id;
+    var uePrefix = 'ue-';
+    var all = document.querySelectorAll('a, button');
+    var seen = {};
+    var batch = [];
+
+    for (var i = 0; i < all.length; i++) {
+      var node = all[i];
+      // Suodata pois elementin omat DOM-nodet
+      if (node.closest && node.closest('[id^="' + uePrefix + '"]')) continue;
+      if (node.id && node.id.indexOf(uePrefix) === 0) continue;
+
+      var text = (node.textContent || '').trim().slice(0, 200);
+      var href = node.href || '';
+      var tagName = node.tagName.toLowerCase();
+
+      if (!text && !href) continue;
+
+      var cs = node.style && (node.style.display === 'none' || node.style.visibility === 'hidden');
+      if (cs) continue;
+
+      var fp = djb2(href + '|' + text + '|' + tagName);
+      if (seen[fp]) continue;
+      seen[fp] = true;
+
+      var selector = generateSelector(node);
+      batch.push({
+        type: tagName === 'a' ? 'link' : 'button',
+        text: text,
+        href: href,
+        cssSelector: selector,
+        fingerprint: fp,
+        pageUrl: window.location.href
+      });
+    }
+
+    if (batch.length > 0) {
+      fetch(API_BASE + '/api/popups/page-elements/' + popupId + '/discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ elements: batch })
+      }).catch(function() {});
+    }
+
+    // Liitä click-kuuntelijat
+    var storageKey = 'ue_pe_clicked_' + popupId;
+    var clickedSet = {};
+    try {
+      var stored = sessionStorage.getItem(storageKey);
+      if (stored) clickedSet = JSON.parse(stored);
+    } catch(e) {}
+
+    for (var j = 0; j < all.length; j++) {
+      (function(node2) {
+        var text2 = (node2.textContent || '').trim().slice(0, 200);
+        var href2 = node2.href || '';
+        var tag2 = node2.tagName.toLowerCase();
+        if (!text2 && !href2) return;
+        var fp2 = djb2(href2 + '|' + text2 + '|' + tag2);
+        node2.addEventListener('click', function() {
+          if (clickedSet[fp2]) return;
+          clickedSet[fp2] = true;
+          try { sessionStorage.setItem(storageKey, JSON.stringify(clickedSet)); } catch(e) {}
+          fetch(API_BASE + '/api/popups/page-elements/' + popupId + '/click', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fingerprint: fp2 })
+          }).catch(function() {});
+        });
+      })(all[j]);
+    }
+  }
+
+  function initScrollTracking(el) {
+    var popupId = el._id;
+    var maxDepth = 0;
+    var pauses = [];
+    var pauseTimer = null;
+    var sent = false;
+    var lastThrottle = 0;
+
+    function getDepth() {
+      var scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollable <= 0) return 100;
+      return Math.round((window.scrollY / scrollable) * 100);
+    }
+
+    function onScroll() {
+      var now = Date.now();
+      if (now - lastThrottle < 100) return;
+      lastThrottle = now;
+
+      var depth = getDepth();
+      if (depth > maxDepth) maxDepth = depth;
+
+      clearTimeout(pauseTimer);
+      pauseTimer = setTimeout(function() {
+        var d = getDepth();
+        if (pauses.indexOf(d) === -1) pauses.push(d);
+      }, 2000);
+    }
+
+    function sendData() {
+      if (sent || maxDepth === 0) return;
+      sent = true;
+      var payload = JSON.stringify({ maxDepth: maxDepth, pauses: pauses, pageUrl: window.location.href });
+      var url = API_BASE + '/api/popups/scroll/' + popupId;
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(url, new Blob([payload], { type: 'application/json' }));
+      } else {
+        fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(function() {});
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('beforeunload', sendData);
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden') sendData();
+    });
   }
 
 })();

@@ -84,6 +84,10 @@ app.options('/api/popups/site/*', embedCors);
 app.use('/api/popups/site', embedCors);
 app.options('/api/leads', embedCors);
 app.use('/api/leads', embedCors);
+app.options('/api/popups/page-elements/*', embedCors);
+app.use('/api/popups/page-elements', embedCors);
+app.options('/api/popups/scroll/*', embedCors);
+app.use('/api/popups/scroll', embedCors);
 
 // Poista CSP admin-reiteiltä
 app.use('/admin-popups.html', (req, res, next) => {
@@ -140,6 +144,8 @@ app.use('/api/popups/view', embedLimiter);
 app.use('/api/popups/click', embedLimiter);
 app.use('/api/popups/site', embedLimiter);
 app.use('/api/leads/submit', embedLimiter);
+app.use('/api/popups/page-elements', embedLimiter);
+app.use('/api/popups/scroll', embedLimiter);
 
 // Yleinen API-raja: max 300 pyyntöä 1 min sisällä per IP
 const apiLimiter = rateLimit({

@@ -127,7 +127,15 @@ const popupSchema = new mongoose.Schema({
         showSettingsBtn:    { type: Boolean, default: true },         // Evästeasetukset-nappi sivun kulmassa
         settingsBtnPos:     { type: String,  default: 'bottom-left' },// 'bottom-left' | 'bottom-right'
         showNecessaryBtn:   { type: Boolean, default: false },        // "Vain välttämättömät" -nappi
-        necessaryBtnLabel:  { type: String,  default: 'Vain välttämättömät' }
+        necessaryBtnLabel:  { type: String,  default: 'Vain välttämättömät' },
+        // Sivun seuranta
+        trackPageLinks: { type: Boolean, default: false },
+        trackScroll:    { type: Boolean, default: false }
+    },
+    scrollStats: {
+        avgDepth:    { type: Number, default: 0 },
+        sessions:    { type: Number, default: 0 },
+        lastUpdated: { type: Date }
     },
     siteId: { type: mongoose.Schema.Types.ObjectId, default: null },
     version: { type: Number, default: Date.now },
