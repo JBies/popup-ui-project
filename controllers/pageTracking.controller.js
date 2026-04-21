@@ -6,6 +6,15 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// Hae popup-datan targeting-säännöistä URL-säännöt
+function getTargetedPages(popup) {
+  const t = popup.targeting;
+  if (!t?.enabled) return []; // Ei sääntöjä = kaikki sivut
+
+  const urlRules = t.rules?.filter(r => r.type === 'url') || [];
+  return urlRules;  // Palauta säännön objektit: { type, operator, value }
+}
+
 class PageTrackingController {
 
   // POST /api/popups/page-elements/:id/discover  (julkinen, embed)

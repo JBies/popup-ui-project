@@ -164,6 +164,240 @@ async function resetStats(id, el) {
   }
 }
 
+// Näytä kaikki elementit (ilman targeting-sääntöjä)
+function renderAllElementsView(allElements) {
+  const uniquePages = [...new Set(allElements.map(el => el.pageUrl).filter(url => url && url.trim() !== ''))];
+
+  let pageSelectorHtml = '';
+  if (uniquePages.length > 1) {
+    pageSelectorHtml = `
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px">${t('stats.selectPage') || 'Select page:'}</div>
+        <select id="page-url-selector" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff">
+          <option value="">${t('stats.allPages') || 'All pages'}</option>
+          ${uniquePages.map(url => `<option value="${escHtml(url)}">${escHtml(url.length > 60 ? url.substring(0, 57) + '...' : url)}</option>`).join('')}
+        </select>
+      </div>
+    `;
+  }
+
+  const rows = renderElementRows(allElements);
+
+  let html = `<div style="margin-bottom:16px">
+    <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <i class="fa fa-mouse-pointer" style="color:#3b82f6"></i> ${t('stats.pageElementsTitle')} (${allElements.length})
+    </div>
+    ${pageSelectorHtml}
+    <div id="page-elements-list" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${rows}</div>
+  </div>`;
+
+  // Lisää tapahtumankäsittelijä sivun valinnalle
+  if (uniquePages.length > 1) {
+    setTimeout(() => {
+      const selector = document.getElementById('page-url-selector');
+      const elementsList = document.getElementById('page-elements-list');
+      if (selector && elementsList) {
+        selector.addEventListener('change', function() {
+          const selectedUrl = this.value;
+          const allRows = elementsList.querySelectorAll('[data-page-url]');
+          allRows.forEach(row => {
+            const rowUrl = row.getAttribute('data-page-url');
+            if (!selectedUrl || rowUrl === selectedUrl) {
+              row.style.display = 'flex';
+            } else {
+              row.style.display = 'none';
+            }
+          });
+        });
+      }
+    }, 100);
+  }
+
+  return html;
+}
+
+// Näytä elementit tabs targeting-säännöille
+function renderTargetingRuleTabs(popupId, urlRules, allElements) {
+  if (urlRules.length === 0) return '';
+
+  // Tabit säännöille
+  const tabsHtml = urlRules.map((rule, idx) => `
+    <button class="rule-tab" data-rule-idx="${idx}" style="padding:8px 12px;border:none;background:${idx === 0 ? '#3b82f6' : '#f1f5f9'};color:${idx === 0 ? '#fff' : '#64748b'};border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-right:8px">
+      ${escHtml(rule.value.length > 20 ? rule.value.substring(0, 17) + '...' : rule.value)}
+    </button>
+  `).join('');
+
+  // Renderöi ensimmäisen säännön elementit
+  const firstRuleElements = filterElementsByRule(allElements, urlRules[0]);
+  const uniquePagesForRule = [...new Set(firstRuleElements.map(el => el.pageUrl).filter(url => url && url.trim() !== ''))];
+
+  // Dropdown sivuille (esitäytettynä "filtered")
+  let dropdownHtml = '';
+  if (uniquePagesForRule.length > 1) {
+    dropdownHtml = `
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px">${t('stats.selectPage') || 'Select page:'}</div>
+        <select id="page-url-selector" data-rule-idx="0" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff">
+          <option value="filtered" selected>${t('stats.filteredPages') || 'Filtered (targeted)'}</option>
+          <option value="">${t('stats.allPages') || 'All pages'}</option>
+          ${uniquePagesForRule.map(url => `<option value="${escHtml(url)}">${escHtml(url.length > 60 ? url.substring(0, 57) + '...' : url)}</option>`).join('')}
+        </select>
+      </div>
+    `;
+  }
+
+  const rows = renderElementRows(firstRuleElements);
+
+  let html = `<div style="margin-bottom:16px">
+    <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <i class="fa fa-mouse-pointer" style="color:#3b82f6"></i> ${t('stats.pageElementsTitle')} (${firstRuleElements.length})
+    </div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+      ${tabsHtml}
+    </div>
+    ${dropdownHtml}
+    <div id="page-elements-list" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto" data-rule-idx="0">${rows}</div>
+  </div>`;
+
+  // Lisää tapahtumankäsittelijät
+  setTimeout(() => {
+    // Tab-klikit
+    document.querySelectorAll('.rule-tab').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const ruleIdx = parseInt(this.getAttribute('data-rule-idx'));
+        switchRuleTab(ruleIdx, urlRules, allElements);
+      });
+    });
+
+    // Dropdown-muutokset
+    const dropdown = document.getElementById('page-url-selector');
+    if (dropdown) {
+      dropdown.addEventListener('change', function() {
+        const ruleIdx = parseInt(this.getAttribute('data-rule-idx'));
+        const selectedValue = this.value;
+        filterElementsByRuleAndPage(ruleIdx, selectedValue, urlRules, allElements);
+      });
+    }
+  }, 100);
+
+  return html;
+}
+
+// Suodata elementit targeting-säännön perusteella
+function filterElementsByRule(elements, rule) {
+  if (!rule.value) return elements;
+
+  return elements.filter(el => {
+    const url = el.pageUrl || '';
+    switch (rule.operator || 'contains') {
+      case 'contains':
+        return url.includes(rule.value);
+      case 'equals':
+        return url === rule.value;
+      case 'starts_with':
+        return url.startsWith(rule.value);
+      default:
+        return url.includes(rule.value);
+    }
+  });
+}
+
+// Renderöi elementti-rivit
+function renderElementRows(elements) {
+  return elements.map(el => {
+    const icon = el.type === 'link' ? 'fa-link' : 'fa-hand-pointer';
+    const text = escHtml((el.text || el.cssSelector || '').slice(0, 60));
+    const href = el.href ? `<div style="font-size:10px;color:#94a3b8;margin-top:1px">${escHtml(el.href.slice(0, 55))}</div>` : '';
+    const pageUrlDisplay = el.pageUrl ? `<div style="font-size:9px;color:#9ca3af;margin-top:1px">${escHtml(el.pageUrl.length > 50 ? el.pageUrl.substring(0, 47) + '...' : el.pageUrl)}</div>` : '';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f1f5f9" data-page-url="${escHtml(el.pageUrl || '')}">
+      <i class="fa ${icon}" style="color:#64748b;width:12px;font-size:11px;flex-shrink:0"></i>
+      <div style="flex:1;min-width:0"><div style="font-size:12px;color:#1e293b">${text}</div>${href}${pageUrlDisplay}</div>
+      <span style="font-size:12px;font-weight:700;color:#3b82f6;white-space:nowrap">${el.clicks} ${t('stats.clicksShort')}</span>
+    </div>`;
+  }).join('');
+}
+
+// Vaihda tab targeting-säännölle
+function switchRuleTab(ruleIdx, urlRules, allElements) {
+  const rule = urlRules[ruleIdx];
+  const ruleElements = filterElementsByRule(allElements, rule);
+  const uniquePages = [...new Set(ruleElements.map(el => el.pageUrl).filter(url => url && url.trim() !== ''))];
+
+  // Päivitä tab-näppäimet
+  document.querySelectorAll('.rule-tab').forEach((btn, idx) => {
+    if (idx === ruleIdx) {
+      btn.style.background = '#3b82f6';
+      btn.style.color = '#fff';
+    } else {
+      btn.style.background = '#f1f5f9';
+      btn.style.color = '#64748b';
+    }
+  });
+
+  // Päivitä dropdown
+  let dropdownHtml = '';
+  if (uniquePages.length > 1) {
+    dropdownHtml = `
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px">${t('stats.selectPage') || 'Select page:'}</div>
+        <select id="page-url-selector" data-rule-idx="${ruleIdx}" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff">
+          <option value="filtered" selected>${t('stats.filteredPages') || 'Filtered (targeted)'}</option>
+          <option value="">${t('stats.allPages') || 'All pages'}</option>
+          ${uniquePages.map(url => `<option value="${escHtml(url)}">${escHtml(url.length > 60 ? url.substring(0, 57) + '...' : url)}</option>`).join('')}
+        </select>
+      </div>
+    `;
+  }
+
+  const rows = renderElementRows(ruleElements);
+  const elementsList = document.getElementById('page-elements-list');
+  if (elementsList) {
+    elementsList.parentElement.innerHTML = dropdownHtml +
+      `<div id="page-elements-list" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto" data-rule-idx="${ruleIdx}">${rows}</div>`;
+
+    // Lisää dropdown-listener
+    const dropdown = document.getElementById('page-url-selector');
+    if (dropdown) {
+      dropdown.addEventListener('change', function() {
+        filterElementsByRuleAndPage(ruleIdx, this.value, urlRules, allElements);
+      });
+    }
+  }
+}
+
+// Suodata elementit säännön ja sivun perusteella
+function filterElementsByRuleAndPage(ruleIdx, selectedValue, urlRules, allElements) {
+  const rule = urlRules[ruleIdx];
+  const ruleElements = filterElementsByRule(allElements, rule);
+
+  const elementsList = document.getElementById('page-elements-list');
+  if (!elementsList) return;
+
+  const allRows = elementsList.querySelectorAll('[data-page-url]');
+  allRows.forEach(row => {
+    const rowUrl = row.getAttribute('data-page-url');
+
+    if (selectedValue === 'filtered') {
+      // Näytä vain ne sivut jotka täsmäävät sääntöön
+      if (filterElementsByRule([{pageUrl: rowUrl}], rule).length > 0) {
+        row.style.display = 'flex';
+      } else {
+        row.style.display = 'none';
+      }
+    } else if (!selectedValue) {
+      // All pages
+      row.style.display = 'flex';
+    } else {
+      // Tarkka sivu
+      if (rowUrl === selectedValue) {
+        row.style.display = 'flex';
+      } else {
+        row.style.display = 'none';
+      }
+    }
+  });
+}
+
 async function loadPageTrackingStats(popupId, cfg) {
   const container = document.getElementById('s-page-tracking');
   if (!container) return;
@@ -172,70 +406,28 @@ async function loadPageTrackingStats(popupId, cfg) {
 
   if (cfg.trackPageLinks) {
     try {
-      // Hae kaikki elementit saadaksemme uniikit sivut
+      // Hae popup-data (targeting-info)
+      const popupR = await fetch('/api/popups/' + popupId);
+      if (!popupR.ok) return;
+      const popup = await popupR.json();
+
+      // Pura URL-targeting-säännöt
+      const urlRules = popup.targeting?.enabled
+        ? (popup.targeting.rules?.filter(r => r.type === 'url') || [])
+        : [];
+
+      // Hae kaikki page-elements
       const r = await fetch('/api/popups/page-elements/' + popupId);
       if (r.ok) {
         const allElements = await r.json();
-        
+
         if (allElements.length) {
-          // Etsi uniikit sivut
-          const uniquePages = [...new Set(allElements.map(el => el.pageUrl).filter(url => url && url.trim() !== ''))];
-          
-          // Jos on useita sivuja, näytä valinta
-          let pageSelectorHtml = '';
-          if (uniquePages.length > 1) {
-            pageSelectorHtml = `
-              <div style="margin-bottom:12px">
-                <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px">${t('stats.selectPage') || 'Select page:'}</div>
-                <select id="page-url-selector" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff">
-                  <option value="">${t('stats.allPages') || 'All pages'}</option>
-                  ${uniquePages.map(url => `<option value="${escHtml(url)}">${escHtml(url.length > 60 ? url.substring(0, 57) + '...' : url)}</option>`).join('')}
-                </select>
-              </div>
-            `;
-          }
-          
-          // Alkuperäinen näkymä (kaikki elementit)
-          const rows = allElements.map(el => {
-            const icon = el.type === 'link' ? 'fa-link' : 'fa-hand-pointer';
-            const text = escHtml((el.text || el.cssSelector || '').slice(0, 60));
-            const href = el.href ? `<div style="font-size:10px;color:#94a3b8;margin-top:1px">${escHtml(el.href.slice(0, 55))}</div>` : '';
-            const pageUrlDisplay = el.pageUrl ? `<div style="font-size:9px;color:#9ca3af;margin-top:1px">${escHtml(el.pageUrl.length > 50 ? el.pageUrl.substring(0, 47) + '...' : el.pageUrl)}</div>` : '';
-            return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f1f5f9" data-page-url="${escHtml(el.pageUrl || '')}">
-              <i class="fa ${icon}" style="color:#64748b;width:12px;font-size:11px;flex-shrink:0"></i>
-              <div style="flex:1;min-width:0"><div style="font-size:12px;color:#1e293b">${text}</div>${href}${pageUrlDisplay}</div>
-              <span style="font-size:12px;font-weight:700;color:#3b82f6;white-space:nowrap">${el.clicks} ${t('stats.clicksShort')}</span>
-            </div>`;
-          }).join('');
-          
-          html += `<div style="margin-bottom:16px">
-            <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-              <i class="fa fa-mouse-pointer" style="color:#3b82f6"></i> ${t('stats.pageElementsTitle')} (${allElements.length})
-            </div>
-            ${pageSelectorHtml}
-            <div id="page-elements-list" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${rows}</div>
-          </div>`;
-          
-          // Lisää tapahtumankäsittelijä sivun valinnalle
-          if (uniquePages.length > 1) {
-            setTimeout(() => {
-              const selector = document.getElementById('page-url-selector');
-              const elementsList = document.getElementById('page-elements-list');
-              if (selector && elementsList) {
-                selector.addEventListener('change', function() {
-                  const selectedUrl = this.value;
-                  const allRows = elementsList.querySelectorAll('[data-page-url]');
-                  allRows.forEach(row => {
-                    const rowUrl = row.getAttribute('data-page-url');
-                    if (!selectedUrl || rowUrl === selectedUrl) {
-                      row.style.display = 'flex';
-                    } else {
-                      row.style.display = 'none';
-                    }
-                  });
-                });
-              }
-            }, 100);
+          if (urlRules.length > 0) {
+            // Näytä tabs targeting-säännöille
+            html += renderTargetingRuleTabs(popupId, urlRules, allElements);
+          } else {
+            // Ei sääntöjä = näytä kaikki elementit vanhallakin tavalla
+            html += renderAllElementsView(allElements);
           }
         }
       }
