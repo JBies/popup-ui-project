@@ -1,6 +1,7 @@
 // js/dashboard/element-list.js
 import { showToast } from './dashboard-main.js';
 import { openStats } from './stats-panel.js';
+import { t, getCurrentLanguage } from '../i18n.js';
 
 const TYPE_META = {
   sticky_bar:     { label: 'Sticky Bar',      icon: 'fa-minus',        badge: 'badge-sticky' },
@@ -8,13 +9,17 @@ const TYPE_META = {
   slide_in:       { label: 'Slide-in',        icon: 'fa-comment-dots', badge: 'badge-slidein' },
   popup:          { label: 'Popup',           icon: 'fa-square',       badge: 'badge-popup' },
   lead_form:      { label: 'Lead Form',       icon: 'fa-envelope',     badge: 'badge-lead' },
-  stats_only:     { label: 'Tilastot',        icon: 'fa-chart-bar',    badge: 'badge-sticky' },
+  stats_only:     { labelKey: 'el.type.stats', icon: 'fa-chart-bar',   badge: 'badge-sticky' },
   cookie_consent: { label: 'Cookie Consent',  icon: 'fa-cookie-bite',  badge: 'badge-sticky' },
 };
 
+function locale() {
+  return getCurrentLanguage() === 'fi' ? 'fi-FI' : 'en-GB';
+}
+
 let allElements = [];
 let searchQuery = '';
-let siteFilter = '';  // '_none' = ei sivustoa, '' = kaikki, muuten siteId
+let siteFilter = '';
 let currentUser = null;
 let cachedSites = [];
 let pendingDeleteId = null;
@@ -45,9 +50,9 @@ function renderSiteFilter() {
   ).join('');
   bar.innerHTML = `
     <select id="site-filter-select" style="font-size:12px;padding:5px 10px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;color:#374151;cursor:pointer">
-      <option value="">Kaikki sivustot</option>
+      <option value="">${t('dash.allSites')}</option>
       ${options}
-      <option value="_none">– Ei sivustoa –</option>
+      <option value="_none">${t('dash.noSite')}</option>
     </select>`;
   document.getElementById('site-filter-select')?.addEventListener('change', e => {
     siteFilter = e.target.value;
@@ -69,14 +74,14 @@ function applyStoredOrder(elements) {
 async function loadElements() {
   const grid = document.getElementById('elements-grid');
   if (!grid) return;
-  grid.innerHTML = '<div style="color:#64748b;font-size:14px;padding:24px">Ladataan...</div>';
+  grid.innerHTML = `<div style="color:#64748b;font-size:14px;padding:24px">${t('el.loading')}</div>`;
   try {
     const r = await fetch('/api/popups');
-    if (!r.ok) throw new Error('Virhe');
+    if (!r.ok) throw new Error('error');
     allElements = applyStoredOrder(await r.json());
     renderList();
   } catch {
-    grid.innerHTML = '<div style="color:#ef4444;padding:24px">Elementtien lataus epäonnistui.</div>';
+    grid.innerHTML = `<div style="color:#ef4444;padding:24px">${t('el.loadError')}</div>`;
   }
 }
 
@@ -93,7 +98,7 @@ function quotaBarHTML(elements) {
     <div style="margin-bottom:16px;padding:12px 16px;background:${full?'#fef2f2':'#f8fafc'};
       border:1px solid ${full?'#fecaca':'#e2e8f0'};border-radius:10px">
       <div style="font-size:12px;font-weight:600;color:${full?'#dc2626':'#475569'};margin-bottom:5px">
-        ${full ? '⚠️ Elementtiraja täynnä' : `Elementtejä käytössä: ${used} / ${max}`}
+        ${full ? t('el.quotaFull') : `${t('el.quotaUsed')}${used} / ${max}`}
       </div>
       <div style="height:5px;background:#e2e8f0;border-radius:3px">
         <div style="height:5px;background:${full?'#ef4444':'#3b82f6'};border-radius:3px;width:${pct}%;transition:width 0.3s"></div>
@@ -104,45 +109,43 @@ function quotaBarHTML(elements) {
     <div style="margin-bottom:20px;background:linear-gradient(135deg,#f8faff 0%,#f0f4ff 100%);border:1px solid #c7d2fe;border-radius:14px;padding:20px 20px 16px;position:relative;overflow:hidden">
       <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:radial-gradient(circle,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none"></div>
 
-      <div style="font-size:13px;font-weight:700;color:#312e81;margin-bottom:4px">Siirryt ilmaisversiosta eteenpäin?</div>
-      <div style="font-size:12px;color:#4338ca;margin-bottom:14px">Valitse sinulle sopiva paketti alta.</div>
+      <div style="font-size:13px;font-weight:700;color:#312e81;margin-bottom:4px">${t('el.upgrade.heading')}</div>
+      <div style="font-size:12px;color:#4338ca;margin-bottom:14px">${t('el.upgrade.sub')}</div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
 
-        <!-- PRO -->
         <div style="background:#fff;border:1.5px solid #6366f1;border-radius:10px;padding:14px">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
             <span style="background:#6366f1;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">PRO</span>
-            <span style="font-size:14px;font-weight:800;color:#0f172a">4,90€<span style="font-size:11px;font-weight:500;color:#64748b">/kk</span></span>
+            <span style="font-size:14px;font-weight:800;color:#0f172a">4,90€<span style="font-size:11px;font-weight:500;color:#64748b">/mo</span></span>
           </div>
           <ul style="list-style:none;padding:0;margin:0 0 12px;font-size:11px;color:#374151;display:flex;flex-direction:column;gap:3px">
-            <li>✅ 20 elementtiä</li>
-            <li>✅ Analytiikka & tilastot</li>
-            <li>✅ Targeting-säännöt</li>
-            <li>✅ Lead-lomakkeet</li>
-            <li>✅ 100 kuvalatauksta</li>
+            <li>✅ ${t('el.pro.f1')}</li>
+            <li>✅ ${t('el.pro.f2')}</li>
+            <li>✅ ${t('el.pro.f3')}</li>
+            <li>✅ ${t('el.pro.f4')}</li>
+            <li>✅ ${t('el.pro.f5')}</li>
           </ul>
           <button onclick="window.__dashboardUpgrade('pro')"
             style="width:100%;padding:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">
-            Tilaa Pro →
+            ${t('el.pro.btn')}
           </button>
         </div>
 
-        <!-- RÄÄTÄLÖITY -->
         <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-            <span style="background:#0f172a;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">RÄÄTÄLÖITY</span>
+            <span style="background:#0f172a;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">${t('el.custom.badge')}</span>
           </div>
           <ul style="list-style:none;padding:0;margin:0 0 12px;font-size:11px;color:#374151;display:flex;flex-direction:column;gap:3px">
-            <li>✅ Rajaton elementtimäärä</li>
-            <li>✅ Useita sivustoja</li>
-            <li>✅ Kaikki Pro-ominaisuudet</li>
-            <li>✅ Omat integraatiot</li>
-            <li style="color:#64748b">📧 Sovitaan sähköpostitse</li>
+            <li>✅ ${t('el.custom.f1')}</li>
+            <li>✅ ${t('el.custom.f2')}</li>
+            <li>✅ ${t('el.custom.f3')}</li>
+            <li>✅ ${t('el.custom.f4')}</li>
+            <li style="color:#64748b">${t('el.custom.f5')}</li>
           </ul>
           <button onclick="window.__dashboardUpgrade('custom')"
             style="width:100%;padding:8px;background:#0f172a;border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">
-            Ota yhteyttä →
+            ${t('el.custom.btn')}
           </button>
         </div>
 
@@ -156,7 +159,6 @@ function renderList() {
   const grid = document.getElementById('elements-grid');
   if (!grid) return;
 
-  // Quota bar
   const quotaEl = document.getElementById('quota-bar');
   if (quotaEl) quotaEl.innerHTML = quotaBarHTML(allElements);
 
@@ -171,21 +173,19 @@ function renderList() {
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1;max-width:640px;margin:0 auto;padding:32px 16px">
 
-        <!-- Otsikko -->
         <div style="text-align:center;margin-bottom:28px">
           <div style="font-size:44px;margin-bottom:12px">🚀</div>
-          <h3 style="font-size:18px;font-weight:700;color:#1e293b;margin:0 0 6px">Tervetuloa UI Manageriin!</h3>
-          <p style="color:#64748b;font-size:14px;margin:0">Näin pääset käyntiin kolmessa askeleessa</p>
+          <h3 style="font-size:18px;font-weight:700;color:#1e293b;margin:0 0 6px">${t('el.empty.title')}</h3>
+          <p style="color:#64748b;font-size:14px;margin:0">${t('el.empty.sub')}</p>
         </div>
 
-        <!-- 3 askelta -->
         <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px">
 
           <div style="display:flex;gap:14px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px">
             <div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
             <div>
-              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">Luo elementti</div>
-              <div style="font-size:12px;color:#64748b;margin-bottom:10px">Valitse tyyppi alta, mukauta ja tallenna. Voit luoda niin monta kuin haluat.</div>
+              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">${t('el.step1.title')}</div>
+              <div style="font-size:12px;color:#64748b;margin-bottom:10px">${t('el.step1.desc')}</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn btn-primary btn-sm" data-quick="cookie_consent" style="font-size:12px"><i class="fa fa-cookie-bite"></i> Cookie Consent</button>
                 <button class="btn btn-primary btn-sm" data-quick="sticky_bar" style="font-size:12px"><i class="fa fa-minus"></i> Sticky Bar</button>
@@ -197,10 +197,10 @@ function renderList() {
           <div style="display:flex;gap:14px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px">
             <div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
             <div style="flex:1">
-              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">Lisää sivustosi ja kopioi asennuskoodi</div>
-              <div style="font-size:12px;color:#64748b;margin-bottom:8px">Luo sivusto ja kopioi <strong>yksi koodi</strong> sivustosi &lt;head&gt;-osioon. Se riittää kaikille elementeille.</div>
+              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">${t('el.step2.title')}</div>
+              <div style="font-size:12px;color:#64748b;margin-bottom:8px">${t('el.step2.desc')}</div>
               <a href="#settings" id="goto-settings-link" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#3b82f6;text-decoration:none">
-                <i class="fa fa-code"></i> Asennuskoodi-välilehti →
+                <i class="fa fa-code"></i> ${t('el.step2.link')}
               </a>
             </div>
           </div>
@@ -208,17 +208,16 @@ function renderList() {
           <div style="display:flex;gap:14px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px">
             <div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
             <div>
-              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">Aktivoi elementti togglella</div>
-              <div style="font-size:12px;color:#64748b">Elementtikortin toggle = päällä → elementti on heti live sivustollasi. Toggle = pois → elementti piilotetaan.</div>
+              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">${t('el.step3.title')}</div>
+              <div style="font-size:12px;color:#64748b">${t('el.step3.desc')}</div>
             </div>
           </div>
 
         </div>
 
-        <!-- Vinkki -->
         <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:8px">
           <span style="font-size:16px;flex-shrink:0">💡</span>
-          <span style="font-size:12px;color:#1d4ed8"><strong>Yksi koodi riittää kaikelle:</strong> Kun asennuskoodi on sivustolla, kaikki luomasi elementit aktivoituvat automaattisesti ilman lisäkoodia. Voit luoda sticky barin, popupin ja lead formin – ne kaikki toimivat samalla yhdellä koodirivillä.</span>
+          <span style="font-size:12px;color:#1d4ed8">${t('el.tip')}</span>
         </div>
 
       </div>`;
@@ -227,7 +226,6 @@ function renderList() {
         window.dispatchEvent(new CustomEvent('open-editor', { detail: { elementType: btn.dataset.quick } }));
       });
     });
-    // Asennuskoodi-linkki navigoi settings-näkymään
     grid.querySelector('#goto-settings-link')?.addEventListener('click', e => {
       e.preventDefault();
       window.location.hash = '#settings';
@@ -240,7 +238,6 @@ function renderList() {
     btn.addEventListener('click', () => handleAction(btn.dataset.action, btn.dataset.id));
   });
 
-  // Drag-and-drop järjestely (SortableJS)
   if (window.Sortable) {
     Sortable.create(grid, {
       animation: 150,
@@ -258,20 +255,21 @@ function getTimingStatus(el) {
   const timing = el.timing || {};
   const start = timing.startDate && timing.startDate !== 'default' ? new Date(timing.startDate) : null;
   const end   = timing.endDate   && timing.endDate   !== 'default' ? new Date(timing.endDate)   : null;
-  if (el.active === false) return { label: '● Ei käytössä',    color: '#ef4444' };
-  if (end   && now > end)   return { label: '● Aikarajoitus päättyi', color: '#f59e0b' };
-  if (start && now < start) return { label: `● Alkaa ${start.toLocaleDateString('fi-FI')}`, color: '#64748b' };
-  return { label: '● Aktiivinen', color: '#10b981' };
+  if (el.active === false) return { label: t('el.status.inactive'), color: '#ef4444' };
+  if (end   && now > end)   return { label: t('el.status.ended'),   color: '#f59e0b' };
+  if (start && now < start) return { label: `${t('stats.status.starts')} ${start.toLocaleDateString(locale())}`, color: '#64748b' };
+  return { label: t('el.status.active'), color: '#10b981' };
 }
 
 function cardHTML(el) {
   const type = el.elementType || 'popup';
   const meta = TYPE_META[type] || TYPE_META.popup;
+  const typeLabel = meta.label || t(meta.labelKey || 'el.type.stats');
   const stats = el.statistics || {};
   const views = stats.views || 0;
   const clicks = stats.clicks || 0;
   const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0';
-  const date = new Date(el.createdAt).toLocaleDateString('fi-FI');
+  const date = new Date(el.createdAt).toLocaleDateString(locale());
   const cfg = el.elementConfig || {};
   const status = getTimingStatus(el);
   const site = el.siteId ? cachedSites.find(s => String(s._id) === String(el.siteId)) : null;
@@ -280,8 +278,8 @@ function cardHTML(el) {
   let subtitle = '';
   if (type === 'sticky_bar') subtitle = cfg.barText ? cfg.barText.substring(0, 50) + (cfg.barText.length > 50 ? '…' : '') : '';
   else if (type === 'fab') subtitle = (cfg.fabPosition || '') + (cfg.fabAction ? ' · ' + cfg.fabAction : '');
-  else if (type === 'slide_in') subtitle = 'Triggeri: ' + (cfg.slideInTrigger || 'time');
-  else if (type === 'popup') subtitle = (cfg.popupMode || 'text') === 'image' ? '📸 Kuvapopup' : '✏️ Tekstipopup';
+  else if (type === 'slide_in') subtitle = t('el.slide.trigger') + ' ' + (cfg.slideInTrigger || 'time');
+  else if (type === 'popup') subtitle = (cfg.popupMode || 'text') === 'image' ? t('el.popup.image') : t('el.popup.text');
   else subtitle = el.content ? el.content.replace(/<[^>]*>/g, '').substring(0, 50) : '';
 
   const isDeleting = pendingDeleteId === el._id;
@@ -289,10 +287,10 @@ function cardHTML(el) {
   return `
     <div class="element-card el-card" data-id="${el._id}">
       <div class="element-card-header">
-        <div class="el-drag-handle" title="Järjestä vetämällä" style="cursor:grab;color:#cbd5e1;padding:0 6px 0 0;font-size:18px;line-height:1;user-select:none">⠿</div>
+        <div class="el-drag-handle" title="${t('el.drag.title')}" style="cursor:grab;color:#cbd5e1;padding:0 6px 0 0;font-size:18px;line-height:1;user-select:none">⠿</div>
         <div style="flex:1">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
-            <span class="badge ${meta.badge}"><i class="fa ${meta.icon}"></i> ${meta.label}</span>
+            <span class="badge ${meta.badge}"><i class="fa ${meta.icon}"></i> ${typeLabel}</span>
             <span style="font-size:11px;color:${status.color};font-weight:500">${status.label}</span>
             ${siteBadge}
           </div>
@@ -300,7 +298,7 @@ function cardHTML(el) {
           <div class="element-card-meta">${escHtml(subtitle)}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
-          <button data-action="toggle" data-id="${el._id}" title="${active ? 'Deaktivoi' : 'Aktivoi elementti'}"
+          <button data-action="toggle" data-id="${el._id}" title="${active ? t('el.toggle.deactivate') : t('el.toggle.activate')}"
             style="width:38px;height:22px;border-radius:11px;background:${active ? '#22c55e' : '#cbd5e1'};position:relative;cursor:pointer;border:none;padding:0;flex-shrink:0;transition:background 0.15s">
             <span style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:${active ? '18px' : '2px'};transition:left 0.15s;box-shadow:0 1px 2px rgba(0,0,0,0.2);display:block"></span>
           </button>
@@ -310,33 +308,33 @@ function cardHTML(el) {
       <div class="element-card-stats">
         <div class="stat-item">
           <div class="stat-value">${views}</div>
-          <div class="stat-label">Näytöt</div>
+          <div class="stat-label">${t('el.stat.views')}</div>
         </div>
         ${type !== 'stats_only' ? `
         <div class="stat-item">
           <div class="stat-value">${clicks}</div>
-          <div class="stat-label">Klikkaukset</div>
+          <div class="stat-label">${t('el.stat.clicks')}</div>
         </div>
         <div class="stat-item">
           <div class="stat-value">${ctr}%</div>
-          <div class="stat-label">CTR</div>
+          <div class="stat-label">${t('el.stat.ctr')}</div>
         </div>` : ''}
       </div>
       <div class="element-card-actions">
         ${isDeleting ? `
-          <span style="font-size:13px;color:#64748b;flex:1">Poistetaanko elementti?</span>
+          <span style="font-size:13px;color:#64748b;flex:1">${t('el.delete.question')}</span>
           <button class="btn btn-danger btn-sm" data-action="delete-confirm" data-id="${el._id}">
-            <i class="fa fa-check"></i> Kyllä, poista
+            <i class="fa fa-check"></i> ${t('el.delete.confirm')}
           </button>
           <button class="btn btn-secondary btn-sm" data-action="delete-cancel" data-id="${el._id}">
-            Peruuta
+            ${t('el.delete.cancel')}
           </button>
         ` : `
           <button class="btn btn-secondary btn-sm" data-action="edit" data-id="${el._id}">
-            <i class="fa fa-edit"></i> Muokkaa
+            <i class="fa fa-edit"></i> ${t('el.action.edit')}
           </button>
           <button class="btn btn-secondary btn-sm" data-action="stats" data-id="${el._id}">
-            <i class="fa fa-chart-bar"></i> Tilastot
+            <i class="fa fa-chart-bar"></i> ${t('el.action.stats')}
           </button>
           <button class="btn btn-danger btn-sm" data-action="delete" data-id="${el._id}" style="margin-left:auto">
             <i class="fa fa-trash"></i>
@@ -366,11 +364,11 @@ async function handleAction(action, id) {
         body: JSON.stringify({ active: newActive }),
       });
       if (!r.ok) throw new Error();
-      showToast(newActive ? 'Elementti aktivoitu' : 'Elementti pois käytöstä');
+      showToast(newActive ? t('el.toast.activated') : t('el.toast.deactivated'));
     } catch {
       el.active = !newActive;
       renderList();
-      showToast('Tilan muutos epäonnistui', 'error');
+      showToast(t('el.toast.toggleFailed'), 'error');
     }
   } else if (action === 'delete') {
     pendingDeleteId = id;
@@ -382,12 +380,12 @@ async function handleAction(action, id) {
     try {
       const r = await fetch('/api/popups/' + id, { method: 'DELETE' });
       if (!r.ok) throw new Error();
-      showToast('Elementti poistettu');
+      showToast(t('el.toast.deleted'));
       allElements = allElements.filter(e => e._id !== id);
       pendingDeleteId = null;
       renderList();
     } catch {
-      showToast('Poisto epäonnistui', 'error');
+      showToast(t('el.toast.deleteFailed'), 'error');
     }
   }
 }

@@ -1,7 +1,8 @@
 // js/dashboard/reports-page.js
-// Raportit-sivu: aikavälisuodatus, tilastokortit, top-elementit, liidit
+// Reports page: time range filtering, stat cards, top elements, leads
 
 import { showToast } from './dashboard-main.js';
+import { t, getCurrentLanguage } from '../i18n.js';
 
 let cachedSites   = [];
 let cachedPopups  = [];
@@ -12,10 +13,13 @@ let filterPopupId = '';
 let filterSiteId  = '';
 let initialized   = false;
 
-// ─── Julkinen init ────────────────────────────────────────────────────────────
+function locale() {
+  return getCurrentLanguage() === 'fi' ? 'fi-FI' : 'en-GB';
+}
+
+// ─── Public init ──────────────────────────────────────────────────────────────
 
 export function initReportsPage() {
-  // Kuuntele näkymän vaihtoa
   window.addEventListener('hashchange', () => {
     if (window.location.hash === '#reports') onEnter();
   });
@@ -30,13 +34,13 @@ async function onEnter() {
     await loadSites();
     initialized = true;
   }
-  await loadPopups(); // aina tuore — tracking-flagit voivat muuttua
+  await loadPopups();
 
   renderShell(container);
   loadReport();
 }
 
-// ─── Data-lataus ─────────────────────────────────────────────────────────────
+// ─── Data loading ─────────────────────────────────────────────────────────────
 
 async function loadSites() {
   try {
@@ -48,7 +52,7 @@ async function loadSites() {
 async function loadPopups() {
   try {
     const r = await fetch('/api/popups');
-    if (r.ok) cachedPopups = await r.json(); // stats_only mukaan — ne näyttävät kävijämäärät
+    if (r.ok) cachedPopups = await r.json();
   } catch {}
 }
 
@@ -88,22 +92,21 @@ async function loadReport() {
 
   try {
     const r = await fetch('/api/reports?' + params.toString());
-    if (!r.ok) throw new Error('Virhe');
+    if (!r.ok) throw new Error('error');
     const data = await r.json();
     renderResults(data, from, to);
   } catch {
-    if (resultsEl) resultsEl.innerHTML = `<div style="color:#ef4444;padding:24px">Raportin lataus epäonnistui.</div>`;
+    if (resultsEl) resultsEl.innerHTML = `<div style="color:#ef4444;padding:24px">${t('rpt.error')}</div>`;
   }
 }
 
-// ─── Rakenne ──────────────────────────────────────────────────────────────────
+// ─── Shell ────────────────────────────────────────────────────────────────────
 
 function renderShell(container) {
   const sitesOpts = cachedSites.map(s =>
     `<option value="${s._id}">${esc(s.name)}${s.domain ? ' ('+esc(s.domain)+')' : ''}</option>`
   ).join('');
 
-  // Suodata elementit nykyisen sivustosuodattimen mukaan
   const visiblePopups = cachedPopups.filter(p => {
     if (!filterSiteId) return true;
     if (filterSiteId === '_none') return !p.siteId;
@@ -113,70 +116,69 @@ function renderShell(container) {
     `<option value="${p._id}">${esc(p.name)}${p.elementType === 'stats_only' ? ' 📊' : ''}</option>`
   ).join('');
 
+  const rangeKeys = ['today','week','month','all','custom'];
+  const rangeLabels = {
+    today: t('rpt.range.today'), week: t('rpt.range.week'),
+    month: t('rpt.range.month'), all: t('rpt.range.all'), custom: t('rpt.range.custom')
+  };
+
   container.innerHTML = `
     <div style="max-width:960px">
 
-      <!-- Otsikkorivi -->
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
         <div>
-          <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin:0">Raportit</h2>
-          <p style="font-size:13px;color:#64748b;margin:4px 0 0">Näytöt, klikkaukset ja liidit valitulta ajanjaksolta</p>
+          <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin:0">${t('rpt.title')}</h2>
+          <p style="font-size:13px;color:#64748b;margin:4px 0 0">${t('rpt.subtitle')}</p>
         </div>
         <button id="rpt-email-btn" class="btn btn-secondary btn-sm" style="gap:6px">
-          <i class="fa fa-envelope"></i> Lähetä sähköpostiin
+          <i class="fa fa-envelope"></i> ${t('rpt.emailBtn')}
         </button>
       </div>
 
-      <!-- Aikavälipalkit -->
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-        ${['today','week','month','all','custom'].map(k => {
-          const labels = { today:'Tänään', week:'Tämä viikko', month:'Tämä kuukausi', all:'Kaikki aika', custom:'Muokkaa...' };
+        ${rangeKeys.map(k => {
           const active = currentRange === k;
           return `<button class="rpt-range-btn" data-range="${k}"
             style="padding:7px 14px;border:2px solid ${active?'#3b82f6':'#e2e8f0'};border-radius:20px;
             background:${active?'#eff6ff':'#fff'};color:${active?'#1d4ed8':'#374151'};
             font-size:13px;font-weight:${active?'700':'500'};cursor:pointer;transition:all 0.15s">
-            ${labels[k]}
+            ${rangeLabels[k]}
           </button>`;
         }).join('')}
       </div>
 
-      <!-- Muokkaa-aikaväli (piilotettu) -->
       <div id="rpt-custom-row" style="display:${currentRange==='custom'?'flex':'none'};gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px">
         <div style="display:flex;align-items:center;gap:8px">
-          <label style="font-size:12px;font-weight:600;color:#374151">Alkaen</label>
+          <label style="font-size:12px;font-weight:600;color:#374151">${t('rpt.from')}</label>
           <input type="date" id="rpt-from" value="${customFrom}" style="padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px">
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <label style="font-size:12px;font-weight:600;color:#374151">Saakka</label>
+          <label style="font-size:12px;font-weight:600;color:#374151">${t('rpt.to')}</label>
           <input type="date" id="rpt-to" value="${customTo}" style="padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px">
         </div>
-        <button id="rpt-apply-custom" class="btn btn-primary btn-sm">Hae</button>
+        <button id="rpt-apply-custom" class="btn btn-primary btn-sm">${t('rpt.apply')}</button>
       </div>
 
-      <!-- Suodattimet -->
       <div class="rpt-filter-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
         ${cachedSites.length ? `
         <select id="rpt-site-filter" style="font-size:13px;padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#374151;cursor:pointer">
-          <option value="">Kaikki sivustot</option>
+          <option value="">${t('dash.allSites')}</option>
           ${sitesOpts}
-          <option value="_none">– Ei sivustoa –</option>
+          <option value="_none">${t('dash.noSite')}</option>
         </select>` : ''}
         ${cachedPopups.length ? `
         <select id="rpt-popup-filter" style="font-size:13px;padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#374151;cursor:pointer">
-          <option value="">Kaikki elementit</option>
+          <option value="">${t('dash.allElements')}</option>
           ${popupOpts}
         </select>` : ''}
       </div>
 
-      <!-- Tulokset -->
       <div id="report-results">
         ${loadingHTML()}
       </div>
 
     </div>`;
 
-  // Event listeners
   container.querySelectorAll('.rpt-range-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentRange = btn.dataset.range;
@@ -193,7 +195,7 @@ function renderShell(container) {
 
   document.getElementById('rpt-site-filter')?.addEventListener('change', e => {
     filterSiteId  = e.target.value;
-    filterPopupId = ''; // nollaa elementtisuodin kun sivusto vaihtuu
+    filterPopupId = '';
     updatePopupDropdown(filterSiteId);
     loadReport();
   });
@@ -204,12 +206,11 @@ function renderShell(container) {
 
   document.getElementById('rpt-email-btn')?.addEventListener('click', sendReportEmail);
 
-  // Palauta suodatinvalinnat
   if (filterSiteId)  { const el = document.getElementById('rpt-site-filter');  if (el) el.value = filterSiteId; }
   if (filterPopupId) { const el = document.getElementById('rpt-popup-filter'); if (el) el.value = filterPopupId; }
 }
 
-// ─── Tulokset ─────────────────────────────────────────────────────────────────
+// ─── Results ──────────────────────────────────────────────────────────────────
 
 function renderResults(data, from, to) {
   const el = document.getElementById('report-results');
@@ -219,13 +220,12 @@ function renderResults(data, from, to) {
   const ctr    = period.views  > 0 ? ((period.clicks  / period.views)  * 100).toFixed(1) : '0.0';
   const allCtr = allTime.views > 0 ? ((allTime.clicks / allTime.views) * 100).toFixed(1) : '0.0';
 
-  const periodLabel = currentRange === 'all'   ? 'Kaikki aika' :
-                      currentRange === 'today'  ? 'Tänään' :
-                      currentRange === 'week'   ? 'Tämä viikko' :
-                      currentRange === 'month'  ? 'Tämä kuukausi' :
-                      (from && to ? `${fmtDate(from)} – ${fmtDate(to)}` : 'Valittu aikaväli');
+  const periodLabel = currentRange === 'all'   ? t('rpt.range.all') :
+                      currentRange === 'today'  ? t('rpt.range.today') :
+                      currentRange === 'week'   ? t('rpt.range.week') :
+                      currentRange === 'month'  ? t('rpt.range.month') :
+                      (from && to ? `${fmtDate(from)} – ${fmtDate(to)}` : t('rpt.period.custom'));
 
-  // Yhdistä cachedPopups + topElements-tilastot → kaikki elementit näkyvät
   const statsMap = {};
   topElements.forEach(e => { statsMap[String(e._id)] = e; });
 
@@ -247,33 +247,30 @@ function renderResults(data, from, to) {
     .sort((a, b) => b.views - a.views);
 
   const elLabel = filterPopupId
-    ? (cachedPopups.find(p => String(p._id) === filterPopupId)?.name || 'Elementti')
-    : `Elementit (${allRows.length} kpl)`;
+    ? (cachedPopups.find(p => String(p._id) === filterPopupId)?.name || t('rpt.element'))
+    : `${t('rpt.elementsOf')} (${allRows.length})`;
 
   el.innerHTML = `
-    <!-- Jakso-kortit -->
     <div style="margin-bottom:8px">
       <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">${esc(periodLabel)}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px">
-        ${statCard('👁️', period.views,  'Näyttöä',    '#fff', '#3b82f6')}
-        ${statCard('🖱️', period.clicks, 'Klikkausta', '#fff', '#3b82f6')}
-        ${statCard('📋', period.leads,  'Liidiä',      '#fff', '#3b82f6')}
-        ${statCard('📈', ctr + '%',     'CTR',         '#fff', '#3b82f6')}
+        ${statCard('👁️', period.views,  t('rpt.stat.views'),  '#fff', '#3b82f6')}
+        ${statCard('🖱️', period.clicks, t('rpt.stat.clicks'), '#fff', '#3b82f6')}
+        ${statCard('📋', period.leads,  t('rpt.stat.leads'),  '#fff', '#3b82f6')}
+        ${statCard('📈', ctr + '%',     'CTR',                '#fff', '#3b82f6')}
       </div>
     </div>
 
-    <!-- Kaikki-aika-kortit -->
     <div style="margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">Kaikki aika yhteensä</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">${t('rpt.allTimeTotal')}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
-        ${statCard('👁️', allTime.views,  'Näyttöä',    '#f8fafc', '#94a3b8')}
-        ${statCard('🖱️', allTime.clicks, 'Klikkausta', '#f8fafc', '#94a3b8')}
-        ${statCard('📋', allTime.leads,  'Liidiä',      '#f8fafc', '#94a3b8')}
-        ${statCard('📈', allCtr + '%',   'CTR',         '#f8fafc', '#94a3b8')}
+        ${statCard('👁️', allTime.views,  t('rpt.stat.views'),  '#f8fafc', '#94a3b8')}
+        ${statCard('🖱️', allTime.clicks, t('rpt.stat.clicks'), '#f8fafc', '#94a3b8')}
+        ${statCard('📋', allTime.leads,  t('rpt.stat.leads'),  '#f8fafc', '#94a3b8')}
+        ${statCard('📈', allCtr + '%',   'CTR',                '#f8fafc', '#94a3b8')}
       </div>
     </div>
 
-    <!-- Elementtitaulukko – koko leveys -->
     <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:20px">
       <div style="padding:14px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px">
         <span style="font-size:16px">📊</span>
@@ -285,11 +282,11 @@ function renderResults(data, from, to) {
       <table style="width:100%;border-collapse:collapse;min-width:500px">
         <thead>
           <tr style="background:#f8fafc">
-            <th style="padding:9px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:left">Nimi</th>
-            <th style="padding:9px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Näytöt</th>
-            <th style="padding:9px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Klikkaukset</th>
+            <th style="padding:9px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:left">${t('rpt.col.name')}</th>
+            <th style="padding:9px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">${t('rpt.col.views')}</th>
+            <th style="padding:9px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">${t('rpt.col.clicks')}</th>
             <th style="padding:9px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">CTR</th>
-            <th style="padding:9px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Liidit</th>
+            <th style="padding:9px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">${t('rpt.col.leads')}</th>
           </tr>
         </thead>
         <tbody>
@@ -307,7 +304,7 @@ function renderResults(data, from, to) {
                     <div style="font-size:11px;color:#94a3b8;margin-top:1px">${typeBadge(row.elementType)}${siteLabel ? ' · <span style="color:#64748b">'+siteLabel+'</span>' : ''}</div>
                   </div>
                   ${row.hasPT ? `<button type="button" class="rpt-expand-btn" data-id="${row._id}"
-                    style="margin-left:6px;padding:2px 7px;border:1px solid #e2e8f0;border-radius:5px;background:#f8fafc;cursor:pointer;font-size:11px;color:#64748b" title="Sivun seuranta">▼</button>` : ''}
+                    style="margin-left:6px;padding:2px 7px;border:1px solid #e2e8f0;border-radius:5px;background:#f8fafc;cursor:pointer;font-size:11px;color:#64748b">▼</button>` : ''}
                 </div>
                 <div class="rpt-pt-detail" id="rpt-pt-${row._id}" style="display:none;margin-top:8px"></div>
               </td>
@@ -321,21 +318,20 @@ function renderResults(data, from, to) {
       </table>
       </div>` : `
       <div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">
-        Ei elementtejä tai dataa valitulle jaksolle.
+        ${t('rpt.noData')}
       </div>`}
     </div>
 
-    <!-- Viimeisimmät liidit – koko leveys -->
     <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
       <div style="padding:14px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px">
         <span style="font-size:16px">📋</span>
-        <span style="font-size:14px;font-weight:700;color:#0f172a">Viimeisimmät liidit</span>
-        ${recentLeads.length ? `<span style="font-size:11px;color:#3b82f6;font-weight:600;margin-left:auto;background:#eff6ff;padding:2px 8px;border-radius:10px">${recentLeads.length} kpl</span>` : ''}
+        <span style="font-size:14px;font-weight:700;color:#0f172a">${t('rpt.recentLeads')}</span>
+        ${recentLeads.length ? `<span style="font-size:11px;color:#3b82f6;font-weight:600;margin-left:auto;background:#eff6ff;padding:2px 8px;border-radius:10px">${recentLeads.length}</span>` : ''}
       </div>
       ${recentLeads.length ? `
       <div style="max-height:400px;overflow-y:auto">
         ${recentLeads.map(l => {
-          const preview = Object.values(l.data || {}).filter(Boolean).slice(0, 2).join(' · ') || '(tyhjä)';
+          const preview = Object.values(l.data || {}).filter(Boolean).slice(0, 2).join(' · ') || t('rpt.empty');
           const site = cachedSites.find(s => String(s._id) === String(l.siteId));
           const typeIcon = TYPE_ICONS[l.elementType] || '◻';
           const meta = [typeBadge(l.elementType), site ? esc(site.name) : ''].filter(Boolean).join(' · ');
@@ -354,10 +350,9 @@ function renderResults(data, from, to) {
           </div>`;
         }).join('')}
       </div>` : `
-      <div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">Ei liidejä valitulle jaksolle.</div>`}
+      <div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">${t('rpt.noLeads')}</div>`}
     </div>`;
 
-  // Laajenna-napit: sivun seuranta per elementti
   el.querySelectorAll('.rpt-expand-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.id;
@@ -371,7 +366,7 @@ function renderResults(data, from, to) {
       btn.textContent = '▲';
       detail.style.display = 'block';
       if (detail.innerHTML) return;
-      detail.innerHTML = '<span style="font-size:11px;color:#94a3b8">Ladataan...</span>';
+      detail.innerHTML = `<span style="font-size:11px;color:#94a3b8">${t('dash.loading')}</span>`;
       await loadElementPageTracking(id, detail);
     });
   });
@@ -394,11 +389,11 @@ async function loadElementPageTracking(popupId, container) {
           return `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #f1f5f9">
             <span style="flex-shrink:0">${icon}</span>
             <div style="flex:1;min-width:0"><div style="font-size:11px;color:#374151">${text}</div>${href}</div>
-            <span style="font-size:11px;font-weight:700;color:#3b82f6;white-space:nowrap">${e.clicks} klikk.</span>
+            <span style="font-size:11px;font-weight:700;color:#3b82f6;white-space:nowrap">${e.clicks} ${t('rpt.clicksShort')}</span>
           </div>`;
         }).join('');
         html += `<div style="margin-bottom:10px">
-          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px">📎 Sivun elementit (${elements.length} kpl)</div>
+          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px">📎 ${t('rpt.pageElements')} (${elements.length})</div>
           <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:240px;overflow-y:auto">${rows}</div>
         </div>`;
       }
@@ -423,20 +418,20 @@ async function loadElementPageTracking(popupId, container) {
           </div>`;
         }).join('');
         html += `<div>
-          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px">📊 Vieritys — ${sd.summary.sessions} käyntiä, ka. ${sd.summary.avgDepth}%</div>
+          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px">📊 ${t('rpt.scroll.label')} — ${sd.summary.sessions} ${t('rpt.sessions')} ${sd.summary.avgDepth}%</div>
           ${bars}
         </div>`;
       }
     }
   } catch {}
-  container.innerHTML = html || '<span style="font-size:11px;color:#94a3b8">Ei sivun seuranta-dataa vielä.</span>';
+  container.innerHTML = html || `<span style="font-size:11px;color:#94a3b8">${t('rpt.noPageTracking')}</span>`;
 }
 
-// ─── Sähköpostilähetys ────────────────────────────────────────────────────────
+// ─── Email send ───────────────────────────────────────────────────────────────
 
 async function sendReportEmail() {
   const btn = document.getElementById('rpt-email-btn');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Lähetetään...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> ${t('rpt.sending')}`; }
 
   const { from, to } = getDateRange();
   try {
@@ -446,16 +441,16 @@ async function sendReportEmail() {
       body: JSON.stringify({ from, to, popupId: filterPopupId, siteId: filterSiteId }),
     });
     const data = await r.json();
-    if (!r.ok) throw new Error(data.message || 'Virhe');
-    showToast(`✓ Raportti lähetetty osoitteeseen ${data.to}`);
+    if (!r.ok) throw new Error(data.message || 'error');
+    showToast(`${t('rpt.emailSent')} ${data.to}`);
   } catch (e) {
-    showToast(e.message || 'Lähetys epäonnistui', 'error');
+    showToast(e.message || t('rpt.emailFailed'), 'error');
   } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-envelope"></i> Lähetä sähköpostiin'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fa fa-envelope"></i> ${t('rpt.emailBtn')}`; }
   }
 }
 
-// ─── Apufunktiot ──────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function statCard(icon, value, label, bg, accentColor) {
   return `
@@ -469,21 +464,17 @@ function statCard(icon, value, label, bg, accentColor) {
     </div>`;
 }
 
-const TYPE_LABELS = {
+const TYPE_LABELS = () => ({
   sticky_bar: 'Sticky Bar', fab: 'Floating Button',
   slide_in: 'Slide-in', popup: 'Popup', lead_form: 'Lead Form',
-  stats_only: 'Tilastojen kerääjä',
-};
+  stats_only: t('rpt.type.stats'),
+});
 const TYPE_ICONS = {
   sticky_bar: '📌', fab: '🔘', slide_in: '💬',
   popup: '⬜', lead_form: '📝', stats_only: '📊',
 };
-function typeBadge(type) { return TYPE_LABELS[type] || type; }
+function typeBadge(type) { return TYPE_LABELS()[type] || type; }
 
-/**
- * Päivittää elementtisuodattimen dropdownin sivustosuodatuksen mukaan.
- * Jos siteId on tyhjä → kaikki elementit; '_none' → vain sivustoitta; muuten suodata siteId:llä.
- */
 function updatePopupDropdown(siteId) {
   const select = document.getElementById('rpt-popup-filter');
   if (!select) return;
@@ -494,19 +485,19 @@ function updatePopupDropdown(siteId) {
     return String(p.siteId) === siteId;
   });
 
-  select.innerHTML = `<option value="">Kaikki elementit</option>` +
+  select.innerHTML = `<option value="">${t('dash.allElements')}</option>` +
     filtered.map(p => `<option value="${p._id}">${esc(p.name)}${p.elementType === 'stats_only' ? ' 📊' : ''}</option>`).join('');
-  select.value = ''; // nollaa valinta
+  select.value = '';
 }
 
 function fmtDate(d) {
   if (!d) return '';
-  return new Date(d).toLocaleDateString('fi-FI');
+  return new Date(d).toLocaleDateString(locale());
 }
 
 function loadingHTML() {
   return `<div style="display:flex;align-items:center;gap:10px;color:#94a3b8;padding:32px 0">
-    <i class="fa fa-spinner fa-spin"></i> <span>Ladataan...</span>
+    <i class="fa fa-spinner fa-spin"></i> <span>${t('dash.loading')}</span>
   </div>`;
 }
 

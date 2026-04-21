@@ -1,20 +1,25 @@
 // js/dashboard/stats-panel.js
 import { showToast } from './dashboard-main.js';
+import { t, getCurrentLanguage } from '../i18n.js';
 
 const TYPE_LABELS = {
   sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in',
   popup: 'Popup', social_proof: 'Social Proof', scroll_progress: 'Scroll Progress', lead_form: 'Lead Form'
 };
 
+function locale() {
+  return getCurrentLanguage() === 'fi' ? 'fi-FI' : 'en-GB';
+}
+
 function getTimingStatus(el) {
   const now = new Date();
   const timing = el.timing || {};
   const start = timing.startDate && timing.startDate !== 'default' ? new Date(timing.startDate) : null;
   const end   = timing.endDate   && timing.endDate   !== 'default' ? new Date(timing.endDate)   : null;
-  if (el.active === false) return { label: '● Ei käytössä',         color: '#ef4444' };
-  if (end   && now > end)   return { label: '● Kampanja päättynyt', color: '#f59e0b' };
-  if (start && now < start) return { label: `● Alkaa ${start.toLocaleDateString('fi-FI')}`, color: '#64748b' };
-  return { label: '● Aktiivinen', color: '#10b981' };
+  if (el.active === false) return { label: t('stats.status.inactive'), color: '#ef4444' };
+  if (end   && now > end)   return { label: t('stats.status.ended'),   color: '#f59e0b' };
+  if (start && now < start) return { label: `${t('stats.status.starts')} ${start.toLocaleDateString(locale())}`, color: '#64748b' };
+  return { label: t('stats.status.active'), color: '#10b981' };
 }
 
 export function openStats(el) {
@@ -70,9 +75,9 @@ function buildStatsHTML(el) {
 
         <div id="s-status" style="margin-bottom:14px"></div>
         <div id="stats-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
-          <div class="stat-card"><div class="stat-value" id="s-views">–</div><div class="stat-label">Näytöt</div></div>
-          <div class="stat-card"><div class="stat-value" id="s-clicks">–</div><div class="stat-label">Klikkaukset</div></div>
-          <div class="stat-card"><div class="stat-value" id="s-ctr">–</div><div class="stat-label">CTR</div></div>
+          <div class="stat-card"><div class="stat-value" id="s-views">–</div><div class="stat-label">${t('stats.views')}</div></div>
+          <div class="stat-card"><div class="stat-value" id="s-clicks">–</div><div class="stat-label">${t('stats.clicks')}</div></div>
+          <div class="stat-card"><div class="stat-value" id="s-ctr">–</div><div class="stat-label">${t('stats.ctr')}</div></div>
         </div>
         <div style="font-size:12px;color:#94a3b8;margin-bottom:16px" id="s-dates"></div>
 
@@ -80,7 +85,7 @@ function buildStatsHTML(el) {
         <div style="margin-bottom:20px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">
           <button id="s-pt-toggle" style="width:100%;display:flex;align-items:center;gap:8px;padding:12px 16px;background:#f8fafc;border:none;cursor:pointer;text-align:left">
             <span style="font-size:14px">📎</span>
-            <span style="font-size:13px;font-weight:700;color:#0f172a;flex:1">Sivun seuranta</span>
+            <span style="font-size:13px;font-weight:700;color:#0f172a;flex:1">${t('stats.pageTracking')}</span>
             <span id="s-pt-arrow" style="font-size:12px;color:#64748b">▼</span>
           </button>
           <div id="s-page-tracking" style="display:none;padding:12px 16px"></div>
@@ -88,9 +93,9 @@ function buildStatsHTML(el) {
 
         <div style="display:flex;justify-content:space-between;align-items:center">
           <button class="btn btn-danger btn-sm" id="reset-stats">
-            <i class="fa fa-redo"></i> Nollaa tilastot
+            <i class="fa fa-redo"></i> ${t('stats.resetBtn')}
           </button>
-          <button class="btn btn-secondary" id="close-stats">Sulje</button>
+          <button class="btn btn-secondary" id="close-stats">${t('stats.closeBtn')}</button>
         </div>
       </div>
     </div>
@@ -111,9 +116,9 @@ function renderStatusRow(el) {
   const start = timing.startDate && timing.startDate !== 'default' ? new Date(timing.startDate) : null;
   const end   = timing.endDate   && timing.endDate   !== 'default' ? new Date(timing.endDate)   : null;
   let dateRange = '';
-  if (start && end) dateRange = `Voimassa: ${start.toLocaleDateString('fi-FI')}–${end.toLocaleDateString('fi-FI')}`;
-  else if (start)   dateRange = `Alkaa: ${start.toLocaleDateString('fi-FI')}`;
-  else if (end)     dateRange = `Päättyy: ${end.toLocaleDateString('fi-FI')}`;
+  if (start && end) dateRange = `${t('stats.valid')} ${start.toLocaleDateString(locale())}–${end.toLocaleDateString(locale())}`;
+  else if (start)   dateRange = `${t('stats.startsOn')} ${start.toLocaleDateString(locale())}`;
+  else if (end)     dateRange = `${t('stats.endsOn')} ${end.toLocaleDateString(locale())}`;
   sd.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;flex-wrap:wrap">
       <span style="color:${status.color};font-size:13px;font-weight:600">${status.label}</span>
@@ -137,25 +142,25 @@ async function loadStats(id, el) {
     if (sctr) sctr.textContent = (s.clickThroughRate ?? '0.00') + '%';
     if (sd) {
       const parts = [];
-      if (s.leads > 0)     parts.push(`📋 Liidejä: ${s.leads} kpl`);
-      if (s.lastViewed)    parts.push('Viimeksi nähty: ' + new Date(s.lastViewed).toLocaleString('fi-FI'));
-      if (s.lastClicked)   parts.push('Viimeksi klikattu: ' + new Date(s.lastClicked).toLocaleString('fi-FI'));
-      if (s.statsResetAt)  parts.push('🔄 Nollattu: ' + new Date(s.statsResetAt).toLocaleString('fi-FI'));
+      if (s.leads > 0)     parts.push(`${t('stats.leads')} ${s.leads}`);
+      if (s.lastViewed)    parts.push(`${t('stats.lastViewed')} ${new Date(s.lastViewed).toLocaleString(locale())}`);
+      if (s.lastClicked)   parts.push(`${t('stats.lastClicked')} ${new Date(s.lastClicked).toLocaleString(locale())}`);
+      if (s.statsResetAt)  parts.push(`${t('stats.resetAt')} ${new Date(s.statsResetAt).toLocaleString(locale())}`);
       sd.innerHTML = parts.map(p => `<span>${p}</span>`).join(' <span style="color:#e2e8f0">·</span> ');
     }
   } catch {}
 }
 
 async function resetStats(id, el) {
-  if (!confirm('Nollataan kaikki tilastot? Tätä ei voi peruuttaa.')) return;
+  if (!confirm(t('stats.resetConfirm'))) return;
   try {
     const r = await fetch('/api/popups/stats/' + id + '/reset', { method: 'POST' });
     if (!r.ok) throw new Error();
-    showToast('Tilastot nollattu');
+    showToast(t('stats.resetSuccess'));
     loadStats(id, el);
     window.dispatchEvent(new CustomEvent('refresh-elements'));
   } catch {
-    showToast('Nollaus epäonnistui', 'error');
+    showToast(t('stats.resetFailed'), 'error');
   }
 }
 
@@ -178,12 +183,12 @@ async function loadPageTrackingStats(popupId, cfg) {
             return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f1f5f9">
               <i class="fa ${icon}" style="color:#64748b;width:12px;font-size:11px;flex-shrink:0"></i>
               <div style="flex:1;min-width:0"><div style="font-size:12px;color:#1e293b">${text}</div>${href}</div>
-              <span style="font-size:12px;font-weight:700;color:#3b82f6;white-space:nowrap">${el.clicks} klikk.</span>
+              <span style="font-size:12px;font-weight:700;color:#3b82f6;white-space:nowrap">${el.clicks} ${t('stats.clicksShort')}</span>
             </div>`;
           }).join('');
           html += `<div style="margin-bottom:16px">
             <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-              <i class="fa fa-mouse-pointer" style="color:#3b82f6"></i> Sivun elementit (${elements.length} kpl)
+              <i class="fa fa-mouse-pointer" style="color:#3b82f6"></i> ${t('stats.pageElementsTitle')} (${elements.length})
             </div>
             <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${rows}</div>
           </div>`;
@@ -221,8 +226,8 @@ async function loadPageTrackingStats(popupId, cfg) {
           }).join('');
           html += `<div>
             <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-              <i class="fa fa-arrows-alt-v" style="color:#3b82f6"></i> Vierityskäyttäytyminen
-              <span style="font-weight:400;color:#94a3b8;margin-left:4px">${summary.sessions} käyntiä · ka. ${summary.avgDepth}%</span>
+              <i class="fa fa-arrows-alt-v" style="color:#3b82f6"></i> ${t('stats.scrollTitle')}
+              <span style="font-weight:400;color:#94a3b8;margin-left:4px">${summary.sessions} ${t('stats.sessions')} ${summary.avgDepth}%</span>
             </div>
             ${bars}
           </div>`;
@@ -234,8 +239,7 @@ async function loadPageTrackingStats(popupId, cfg) {
   if (html) {
     container.innerHTML = html;
   } else if (!cfg.trackPageLinks && !cfg.trackScroll) {
-    container.innerHTML = `<div style="font-size:12px;color:#94a3b8;padding:4px 0">Seuranta ei ole käytössä tälle elementille.<br>
-      Avaa <strong>Muokkaa</strong> → Sivun seuranta → aktivoi ja tallenna.</div>`;
+    container.innerHTML = `<div style="font-size:12px;color:#94a3b8;padding:4px 0">${t('stats.noTracking').replace('\n', '<br>')}</div>`;
   }
 }
 
