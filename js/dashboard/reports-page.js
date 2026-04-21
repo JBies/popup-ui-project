@@ -27,10 +27,10 @@ async function onEnter() {
   if (!container) return;
 
   if (!initialized) {
-    // Lataa sivustot + popupit suodattimia varten
-    await Promise.all([loadSites(), loadPopups()]);
+    await loadSites();
     initialized = true;
   }
+  await loadPopups(); // aina tuore — tracking-flagit voivat muuttua
 
   renderShell(container);
   loadReport();
@@ -374,25 +374,45 @@ async function loadElementPageTracking(popupId, container) {
     if (peRes.ok) {
       const elements = await peRes.json();
       if (elements.length) {
-        const rows = elements.slice(0, 8).map(e => {
-          const icon = e.type === 'link' ? '🔗' : '🖱️';
-          const text = esc((e.text || e.cssSelector || '').slice(0, 45));
-          return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #f8fafc">
-            <span>${icon}</span>
-            <span style="flex:1;font-size:11px;color:#374151">${text}</span>
-            <span style="font-size:11px;font-weight:700;color:#3b82f6">${e.clicks}</span>
+        const rows = elements.map(e => {
+          const icon = e.type === 'link' ? '🔗' : e.type === 'manual' ? '🎯' : '🖱️';
+          const text = esc((e.text || e.cssSelector || '').slice(0, 55));
+          const href = e.href ? `<div style="font-size:10px;color:#94a3b8">${esc(e.href.slice(0, 50))}</div>` : '';
+          return `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #f1f5f9">
+            <span style="flex-shrink:0">${icon}</span>
+            <div style="flex:1;min-width:0"><div style="font-size:11px;color:#374151">${text}</div>${href}</div>
+            <span style="font-size:11px;font-weight:700;color:#3b82f6;white-space:nowrap">${e.clicks} klikk.</span>
           </div>`;
         }).join('');
-        html += `<div style="margin-bottom:8px">
-          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px">Sivun elementit</div>
-          ${rows}
+        html += `<div style="margin-bottom:10px">
+          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px">📎 Sivun elementit (${elements.length} kpl)</div>
+          <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:240px;overflow-y:auto">${rows}</div>
         </div>`;
       }
     }
     if (scrollRes.ok) {
       const sd = await scrollRes.json();
       if (sd.summary?.sessions > 0) {
-        html += `<div style="font-size:11px;color:#64748b">Vieritys: ${sd.summary.sessions} käyntiä, ka. <strong>${sd.summary.avgDepth}%</strong></div>`;
+        const b = sd.buckets || {};
+        const buckets = [
+          { l:'0–25%', v: b.d25||0 }, { l:'25–50%', v: b.d50||0 },
+          { l:'50–75%', v: b.d75||0 }, { l:'75–100%', v: b.d100||0 }
+        ];
+        const max = Math.max(...buckets.map(bk=>bk.v), 1);
+        const bars = buckets.map(bk => {
+          const pct = Math.round((bk.v / max) * 100);
+          return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <span style="width:44px;font-size:10px;color:#64748b;text-align:right">${bk.l}</span>
+            <div style="flex:1;background:#f1f5f9;border-radius:3px;height:10px">
+              <div style="width:${pct}%;background:#3b82f6;height:100%;border-radius:3px"></div>
+            </div>
+            <span style="width:28px;font-size:10px;color:#374151;font-weight:600">${bk.v}</span>
+          </div>`;
+        }).join('');
+        html += `<div>
+          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px">📊 Vieritys — ${sd.summary.sessions} käyntiä, ka. ${sd.summary.avgDepth}%</div>
+          ${bars}
+        </div>`;
       }
     }
   } catch {}

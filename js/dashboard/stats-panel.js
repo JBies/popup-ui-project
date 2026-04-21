@@ -142,21 +142,21 @@ async function loadPageTrackingStats(popupId, cfg) {
       if (r.ok) {
         const elements = await r.json();
         if (elements.length) {
-          const rows = elements.slice(0, 10).map(el => {
+          const rows = elements.map(el => {
             const icon = el.type === 'link' ? 'fa-link' : 'fa-hand-pointer';
-            const text = escHtml((el.text || el.cssSelector || '').slice(0, 50));
-            const href = el.href ? `<span style="font-size:10px;color:#94a3b8;margin-left:4px">${escHtml(el.href.slice(0, 35))}</span>` : '';
+            const text = escHtml((el.text || el.cssSelector || '').slice(0, 60));
+            const href = el.href ? `<div style="font-size:10px;color:#94a3b8;margin-top:1px">${escHtml(el.href.slice(0, 55))}</div>` : '';
             return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f1f5f9">
-              <i class="fa ${icon}" style="color:#64748b;width:12px;font-size:11px"></i>
-              <span style="flex:1;font-size:12px;color:#1e293b">${text}</span>${href}
+              <i class="fa ${icon}" style="color:#64748b;width:12px;font-size:11px;flex-shrink:0"></i>
+              <div style="flex:1;min-width:0"><div style="font-size:12px;color:#1e293b">${text}</div>${href}</div>
               <span style="font-size:12px;font-weight:700;color:#3b82f6;white-space:nowrap">${el.clicks} klikk.</span>
             </div>`;
           }).join('');
           html += `<div style="margin-bottom:16px">
             <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-              <i class="fa fa-mouse-pointer" style="color:#3b82f6"></i> Sivun elementit (top ${Math.min(elements.length, 10)})
+              <i class="fa fa-mouse-pointer" style="color:#3b82f6"></i> Sivun elementit (${elements.length} kpl)
             </div>
-            <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">${rows}</div>
+            <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${rows}</div>
           </div>`;
         }
       }
