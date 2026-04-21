@@ -20,7 +20,9 @@ const isAuthenticated = (req, res, next) => {
       req.path.startsWith('/embed/') ||
       req.path.startsWith('/view/') ||
       req.path.startsWith('/click/') ||
-      req.path.startsWith('/site/')
+      req.path.startsWith('/site/') ||
+      req.path.startsWith('/page-elements/') ||
+      req.path.startsWith('/scroll/')
     ) {
       return next();
     }

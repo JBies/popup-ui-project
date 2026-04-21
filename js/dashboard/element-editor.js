@@ -49,6 +49,25 @@ export async function openEditor(data = {}) {
 
   initTargetingEditor(data);
 
+  if (data._id) {
+    loadPageElements(data._id);
+    loadScrollChart(data._id);
+
+    panel.querySelector('#pe-add-manual')?.addEventListener('click', async () => {
+      const selector = panel.querySelector('#pe-selector')?.value?.trim();
+      const label    = panel.querySelector('#pe-label')?.value?.trim();
+      if (!selector) return;
+      await fetch('/api/popups/page-elements/' + data._id + '/manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cssSelector: selector, label })
+      });
+      panel.querySelector('#pe-selector').value = '';
+      panel.querySelector('#pe-label').value = '';
+      loadPageElements(data._id);
+    });
+  }
+
   if (currentType !== 'stats_only') updatePreview();
 
   panel.querySelectorAll('#editor-cancel').forEach(btn => btn.addEventListener('click', closeEditor));
@@ -233,6 +252,9 @@ function buildEditorHTML(type, data = {}, sites = []) {
             </button>
           </div>
         </div>
+
+        ${data._id ? buildPageTrackingSection(data) : ''}
+
       </div>
       ${type !== 'stats_only' ? `<div class="editor-preview-pane">
         <div class="preview-toolbar">
@@ -260,6 +282,155 @@ function buildEditorHTML(type, data = {}, sites = []) {
       <button class="btn btn-primary" id="editor-save">
         <i class="fa fa-save"></i> Tallenna
       </button>
+    </div>`;
+}
+
+// ─── Sivun seuranta ───────────────────────────────────────────────────────────
+
+function hasPageTracking() {
+  const u = window.__currentUser__;
+  return u?.role === 'admin' || u?.popupLimit > 1 || u?.limits?.canUsePageTracking;
+}
+
+function buildPageTrackingSection(data) {
+  if (!hasPageTracking()) {
+    return `
+    <div style="margin-top:24px">
+      <div class="section-title">Sivun seuranta</div>
+      <div style="padding:16px;background:#fffbeb;border:1px solid #fbbf24;border-radius:10px;display:flex;align-items:flex-start;gap:12px">
+        <span style="font-size:20px">⭐</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;color:#92400e;margin-bottom:4px">Pro-ominaisuus</div>
+          <div style="font-size:12px;color:#78350f">Sivun linkkien, nappien ja scroll-käyttäytymisen seuranta on saatavilla Pro-tilaajille tai käyttäjille joille on myönnetty enemmän elementtejä.</div>
+        </div>
+      </div>
+    </div>`;
+  }
+  const cfg = data.elementConfig || {};
+  return `
+    <div style="margin-top:24px">
+      <div class="section-title">Sivun seuranta</div>
+      <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:12px 14px;border:2px solid #e2e8f0;border-radius:10px;margin-bottom:8px">
+        <input type="checkbox" id="el-trackPageLinks" ${cfg.trackPageLinks ? 'checked' : ''} style="width:18px;height:18px;accent-color:#3b82f6">
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#0f172a">Hae linkit ja seuraa sivun dataa</div>
+          <div style="font-size:11px;color:#64748b">Embed-skripti etsii automaattisesti kaikki linkit ja napit – seuraa niiden klikkauksia</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;border:2px solid #e2e8f0;border-radius:10px;margin-bottom:16px">
+        <input type="checkbox" id="el-trackScroll" ${cfg.trackScroll ? 'checked' : ''} style="width:18px;height:18px;accent-color:#3b82f6">
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#0f172a">Seuraa vierityskäyttäytymistä</div>
+          <div style="font-size:11px;color:#64748b">Kirjaa kuinka pitkälle käyttäjä vierittää ja missä hän pysähtyy</div>
+        </div>
+      </label>
+
+      <div id="page-elements-container">
+        <div style="font-size:12px;color:#94a3b8;padding:4px 0">Ladataan seurattuja elementtejä...</div>
+      </div>
+
+      <div style="margin-top:12px;padding:12px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px">
+        <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px">Lisää manuaalisesti</div>
+        <div style="display:flex;gap:8px;margin-bottom:6px">
+          <input type="text" id="pe-selector" placeholder="CSS-selektori esim. #osta-nyt"
+            style="flex:1;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">
+          <input type="text" id="pe-label" placeholder="Kuvaus"
+            style="flex:1;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">
+        </div>
+        <button type="button" id="pe-add-manual"
+          style="padding:7px 14px;background:#3b82f6;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">
+          + Lisää
+        </button>
+      </div>
+
+      <div id="scroll-depth-chart" style="margin-top:16px"></div>
+    </div>`;
+}
+
+async function loadPageElements(popupId) {
+  const container = document.getElementById('page-elements-container');
+  if (!container) return;
+  try {
+    const r = await fetch('/api/popups/page-elements/' + popupId);
+    if (!r.ok) { container.innerHTML = '<p style="font-size:12px;color:#ef4444">Lataus epäonnistui</p>'; return; }
+    const elements = await r.json();
+    renderPageElementsList(container, elements, popupId);
+  } catch {
+    container.innerHTML = '<p style="font-size:12px;color:#ef4444">Verkkovirhe</p>';
+  }
+}
+
+function renderPageElementsList(container, elements, popupId) {
+  if (!elements.length) {
+    container.innerHTML = '<p style="font-size:12px;color:#94a3b8;padding:4px 0">Ei seurattuja elementtejä. Aktivoi seuranta yllä – seuraavan sivulatauksen jälkeen linkit ja napit ilmestyvät tähän.</p>';
+    return;
+  }
+  const rows = elements.map(el => {
+    const icon = el.type === 'link' ? 'fa-link' : el.type === 'manual' ? 'fa-hand-point-right' : 'fa-hand-pointer';
+    const text = escHtml((el.text || el.cssSelector || '').slice(0, 60));
+    const href = el.href ? `<span style="font-size:10px;color:#94a3b8;margin-left:4px">${escHtml(el.href.slice(0, 40))}</span>` : '';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;margin-bottom:4px;background:#fff">
+      <i class="fa ${icon}" style="color:#64748b;width:14px"></i>
+      <span style="flex:1;font-size:12px;color:#1e293b;font-weight:500">${text}</span>${href}
+      <span style="font-size:12px;font-weight:700;color:#3b82f6;white-space:nowrap">${el.clicks} klikk.</span>
+      <button type="button" data-pe-id="${el._id}"
+        style="border:none;background:none;cursor:pointer;color:#ef4444;padding:2px 6px;font-size:14px" title="Poista seurannasta">✕</button>
+    </div>`;
+  }).join('');
+  container.innerHTML = rows;
+
+  container.querySelectorAll('[data-pe-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await fetch('/api/popups/page-elements/' + btn.dataset.peId, { method: 'DELETE' });
+      loadPageElements(popupId);
+    });
+  });
+}
+
+async function loadScrollChart(popupId) {
+  const chartDiv = document.getElementById('scroll-depth-chart');
+  if (!chartDiv) return;
+  try {
+    const r = await fetch('/api/popups/scroll/' + popupId);
+    if (!r.ok) return;
+    const data = await r.json();
+    renderScrollDepthChart(chartDiv, data);
+  } catch {}
+}
+
+function renderScrollDepthChart(container, data) {
+  const b = data.buckets || {};
+  const summary = data.summary || {};
+  if (!summary.sessions) { container.innerHTML = ''; return; }
+
+  const buckets = [
+    { label: '0–10%',   val: b.d10  || 0 },
+    { label: '10–25%',  val: b.d25  || 0 },
+    { label: '25–50%',  val: b.d50  || 0 },
+    { label: '50–75%',  val: b.d75  || 0 },
+    { label: '75–90%',  val: b.d90  || 0 },
+    { label: '90–100%', val: b.d100 || 0 }
+  ];
+  const max = Math.max(...buckets.map(b => b.val), 1);
+
+  const rows = buckets.map(bk => {
+    const pct = Math.round((bk.val / max) * 100);
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span style="width:52px;font-size:11px;color:#64748b;text-align:right">${bk.label}</span>
+      <div style="flex:1;background:#f1f5f9;border-radius:4px;height:14px;overflow:hidden">
+        <div style="width:${pct}%;background:#3b82f6;height:100%;border-radius:4px;transition:width .3s"></div>
+      </div>
+      <span style="width:40px;font-size:11px;color:#374151;font-weight:600">${bk.val}</span>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div style="margin-top:4px">
+      <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px">
+        Vierityskäyttäytyminen
+        <span style="font-weight:400;color:#94a3b8;margin-left:6px">${summary.sessions} käyntiä · keskiarvo ${summary.avgDepth}%</span>
+      </div>
+      ${rows}
     </div>`;
 }
 
@@ -475,6 +646,12 @@ function buildPayload() {
   const frequency = document.querySelector('input[name="el-frequency"]:checked')?.value || 'always';
   const viewCooldown = parseInt(document.querySelector('input[name="el-viewCooldown"]:checked')?.value ?? '0') || 0;
 
+  const trackPageLinks = document.getElementById('el-trackPageLinks')?.checked ?? false;
+  const trackScroll    = document.getElementById('el-trackScroll')?.checked    ?? false;
+
+  const merged = { ...typeData };
+  merged.elementConfig = { ...(typeData.elementConfig || {}), trackPageLinks, trackScroll };
+
   return {
     name,
     elementType: currentType,
@@ -485,7 +662,7 @@ function buildPayload() {
     siteId: siteId || null,
     startDate: document.getElementById('el-start-date')?.value || '',
     endDate:   document.getElementById('el-end-date')?.value   || '',
-    ...typeData
+    ...merged
   };
 }
 

@@ -91,6 +91,7 @@ const userSchema = new mongoose.Schema({
         canUseCampaigns:       { type: Boolean, default: false },
         canUseWebhooks:        { type: Boolean, default: false },
         canUseCustomScripts:   { type: Boolean, default: false }, // Cookie consent vapaa JS — vain Pro
+        canUsePageTracking:    { type: Boolean, default: false }, // Sivun linkkien ja scrollin seuranta — vain Pro
     },
     profilePicture: { type: String }, // Google-profiilikuvan URL
     registeredAt: { type: Date, default: Date.now },

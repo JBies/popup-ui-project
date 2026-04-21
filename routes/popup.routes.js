@@ -3,6 +3,7 @@
 
 const express = require('express');
 const PopupController = require('../controllers/popup.controller');
+const PageTrackingController = require('../controllers/pageTracking.controller');
 
 const router = express.Router();
 
@@ -85,5 +86,16 @@ router.delete('/:id', PopupController.deletePopup);
 
 router.put('/:id/toggle-active', PopupController.toggleActive);
 router.post('/campaign/activate', PopupController.activateCampaign);
+
+// Sivun seuranta - julkiset (embed)
+router.post('/page-elements/:id/discover', PageTrackingController.discoverElements);
+router.post('/page-elements/:id/click',    PageTrackingController.recordPageElementClick);
+router.post('/scroll/:id',                 PageTrackingController.recordScroll);
+
+// Sivun seuranta - autentikoitu (dashboard)
+router.get('/page-elements/:id',               PageTrackingController.listPageElements);
+router.post('/page-elements/:id/manual',       PageTrackingController.addManualElement);
+router.delete('/page-elements/:pageElementId', PageTrackingController.deactivatePageElement);
+router.get('/scroll/:id',                      PageTrackingController.getScrollStats);
 
 module.exports = router;

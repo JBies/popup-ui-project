@@ -155,7 +155,7 @@ function renderShell(container) {
       </div>
 
       <!-- Suodattimet -->
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+      <div class="rpt-filter-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
         ${cachedSites.length ? `
         <select id="rpt-site-filter" style="font-size:13px;padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#374151;cursor:pointer">
           <option value="">Kaikki sivustot</option>
@@ -253,7 +253,7 @@ function renderResults(data, from, to) {
     </div>
 
     <!-- Kaksi saraketta: top-elementit + liidit -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+    <div class="rpt-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
 
       <!-- Top-elementit -->
       <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
@@ -279,11 +279,20 @@ function renderResults(data, from, to) {
               const elCtr = el.views > 0 ? ((el.clicks / el.views) * 100).toFixed(1) : '0.0';
               const site = cachedSites.find(s => String(s._id) === String(el.siteId));
               const siteLabel = site ? esc(site.name) : '';
+              const popup = cachedPopups.find(p => String(p._id) === String(el._id));
+              const hasPT = popup?.elementConfig?.trackPageLinks || popup?.elementConfig?.trackScroll;
               return `
               <tr style="border-top:1px solid #f1f5f9;${i%2===1?'background:#fafbfc':''}">
                 <td style="padding:10px 16px">
-                  <div style="font-size:13px;font-weight:600;color:#0f172a">${esc(el.name)}</div>
-                  <div style="font-size:11px;color:#94a3b8;margin-top:1px">${typeBadge(el.type)}${siteLabel ? ' · <span style="color:#64748b">'+siteLabel+'</span>' : ''}</div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#0f172a">${esc(el.name)}</div>
+                      <div style="font-size:11px;color:#94a3b8;margin-top:1px">${typeBadge(el.type)}${siteLabel ? ' · <span style="color:#64748b">'+siteLabel+'</span>' : ''}</div>
+                    </div>
+                    ${hasPT ? `<button type="button" class="rpt-expand-btn" data-id="${el._id}"
+                      style="margin-left:4px;padding:2px 6px;border:1px solid #e2e8f0;border-radius:5px;background:#f8fafc;cursor:pointer;font-size:11px;color:#64748b" title="Näytä sivun seuranta">▼</button>` : ''}
+                  </div>
+                  <div class="rpt-pt-detail" id="rpt-pt-${el._id}" style="display:none;margin-top:8px"></div>
                 </td>
                 <td style="padding:10px 8px;font-size:13px;color:#374151;text-align:right">${el.views.toLocaleString()}</td>
                 <td style="padding:10px 8px;font-size:13px;color:#94a3b8;text-align:right">${isStats ? '–' : el.clicks.toLocaleString()}</td>
@@ -334,6 +343,60 @@ function renderResults(data, from, to) {
       </div>
 
     </div>`;
+
+  // Laajenna-napit: sivun seuranta per elementti
+  el.querySelectorAll('.rpt-expand-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const detail = document.getElementById('rpt-pt-' + id);
+      if (!detail) return;
+      if (detail.style.display !== 'none') {
+        detail.style.display = 'none';
+        btn.textContent = '▼';
+        return;
+      }
+      btn.textContent = '▲';
+      detail.style.display = 'block';
+      if (detail.innerHTML) return; // jo ladattu
+      detail.innerHTML = '<span style="font-size:11px;color:#94a3b8">Ladataan...</span>';
+      await loadElementPageTracking(id, detail);
+    });
+  });
+}
+
+async function loadElementPageTracking(popupId, container) {
+  let html = '';
+  try {
+    const [peRes, scrollRes] = await Promise.all([
+      fetch('/api/popups/page-elements/' + popupId),
+      fetch('/api/popups/scroll/' + popupId)
+    ]);
+    if (peRes.ok) {
+      const elements = await peRes.json();
+      if (elements.length) {
+        const rows = elements.slice(0, 8).map(e => {
+          const icon = e.type === 'link' ? '🔗' : '🖱️';
+          const text = esc((e.text || e.cssSelector || '').slice(0, 45));
+          return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #f8fafc">
+            <span>${icon}</span>
+            <span style="flex:1;font-size:11px;color:#374151">${text}</span>
+            <span style="font-size:11px;font-weight:700;color:#3b82f6">${e.clicks}</span>
+          </div>`;
+        }).join('');
+        html += `<div style="margin-bottom:8px">
+          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px">Sivun elementit</div>
+          ${rows}
+        </div>`;
+      }
+    }
+    if (scrollRes.ok) {
+      const sd = await scrollRes.json();
+      if (sd.summary?.sessions > 0) {
+        html += `<div style="font-size:11px;color:#64748b">Vieritys: ${sd.summary.sessions} käyntiä, ka. <strong>${sd.summary.avgDepth}%</strong></div>`;
+      }
+    }
+  } catch {}
+  container.innerHTML = html || '<span style="font-size:11px;color:#94a3b8">Ei sivun seuranta-dataa vielä.</span>';
 }
 
 // ─── Sähköpostilähetys ────────────────────────────────────────────────────────

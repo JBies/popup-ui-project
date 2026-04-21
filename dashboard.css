@@ -447,6 +447,12 @@ body {
   .editor-preview-pane { display: none; }
   #topbar { padding: 0 16px; }
   #content { padding: 16px; }
+  /* Raportit: pinoa sarakkeet mobiilissa */
+  .rpt-two-col { grid-template-columns: 1fr !important; }
+  /* Raportit: aikavälinappien wrap */
+  .rpt-range-row { gap: 6px !important; }
+  /* Suodata-valikot: täysi leveys */
+  .rpt-filter-row select { width: 100% !important; }
 }
 
 

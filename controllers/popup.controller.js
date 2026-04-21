@@ -1,11 +1,13 @@
 // controllers/popup.controller.js
 // Vastaa popup-toimintojen logiikasta
 
-const Popup      = require('../models/Popup');
-const Image      = require('../models/Image');
-const User       = require('../models/User');
-const DailyStats = require('../models/DailyStats');
-const AuditLog   = require('../models/AuditLog');
+const Popup       = require('../models/Popup');
+const Image       = require('../models/Image');
+const User        = require('../models/User');
+const DailyStats  = require('../models/DailyStats');
+const AuditLog    = require('../models/AuditLog');
+const PageElement = require('../models/PageElement');
+const ScrollStats = require('../models/ScrollStats');
 const { triggerWebhooks } = require('../utils/webhooks');
 
 const { bucket } = require('../firebase');
@@ -459,7 +461,11 @@ class PopupController {
       if (!deletedPopup) {
         return res.status(404).json({ message: 'Popup not found' });
       }
-      
+
+      // Cascade-delete sivun seuranta -data
+      await PageElement.deleteMany({ popupId: req.params.id });
+      await ScrollStats.deleteMany({ popupId: req.params.id });
+
       res.json({ message: 'Popup deleted successfully' });
     } catch (err) {
       res.status(500).json({ message: 'Error deleting popup', error: err });
