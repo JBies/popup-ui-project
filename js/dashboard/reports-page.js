@@ -216,34 +216,55 @@ function renderResults(data, from, to) {
   if (!el) return;
 
   const { period, allTime, topElements, recentLeads } = data;
-  const ctr = period.views > 0 ? ((period.clicks / period.views) * 100).toFixed(1) : '0.0';
+  const ctr    = period.views  > 0 ? ((period.clicks  / period.views)  * 100).toFixed(1) : '0.0';
   const allCtr = allTime.views > 0 ? ((allTime.clicks / allTime.views) * 100).toFixed(1) : '0.0';
 
-  const periodLabel = currentRange === 'all' ? 'Kaikki aika' :
-    currentRange === 'today' ? 'Tänään' :
-    currentRange === 'week'  ? 'Tämä viikko' :
-    currentRange === 'month' ? 'Tämä kuukausi' :
-    (from && to ? `${fmtDate(from)} – ${fmtDate(to)}` : 'Valittu aikaväli');
+  const periodLabel = currentRange === 'all'   ? 'Kaikki aika' :
+                      currentRange === 'today'  ? 'Tänään' :
+                      currentRange === 'week'   ? 'Tämä viikko' :
+                      currentRange === 'month'  ? 'Tämä kuukausi' :
+                      (from && to ? `${fmtDate(from)} – ${fmtDate(to)}` : 'Valittu aikaväli');
+
+  // Yhdistä cachedPopups + topElements-tilastot → kaikki elementit näkyvät
+  const statsMap = {};
+  topElements.forEach(e => { statsMap[String(e._id)] = e; });
+
+  const allRows = cachedPopups
+    .filter(p => {
+      if (filterPopupId && String(p._id) !== filterPopupId) return false;
+      if (filterSiteId === '_none' && p.siteId) return false;
+      if (filterSiteId && filterSiteId !== '_none' && String(p.siteId) !== filterSiteId) return false;
+      return true;
+    })
+    .map(p => {
+      const s = statsMap[String(p._id)] || {};
+      return {
+        _id: p._id, name: p.name, elementType: p.elementType, siteId: p.siteId,
+        views: s.views || 0, clicks: s.clicks || 0, leads: s.leads || 0,
+        hasPT: !!(p.elementConfig?.trackPageLinks || p.elementConfig?.trackScroll)
+      };
+    })
+    .sort((a, b) => b.views - a.views);
+
+  const elLabel = filterPopupId
+    ? (cachedPopups.find(p => String(p._id) === filterPopupId)?.name || 'Elementti')
+    : `Elementit (${allRows.length} kpl)`;
 
   el.innerHTML = `
     <!-- Jakso-kortit -->
     <div style="margin-bottom:8px">
-      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">
-        ${esc(periodLabel)}
-      </div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">${esc(periodLabel)}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px">
-        ${statCard('👁️', period.views,  'Näyttöä',     '#fff', '#3b82f6')}
-        ${statCard('🖱️', period.clicks, 'Klikkausta',  '#fff', '#3b82f6')}
-        ${statCard('📋', period.leads,  'Liidiä',       '#fff', '#3b82f6')}
-        ${statCard('📈', ctr + '%',     'CTR',          '#fff', '#3b82f6')}
+        ${statCard('👁️', period.views,  'Näyttöä',    '#fff', '#3b82f6')}
+        ${statCard('🖱️', period.clicks, 'Klikkausta', '#fff', '#3b82f6')}
+        ${statCard('📋', period.leads,  'Liidiä',      '#fff', '#3b82f6')}
+        ${statCard('📈', ctr + '%',     'CTR',         '#fff', '#3b82f6')}
       </div>
     </div>
 
     <!-- Kaikki-aika-kortit -->
     <div style="margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">
-        Kaikki aika yhteensä
-      </div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">Kaikki aika yhteensä</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
         ${statCard('👁️', allTime.views,  'Näyttöä',    '#f8fafc', '#94a3b8')}
         ${statCard('🖱️', allTime.clicks, 'Klikkausta', '#f8fafc', '#94a3b8')}
@@ -252,96 +273,88 @@ function renderResults(data, from, to) {
       </div>
     </div>
 
-    <!-- Kaksi saraketta: top-elementit + liidit -->
-    <div class="rpt-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-
-      <!-- Top-elementit -->
-      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
-        <div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">🏆</span>
-          <span style="font-size:14px;font-weight:700;color:#0f172a">Top elementit</span>
-          <span style="font-size:11px;color:#94a3b8;margin-left:auto">Kaikki aika</span>
-        </div>
-        ${topElements.length ? `
-        <table style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr style="background:#f8fafc">
-              <th style="padding:10px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:left">Nimi</th>
-              <th style="padding:10px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Näytöt</th>
-              <th style="padding:10px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Klikkaukset</th>
-              <th style="padding:10px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">CTR</th>
-              <th style="padding:10px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Liidit</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${topElements.map((el, i) => {
-              const isStats = el.type === 'stats_only';
-              const elCtr = el.views > 0 ? ((el.clicks / el.views) * 100).toFixed(1) : '0.0';
-              const site = cachedSites.find(s => String(s._id) === String(el.siteId));
-              const siteLabel = site ? esc(site.name) : '';
-              const popup = cachedPopups.find(p => String(p._id) === String(el._id));
-              const hasPT = popup?.elementConfig?.trackPageLinks || popup?.elementConfig?.trackScroll;
-              return `
-              <tr style="border-top:1px solid #f1f5f9;${i%2===1?'background:#fafbfc':''}">
-                <td style="padding:10px 16px">
-                  <div style="display:flex;align-items:center;gap:6px">
-                    <div>
-                      <div style="font-size:13px;font-weight:600;color:#0f172a">${esc(el.name)}</div>
-                      <div style="font-size:11px;color:#94a3b8;margin-top:1px">${typeBadge(el.type)}${siteLabel ? ' · <span style="color:#64748b">'+siteLabel+'</span>' : ''}</div>
-                    </div>
-                    ${hasPT ? `<button type="button" class="rpt-expand-btn" data-id="${el._id}"
-                      style="margin-left:4px;padding:2px 6px;border:1px solid #e2e8f0;border-radius:5px;background:#f8fafc;cursor:pointer;font-size:11px;color:#64748b" title="Näytä sivun seuranta">▼</button>` : ''}
-                  </div>
-                  <div class="rpt-pt-detail" id="rpt-pt-${el._id}" style="display:none;margin-top:8px"></div>
-                </td>
-                <td style="padding:10px 8px;font-size:13px;color:#374151;text-align:right">${el.views.toLocaleString()}</td>
-                <td style="padding:10px 8px;font-size:13px;color:#94a3b8;text-align:right">${isStats ? '–' : el.clicks.toLocaleString()}</td>
-                <td style="padding:10px 8px;font-size:13px;text-align:right;color:${isStats?'#94a3b8':parseFloat(elCtr)>5?'#16a34a':'#64748b'}">${isStats ? '–' : elCtr+'%'}</td>
-                <td style="padding:10px 16px;font-size:13px;font-weight:700;color:${isStats?'#94a3b8':'#1d4ed8'};text-align:right">${isStats ? '–' : el.leads}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>` : `
-        <div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">
-          Ei dataa valitulle jaksolle.<br>
-          <span style="font-size:12px">Data kertyy tästä päivästä alkaen.</span>
-        </div>`}
+    <!-- Elementtitaulukko – koko leveys -->
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:20px">
+      <div style="padding:14px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">📊</span>
+        <span style="font-size:14px;font-weight:700;color:#0f172a">${esc(elLabel)}</span>
+        <span style="font-size:11px;color:#94a3b8;margin-left:auto">${esc(periodLabel)}</span>
       </div>
-
-      <!-- Viimeisimmät liidit -->
-      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
-        <div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">📋</span>
-          <span style="font-size:14px;font-weight:700;color:#0f172a">Viimeisimmät liidit</span>
-          ${recentLeads.length ? `<span style="font-size:11px;color:#3b82f6;font-weight:600;margin-left:auto;background:#eff6ff;padding:2px 8px;border-radius:10px">${recentLeads.length} kpl</span>` : ''}
-        </div>
-        ${recentLeads.length ? `
-        <div style="max-height:520px;overflow-y:auto">
-          ${recentLeads.map(l => {
-            const preview = Object.values(l.data || {}).filter(Boolean).slice(0, 2).join(' · ') || '(tyhjä)';
-            const site = cachedSites.find(s => String(s._id) === String(l.siteId));
-            const typeIcon = TYPE_ICONS[l.elementType] || '◻';
-            const meta = [typeBadge(l.elementType), site ? esc(site.name) : ''].filter(Boolean).join(' · ');
-            return `<div style="padding:12px 16px;border-bottom:1px solid #f8fafc">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-                <div style="flex:1;min-width:0">
-                  <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
-                    <span style="font-size:11px">${typeIcon}</span>
-                    <span style="font-size:12px;font-weight:600;color:#64748b">${esc(l.popupName)}</span>
+      ${allRows.length ? `
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;min-width:500px">
+        <thead>
+          <tr style="background:#f8fafc">
+            <th style="padding:9px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:left">Nimi</th>
+            <th style="padding:9px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Näytöt</th>
+            <th style="padding:9px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Klikkaukset</th>
+            <th style="padding:9px 8px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">CTR</th>
+            <th style="padding:9px 16px;font-size:11px;font-weight:600;color:#94a3b8;text-align:right">Liidit</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allRows.map((row, i) => {
+            const isStats = row.elementType === 'stats_only';
+            const rowCtr = row.views > 0 ? ((row.clicks / row.views) * 100).toFixed(1) : '0.0';
+            const site = cachedSites.find(s => String(s._id) === String(row.siteId));
+            const siteLabel = site ? esc(site.name) : '';
+            return `
+            <tr style="border-top:1px solid #f1f5f9;${i%2===1?'background:#fafbfc':''}">
+              <td style="padding:10px 16px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:#0f172a">${esc(row.name)}</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:1px">${typeBadge(row.elementType)}${siteLabel ? ' · <span style="color:#64748b">'+siteLabel+'</span>' : ''}</div>
                   </div>
-                  ${meta ? `<div style="font-size:11px;color:#94a3b8;margin-bottom:3px">${meta}</div>` : ''}
-                  <div style="font-size:13px;color:#0f172a;word-break:break-word">${esc(preview)}</div>
+                  ${row.hasPT ? `<button type="button" class="rpt-expand-btn" data-id="${row._id}"
+                    style="margin-left:6px;padding:2px 7px;border:1px solid #e2e8f0;border-radius:5px;background:#f8fafc;cursor:pointer;font-size:11px;color:#64748b" title="Sivun seuranta">▼</button>` : ''}
                 </div>
-                <div style="font-size:11px;color:#94a3b8;white-space:nowrap;flex-shrink:0">${fmtDate(l.submittedAt)}</div>
-              </div>
-            </div>`;
+                <div class="rpt-pt-detail" id="rpt-pt-${row._id}" style="display:none;margin-top:8px"></div>
+              </td>
+              <td style="padding:10px 8px;font-size:13px;color:#374151;text-align:right">${row.views.toLocaleString()}</td>
+              <td style="padding:10px 8px;font-size:13px;color:#94a3b8;text-align:right">${isStats ? '–' : row.clicks.toLocaleString()}</td>
+              <td style="padding:10px 8px;font-size:13px;text-align:right;color:${isStats?'#94a3b8':parseFloat(rowCtr)>5?'#16a34a':'#64748b'}">${isStats ? '–' : rowCtr+'%'}</td>
+              <td style="padding:10px 16px;font-size:13px;font-weight:700;color:${isStats?'#94a3b8':'#1d4ed8'};text-align:right">${isStats ? '–' : row.leads}</td>
+            </tr>`;
           }).join('')}
-        </div>` : `
-        <div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">
-          Ei liidejä valitulle jaksolle.
-        </div>`}
-      </div>
+        </tbody>
+      </table>
+      </div>` : `
+      <div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">
+        Ei elementtejä tai dataa valitulle jaksolle.
+      </div>`}
+    </div>
 
+    <!-- Viimeisimmät liidit – koko leveys -->
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
+      <div style="padding:14px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">📋</span>
+        <span style="font-size:14px;font-weight:700;color:#0f172a">Viimeisimmät liidit</span>
+        ${recentLeads.length ? `<span style="font-size:11px;color:#3b82f6;font-weight:600;margin-left:auto;background:#eff6ff;padding:2px 8px;border-radius:10px">${recentLeads.length} kpl</span>` : ''}
+      </div>
+      ${recentLeads.length ? `
+      <div style="max-height:400px;overflow-y:auto">
+        ${recentLeads.map(l => {
+          const preview = Object.values(l.data || {}).filter(Boolean).slice(0, 2).join(' · ') || '(tyhjä)';
+          const site = cachedSites.find(s => String(s._id) === String(l.siteId));
+          const typeIcon = TYPE_ICONS[l.elementType] || '◻';
+          const meta = [typeBadge(l.elementType), site ? esc(site.name) : ''].filter(Boolean).join(' · ');
+          return `<div style="padding:12px 16px;border-bottom:1px solid #f8fafc">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+                  <span style="font-size:11px">${typeIcon}</span>
+                  <span style="font-size:12px;font-weight:600;color:#64748b">${esc(l.popupName)}</span>
+                </div>
+                ${meta ? `<div style="font-size:11px;color:#94a3b8;margin-bottom:3px">${meta}</div>` : ''}
+                <div style="font-size:13px;color:#0f172a;word-break:break-word">${esc(preview)}</div>
+              </div>
+              <div style="font-size:11px;color:#94a3b8;white-space:nowrap;flex-shrink:0">${fmtDate(l.submittedAt)}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>` : `
+      <div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">Ei liidejä valitulle jaksolle.</div>`}
     </div>`;
 
   // Laajenna-napit: sivun seuranta per elementti
@@ -357,7 +370,7 @@ function renderResults(data, from, to) {
       }
       btn.textContent = '▲';
       detail.style.display = 'block';
-      if (detail.innerHTML) return; // jo ladattu
+      if (detail.innerHTML) return;
       detail.innerHTML = '<span style="font-size:11px;color:#94a3b8">Ladataan...</span>';
       await loadElementPageTracking(id, detail);
     });
