@@ -16,7 +16,9 @@ const pageElementSchema = new mongoose.Schema({
 });
 
 pageElementSchema.index({ popupId: 1, fingerprint: 1 }, { unique: true });
+pageElementSchema.index({ popupId: 1, pageUrl: 1, fingerprint: 1 }, { unique: true });
 pageElementSchema.index({ popupId: 1, clicks: -1 });
+pageElementSchema.index({ popupId: 1, pageUrl: 1, clicks: -1 });
 pageElementSchema.index({ userId: 1 });
 
 module.exports = mongoose.model('PageElement', pageElementSchema);

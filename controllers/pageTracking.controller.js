@@ -78,7 +78,14 @@ class PageTrackingController {
       const popup = await Popup.findOne({ _id: req.params.id, userId: req.user._id }).select('_id').lean();
       if (!popup) return res.status(404).json({ error: 'Not found' });
 
-      const elements = await PageElement.find({ popupId: popup._id, active: true })
+      // Sivukohtainen suodatus
+      const { pageUrl } = req.query;
+      const query = { popupId: popup._id, active: true };
+      if (pageUrl && pageUrl.trim() !== '') {
+        query.pageUrl = pageUrl;
+      }
+
+      const elements = await PageElement.find(query)
         .sort({ clicks: -1 })
         .lean();
 
@@ -223,8 +230,15 @@ class PageTrackingController {
         .select('scrollStats').lean();
       if (!popup) return res.status(404).json({ error: 'Not found' });
 
+      // Sivukohtainen suodatus
+      const { pageUrl } = req.query;
+      const query = { popupId: req.params.id };
+      if (pageUrl && pageUrl.trim() !== '') {
+        query.pageUrl = pageUrl;
+      }
+
       // Aggregate buckets across all dates
-      const rows = await ScrollStats.find({ popupId: req.params.id }).lean();
+      const rows = await ScrollStats.find(query).lean();
 
       const totals = { d10: 0, d25: 0, d50: 0, d75: 0, d90: 0, d100: 0 };
       const pauseMap = {};

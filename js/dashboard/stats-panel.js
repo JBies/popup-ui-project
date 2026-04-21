@@ -172,26 +172,71 @@ async function loadPageTrackingStats(popupId, cfg) {
 
   if (cfg.trackPageLinks) {
     try {
+      // Hae kaikki elementit saadaksemme uniikit sivut
       const r = await fetch('/api/popups/page-elements/' + popupId);
       if (r.ok) {
-        const elements = await r.json();
-        if (elements.length) {
-          const rows = elements.map(el => {
+        const allElements = await r.json();
+        
+        if (allElements.length) {
+          // Etsi uniikit sivut
+          const uniquePages = [...new Set(allElements.map(el => el.pageUrl).filter(url => url && url.trim() !== ''))];
+          
+          // Jos on useita sivuja, näytä valinta
+          let pageSelectorHtml = '';
+          if (uniquePages.length > 1) {
+            pageSelectorHtml = `
+              <div style="margin-bottom:12px">
+                <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px">${t('stats.selectPage') || 'Select page:'}</div>
+                <select id="page-url-selector" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff">
+                  <option value="">${t('stats.allPages') || 'All pages'}</option>
+                  ${uniquePages.map(url => `<option value="${escHtml(url)}">${escHtml(url.length > 60 ? url.substring(0, 57) + '...' : url)}</option>`).join('')}
+                </select>
+              </div>
+            `;
+          }
+          
+          // Alkuperäinen näkymä (kaikki elementit)
+          const rows = allElements.map(el => {
             const icon = el.type === 'link' ? 'fa-link' : 'fa-hand-pointer';
             const text = escHtml((el.text || el.cssSelector || '').slice(0, 60));
             const href = el.href ? `<div style="font-size:10px;color:#94a3b8;margin-top:1px">${escHtml(el.href.slice(0, 55))}</div>` : '';
-            return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f1f5f9">
+            const pageUrlDisplay = el.pageUrl ? `<div style="font-size:9px;color:#9ca3af;margin-top:1px">${escHtml(el.pageUrl.length > 50 ? el.pageUrl.substring(0, 47) + '...' : el.pageUrl)}</div>` : '';
+            return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f1f5f9" data-page-url="${escHtml(el.pageUrl || '')}">
               <i class="fa ${icon}" style="color:#64748b;width:12px;font-size:11px;flex-shrink:0"></i>
-              <div style="flex:1;min-width:0"><div style="font-size:12px;color:#1e293b">${text}</div>${href}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:12px;color:#1e293b">${text}</div>${href}${pageUrlDisplay}</div>
               <span style="font-size:12px;font-weight:700;color:#3b82f6;white-space:nowrap">${el.clicks} ${t('stats.clicksShort')}</span>
             </div>`;
           }).join('');
+          
           html += `<div style="margin-bottom:16px">
             <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-              <i class="fa fa-mouse-pointer" style="color:#3b82f6"></i> ${t('stats.pageElementsTitle')} (${elements.length})
+              <i class="fa fa-mouse-pointer" style="color:#3b82f6"></i> ${t('stats.pageElementsTitle')} (${allElements.length})
             </div>
-            <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${rows}</div>
+            ${pageSelectorHtml}
+            <div id="page-elements-list" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${rows}</div>
           </div>`;
+          
+          // Lisää tapahtumankäsittelijä sivun valinnalle
+          if (uniquePages.length > 1) {
+            setTimeout(() => {
+              const selector = document.getElementById('page-url-selector');
+              const elementsList = document.getElementById('page-elements-list');
+              if (selector && elementsList) {
+                selector.addEventListener('change', function() {
+                  const selectedUrl = this.value;
+                  const allRows = elementsList.querySelectorAll('[data-page-url]');
+                  allRows.forEach(row => {
+                    const rowUrl = row.getAttribute('data-page-url');
+                    if (!selectedUrl || rowUrl === selectedUrl) {
+                      row.style.display = 'flex';
+                    } else {
+                      row.style.display = 'none';
+                    }
+                  });
+                });
+              }
+            }, 100);
+          }
         }
       }
     } catch {}
