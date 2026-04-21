@@ -1,5 +1,7 @@
 // js/dashboard/analytics-page.js
 
+import { t } from '../i18n.js';
+
 let cachedSites    = [];
 let allElements    = [];
 let filterSiteId   = '';
@@ -61,23 +63,25 @@ function renderAnalytics() {
     const siteFilter = cachedSites.length ? `
       <div style="margin-bottom:20px">
         <select id="analytics-site-filter" style="font-size:13px;padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#374151;cursor:pointer">
-          <option value="">Kaikki sivustot</option>
+          <option value="">${t('analytics.allSites')}</option>
           ${siteOpts}
-          <option value="_none"${filterSiteId === '_none' ? ' selected' : ''}>– Ei sivustoa –</option>
+          <option value="_none"${filterSiteId === '_none' ? ' selected' : ''}>${t('analytics.noSite')}</option>
         </select>
       </div>` : '';
+
+    const statsLabels = [
+      { label: t('analytics.totalViews'), value: totals.views.toLocaleString(), icon: 'fa-eye', color: '#3b82f6' },
+      { label: t('analytics.totalClicks'), value: totals.clicks.toLocaleString(), icon: 'fa-mouse-pointer', color: '#8b5cf6' },
+      { label: t('analytics.avgCTR'), value: ctr + '%', icon: 'fa-percentage', color: '#f59e0b' },
+      { label: t('analytics.pageClicks'), value: totals.pageElementsClicks.toLocaleString(), icon: 'fa-link', color: '#ec4899' },
+      { label: t('analytics.scrollSessions'), value: totals.scrollSessions ? totals.scrollSessions.toLocaleString() : '0', icon: 'fa-arrows-alt-v', color: '#14b8a6' },
+      { label: t('analytics.collectedLeads'), value: totals.leads.toLocaleString(), icon: 'fa-envelope', color: '#10b981' }
+    ];
 
     container.innerHTML = `
       ${siteFilter}
       <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-bottom:28px">
-        ${[
-          { label: 'Näyttöjä yhteensä', value: totals.views.toLocaleString(), icon: 'fa-eye', color: '#3b82f6' },
-          { label: 'Klikkauksia',        value: totals.clicks.toLocaleString(), icon: 'fa-mouse-pointer', color: '#8b5cf6' },
-          { label: 'Keskimäärin CTR',    value: ctr + '%', icon: 'fa-percentage', color: '#f59e0b' },
-          { label: 'Sivun klikit',       value: totals.pageElementsClicks.toLocaleString(), icon: 'fa-link', color: '#ec4899' },
-          { label: 'Vierityskäyntejä',   value: totals.scrollSessions ? totals.scrollSessions.toLocaleString() : '0', icon: 'fa-arrows-alt-v', color: '#14b8a6' },
-          { label: 'Liidit kerätty',     value: totals.leads.toLocaleString(), icon: 'fa-envelope', color: '#10b981' }
-        ].map(s => `
+        ${statsLabels.map(s => `
           <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
               <div style="width:36px;height:36px;border-radius:8px;background:${s.color}18;display:flex;align-items:center;justify-content:center">
@@ -89,18 +93,18 @@ function renderAnalytics() {
           </div>`).join('')}
       </div>
       <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
-        <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;font-weight:700;font-size:14px">Elementtien suorituskyky</div>
+        <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;font-weight:700;font-size:14px">${t('analytics.elementPerformance')}</div>
         <table style="width:100%;border-collapse:collapse;font-size:13px">
           <thead>
             <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0">
-              <th style="text-align:left;padding:10px 20px;font-weight:600;color:#475569">Elementti</th>
-              <th style="text-align:left;padding:10px 12px;font-weight:600;color:#475569">Tyyppi</th>
-              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">Näytöt</th>
-              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">Klikkaukset</th>
-              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">CTR</th>
-              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">Sivun klikit</th>
-              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">Vieritys</th>
-              <th style="text-align:right;padding:10px 20px;font-weight:600;color:#475569">Liidit</th>
+              <th style="text-align:left;padding:10px 20px;font-weight:600;color:#475569">${t('analytics.col.element')}</th>
+              <th style="text-align:left;padding:10px 12px;font-weight:600;color:#475569">${t('analytics.col.type')}</th>
+              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">${t('analytics.col.views')}</th>
+              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">${t('analytics.col.clicks')}</th>
+              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">${t('analytics.col.ctr')}</th>
+              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">${t('analytics.col.pageClicks')}</th>
+              <th style="text-align:right;padding:10px 12px;font-weight:600;color:#475569">${t('analytics.col.scroll')}</th>
+              <th style="text-align:right;padding:10px 20px;font-weight:600;color:#475569">${t('analytics.col.leads')}</th>
             </tr>
           </thead>
           <tbody>
@@ -119,14 +123,14 @@ function renderAnalytics() {
                 let scrollStats = '';
                 if (el.scrollStats?.sessions > 0) {
                   const avgDepth = el.scrollStats?.avgDepth || 0;
-                  scrollStats = `${avgDepth}% (${el.scrollStats.sessions} käyntiä)`;
+                  scrollStats = `${avgDepth}% (${el.scrollStats.sessions} ${t('analytics.sessions')})`;
                 } else {
                   scrollStats = '–';
                 }
                 
                 return `<tr style="border-bottom:1px solid #f1f5f9">
                   <td style="padding:12px 20px">
-                    <div style="font-weight:500;color:#0f172a">${el.name || 'Nimetön'}</div>
+                    <div style="font-weight:500;color:#0f172a">${el.name || t('analytics.unnamed')}</div>
                     <div style="height:4px;background:#f1f5f9;border-radius:2px;margin-top:6px;width:120px">
                       <div style="height:4px;background:#3b82f6;border-radius:2px;width:${pct}%"></div>
                     </div>
@@ -135,8 +139,8 @@ function renderAnalytics() {
                   <td style="padding:12px;text-align:right;color:#0f172a;font-weight:500">${v.toLocaleString()}</td>
                   <td style="padding:12px;text-align:right;color:#0f172a">${c.toLocaleString()}</td>
                   <td style="padding:12px;text-align:right;color:${parseFloat(elCtr) > 5 ? '#16a34a' : '#64748b'}">${elCtr}%</td>
-                  <td style="padding:12px;text-align:right;color:#0f172a" title="Sivun elementtien klikit yhteensä">${pageClicks > 0 ? pageClicks.toLocaleString() : '–'}</td>
-                  <td style="padding:12px;text-align:right;color:#0f172a" title="Keskimääräinen vierityssyvyys (käyntien määrä)">${scrollStats}</td>
+                  <td style="padding:12px;text-align:right;color:#0f172a" title="${t('analytics.pageClicksTooltip')}">${pageClicks > 0 ? pageClicks.toLocaleString() : '–'}</td>
+                  <td style="padding:12px;text-align:right;color:#0f172a" title="${t('analytics.scrollTooltip')}">${scrollStats}</td>
                   <td style="padding:12px 20px;text-align:right;color:#0f172a">${l > 0 ? l : '–'}</td>
                 </tr>`;
               }).join('')}
@@ -148,7 +152,7 @@ function renderAnalytics() {
       renderAnalytics();
     });
   } catch (e) {
-    container.innerHTML = '<div style="color:#ef4444;padding:24px">Tilastojen lataus epäonnistui.</div>';
+    container.innerHTML = `<div style="color:#ef4444;padding:24px">${t('analytics.loadFailed')}</div>`;
   }
 }
 
