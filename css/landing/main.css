@@ -9,6 +9,7 @@
 @import url('components/cards.css');
 @import url('components/buttons.css');
 @import url('components/previews.css');
+@import url('components/contact-modal.css');
 
 /* Import animations */
 @import url('animations.css');

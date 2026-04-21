@@ -174,7 +174,7 @@ export function initContactModal() {
   });
   
   // Close button
-  const closeBtn = document.querySelector('#contact-card button[onclick*="closeContactModal"]');
+  const closeBtn = document.querySelector('#contact-card .close-btn');
   if (closeBtn) {
     closeBtn.addEventListener('click', closeContactModal);
   }
@@ -185,8 +185,8 @@ export function initContactModal() {
     form.addEventListener('submit', submitContactForm);
   }
   
-  // Pro upgrade button
-  const proUpgradeBtn = document.querySelector('button[onclick*="requestProUpgrade"]');
+  // Pro upgrade button - find by text content or data attribute
+  const proUpgradeBtn = document.querySelector('button[data-i18n="idx.price.pro.cta"]');
   if (proUpgradeBtn) {
     proUpgradeBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -194,9 +194,9 @@ export function initContactModal() {
     });
   }
   
-  // Custom quote button
-  const customQuoteBtn = document.querySelector('button[onclick*="openContactModal"]');
-  if (customQuoteBtn && !customQuoteBtn.onclick.toString().includes('pro')) {
+  // Custom quote button - find by text content or data attribute
+  const customQuoteBtn = document.querySelector('button[data-i18n="idx.price.custom.cta"]');
+  if (customQuoteBtn) {
     customQuoteBtn.addEventListener('click', (e) => {
       e.preventDefault();
       openContactModal();
