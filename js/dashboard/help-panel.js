@@ -201,10 +201,11 @@ function renderHelp() {
           ['Kaikki aika -kortit','Alarivi näyttää kumulatiiviset kokonaissummat kaikesta ajasta – aina saatavilla.'],
           ['Sivusto-suodatin','Valitse sivusto-dropdownista → elementtisuodatin päivittyy automaattisesti näyttämään vain sen sivuston elementit.'],
           ['Elementtisuodatin','Valitse yksittäinen elementti → näet vain sen elementin datan. Tilastojenkerääjät (📊) näkyvät myös listassa.'],
-          ['Top elementit -taulukko','Näyttää parhaat elementit kumulatiivisen kokonaissuorituksen mukaan (näytöt, klikkaukset, liidit). Tilastojenkerääjillä klikkaukset ja liidit näkyvät "–" koska niitä ei voi klikata.'],
+          ['Elementtitaulukko','Näyttää kaikki elementit näyttökertojen mukaan järjestettynä. Yhdellä elementillä suodatettaessa otsikko näyttää elementin nimen. Tilastojenkerääjillä klikkaukset ja liidit näkyvät "–" koska niitä ei voi klikata.'],
+          ['Sivun seuranta -nuoli (▼)','Jos elementillä on sivun seuranta päällä, rivillä näkyy ▼-nappi. Klikkaa sitä → näet klikatuimmat linkit ja napit sekä scroll-syvyyskaavion suoraan raporttiin upotettuna.'],
           ['Viimeisimmät liidit','Listaus valitun jakson lead form -lähetyksistä – nimi, sähköposti, päivämäärä.'],
-          ['Lähetä sähköpostiin','Klikkaa "Lähetä sähköpostiin" -nappia – saat raportin suoraan sähköpostiisi (maksimissaan 3 kertaa tunnissa).'],
-          ['Tilastojenkerääjät raportissa','Tilastojenkerääjä-elementit (📊) näkyvät Top elementit -listassa. Niiden näyttökerrat kertovat miten paljon sivuilla käy kävijöitä. Voit vertailla esim. etusivua, varaussivua ja yhteystietosivua keskenään.'],
+          ['Lähetä sähköpostiin','Klikkaa "Lähetä sähköpostiin" -nappia – saat raportin sähköpostiisi kaikilla elementeillä (maksimissaan 3 kertaa tunnissa).'],
+          ['Tilastojenkerääjät raportissa','Tilastojenkerääjä-elementit (📊) näkyvät elementtitaulukossa. Niiden näyttökerrat kertovat miten paljon sivuilla käy kävijöitä. Voit vertailla esim. etusivua, varaussivua ja yhteystietosivua keskenään.'],
         ]),
 
         `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-top:8px">
@@ -227,10 +228,10 @@ function renderHelp() {
           ['Miten se toimii (FI)','Embed-skripti ajetaan asiakkaan sivustolla. Kun kävijä lataa sivun, skripti etsii automaattisesti kaikki linkit (<a>) ja napit (<button>), lähettää listan palvelimelle ja lisää kuuntelijat. Jokainen klikkaus tilastoituu erikseen.'],
           ['Scroll-seuranta (FI)','Aktivoi "Seuraa vierityskäyttäytymistä" → skripti seuraa kuinka pitkälle (%) kävijä vierittää ja missä hän pysähtyy yli 2 sekunniksi. Tilastot näkyvät Tilastot-painikkeen alla.'],
           ['Manuaalinen lisäys (FI)','Jos skripti ei automaattisesti löydä jotain elementtiä, voit lisätä CSS-selectorin käsin: kirjoita selektori (esim. #osta-nyt tai .cta-button) ja kuvaus → klikkaa Lisää.'],
-          ['Tilastot (FI)','Avaa elementin Tilastot → näet top-klikatut linkit/napit ja scroll-syvyyskaavion. Raportit-sivulla voit laajentaa yksittäisen elementin rivin nähdäksesi sivun seuranta-datan.'],
+          ['Tilastot (FI)','Avaa elementin Tilastot-painike → klikkaa "📎 Sivun seuranta ▼" -nappia → näet klikatuimmat linkit/napit ja scroll-syvyyskaavion. Raportit-sivulla paina elementin rivin ▼-nappia saadaksesi samat tiedot raporttiin upotettuna.'],
           ['How to activate (EN)','Open element editor → scroll to "Sivun seuranta" section → check "Hae linkit ja seuraa sivun dataa" → save. The next page load on the client site starts tracking automatically.'],
           ['How it works (EN)','The embed script runs on the client website. When a visitor loads the page, the script scans all links and buttons, sends the list to the server, and attaches click listeners. Each click is tracked individually.'],
-          ['Scroll tracking (EN)','Enable "Seuraa vierityskäyttäytymistä" → the script tracks how far (%) visitors scroll and where they pause for 2+ seconds. Stats are shown in the Stats modal.'],
+          ['Scroll tracking (EN)','Enable "Seuraa vierityskäyttäytymistä" → the script tracks how far (%) visitors scroll and where they pause for 2+ seconds. Click "📎 Sivun seuranta ▼" in the Stats modal to view the chart.'],
           ['Manual additions (EN)','If auto-detection misses an element, add a CSS selector manually (e.g. #buy-now or .cta-btn) with a label. The embed will track that specific element on the next page load.'],
         ])
       ])}
