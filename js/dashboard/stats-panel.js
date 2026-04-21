@@ -43,7 +43,7 @@ export function openStats(el) {
         if (arrow) arrow.textContent = open ? '▼' : '▲';
         if (!open && !loaded) {
           loaded = true;
-          await loadPageTrackingStats(el._id, cfg);
+          await loadPageTrackingStats(el._id, cfg, el);
         }
       });
     }
@@ -398,7 +398,7 @@ function filterElementsByRuleAndPage(ruleIdx, selectedValue, urlRules, allElemen
   });
 }
 
-async function loadPageTrackingStats(popupId, cfg) {
+async function loadPageTrackingStats(popupId, cfg, el) {
   const container = document.getElementById('s-page-tracking');
   if (!container) return;
 
@@ -406,14 +406,9 @@ async function loadPageTrackingStats(popupId, cfg) {
 
   if (cfg.trackPageLinks) {
     try {
-      // Hae popup-data (targeting-info)
-      const popupR = await fetch('/api/popups/' + popupId);
-      if (!popupR.ok) return;
-      const popup = await popupR.json();
-
-      // Pura URL-targeting-säännöt
-      const urlRules = popup.targeting?.enabled
-        ? (popup.targeting.rules?.filter(r => r.type === 'url') || [])
+      // Pura URL-targeting-säännöt suoraan el-objektista
+      const urlRules = el?.targeting?.enabled
+        ? (el.targeting.rules?.filter(r => r.type === 'url') || [])
         : [];
 
       // Hae kaikki page-elements
