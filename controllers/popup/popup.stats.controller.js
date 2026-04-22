@@ -198,7 +198,7 @@ async function getSiteElements(req, res) {
   try {
     const token = req.params.token;
     // Tarkistetaan ensin globaali siteToken
-    const User = require('../models/User');
+    const User = require('../../models/User');
     let user = await User.findOne({ siteToken: token }).lean();
     let siteFilter = null;
 
