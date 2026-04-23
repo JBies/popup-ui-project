@@ -1039,14 +1039,7 @@ if (!window.ShowElement) {
       }).catch(function() {});
     }
 
-    // Liitä click-kuuntelijat
-    var storageKey = 'ue_pe_clicked_' + popupId;
-    var clickedSet = {};
-    try {
-      var stored = sessionStorage.getItem(storageKey);
-      if (stored) clickedSet = JSON.parse(stored);
-    } catch(e) {}
-
+    // Liitä click-kuuntelijat – jokainen klikkaus lähetetään aina (ei sessionStorage-estoa)
     for (var j = 0; j < all.length; j++) {
       (function(node2) {
         var text2 = (node2.textContent || '').trim().slice(0, 200);
@@ -1055,9 +1048,6 @@ if (!window.ShowElement) {
         if (!text2 && !href2) return;
         var fp2 = djb2(window.location.href + '|' + href2 + '|' + text2 + '|' + tag2);
         node2.addEventListener('click', function() {
-          if (clickedSet[fp2]) return;
-          clickedSet[fp2] = true;
-          try { sessionStorage.setItem(storageKey, JSON.stringify(clickedSet)); } catch(e) {}
           fetch(API_BASE + '/api/popups/page-elements/' + popupId + '/click', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
