@@ -242,32 +242,37 @@ async function updatePopup(req, res) {
     // stats_only-tyyppi asettaa popupTypen automaattisesti
     const resolvedPopupType = (elementType === 'stats_only') ? 'stats_only' : (popupType || 'rectangle');
 
-    // Päivitä popup
+    // Päivitä popup – käytä $set jotta vain lähetetyt kentät päivittyvät
+    const updateFields = {};
+    
+    // Nimi: säilytä vanha jos name on undefined tai tyhjä
+    if (name !== undefined && name !== null) {
+      updateFields.name = name.trim() || 'Unnamed Popup';
+    }
+    if (elementType) updateFields.elementType = elementType;
+    if (elementConfig) updateFields.elementConfig = elementConfig;
+    if (targeting !== undefined) updateFields.targeting = targeting;
+    updateFields.popupType = resolvedPopupType;
+    updateFields.content = content;
+    updateFields.width = parseInt(width) || 200;
+    updateFields.height = parseInt(height) || 150;
+    updateFields.position = position;
+    updateFields.animation = animation;
+    updateFields.backgroundColor = backgroundColor;
+    updateFields.textColor = textColor;
+    updateFields.imageUrl = imageUrl;
+    updateFields.imageFirebasePath = imageFirebasePath || '';
+    updateFields.linkUrl = linkUrl;
+    updateFields.timing = timingData;
+    if (active !== undefined) updateFields.active = active;
+    if (campaign !== undefined) updateFields.campaign = campaign;
+    if (abTest !== undefined) updateFields.abTest = abTest;
+    updateFields.siteId = siteId || null;
+    if (imageChanged) updateFields.version = Date.now();
+
     const updatedPopup = await Popup.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
-      {
-        name: name || 'Unnamed Popup',
-        ...(elementType && { elementType }),
-        ...(elementConfig && { elementConfig }),
-        ...(targeting !== undefined && { targeting }),
-        popupType: resolvedPopupType,
-        content,
-        width: parseInt(width) || 200,
-        height: parseInt(height) || 150,
-        position,
-        animation,
-        backgroundColor,
-        textColor,
-        imageUrl,
-        imageFirebasePath: imageFirebasePath || '',
-        linkUrl,
-        timing: timingData,
-        ...(active !== undefined && { active }),
-        ...(campaign !== undefined && { campaign }),
-        ...(abTest !== undefined && { abTest }),
-        siteId: siteId || null,
-        ...(imageChanged && { version: Date.now() })
-      },
+      { $set: updateFields },
       { new: true }
     );
     

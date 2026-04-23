@@ -60,7 +60,7 @@ exports.getReport = async (req, res) => {
     const leadFilter = { userId, submittedAt: { $gte: fromDate, $lte: toDate } };
     if (popupId) leadFilter.popupId = popupId; // yksittäinen elementtisuodatus säilyy
 
-    const [dailyAgg, periodLeads, pageElementsAgg, scrollStatsAgg] = await Promise.all([
+    const [dailyAgg, periodLeads, pageElementsAgg] = await Promise.all([
       // Views + clicks DailyStats-kokoelmasta (vain olemassa olevat elementit)
       DailyStats.aggregate([
         { $match: { popupId: { $in: popupIds }, date: { $gte: fromStr, $lte: toStr } } },
@@ -73,20 +73,31 @@ exports.getReport = async (req, res) => {
         { $match: { popupId: { $in: popupIds } } },
         { $group: { _id: null, totalClicks: { $sum: '$clicks' } } },
       ]),
-      // Vieritystilastot yhteensä
-      ScrollStats.aggregate([
-        { $match: { popupId: { $in: popupIds } } },
-        { $group: { _id: null, totalSessions: { $sum: '$sessions' }, avgDepth: { $avg: '$avgDepth' } } },
-      ]),
     ]);
+
+    // Vieritystilastot: hae Popup.scrollStats-kentästä (ScrollStats-kokoelmassa ei ole sessions/avgDepth-kenttiä)
+    const scrollPopups = await Popup.find({ _id: { $in: popupIds } })
+      .select('scrollStats')
+      .lean();
+    let totalScrollSessions = 0;
+    let totalScrollDepth = 0;
+    let scrollCount = 0;
+    for (const p of scrollPopups) {
+      if (p.scrollStats?.sessions) {
+        totalScrollSessions += p.scrollStats.sessions;
+        totalScrollDepth += p.scrollStats.avgDepth * p.scrollStats.sessions;
+        scrollCount += p.scrollStats.sessions;
+      }
+    }
+    const scrollAvgDepth = scrollCount > 0 ? Math.round(totalScrollDepth / scrollCount) : 0;
 
     const period = {
       views:  dailyAgg[0]?.views  || 0,
       clicks: dailyAgg[0]?.clicks || 0,
       leads:  periodLeads,
       pageElementsClicks: pageElementsAgg[0]?.totalClicks || 0,
-      scrollSessions: scrollStatsAgg[0]?.totalSessions || 0,
-      scrollAvgDepth: scrollStatsAgg[0]?.avgDepth ? Math.round(scrollStatsAgg[0]?.avgDepth) : 0,
+      scrollSessions: totalScrollSessions,
+      scrollAvgDepth: scrollAvgDepth,
     };
 
     // ── Kaikki-aikainen summa ─────────────────────────────────────────────────
@@ -177,7 +188,23 @@ exports.emailReport = async (req, res) => {
         .sort({ submittedAt: -1 }).limit(20).populate('popupId', 'name elementType').lean(),
     ]);
 
-    const period  = { views: dailyAgg[0]?.views || 0, clicks: dailyAgg[0]?.clicks || 0, leads: periodLeads };
+    // Vieritystilastot sähköpostiraporttiin
+    const scrollPopups = await Popup.find({ _id: { $in: popupIds } })
+      .select('scrollStats')
+      .lean();
+    let totalScrollSessions = 0;
+    let totalScrollDepth = 0;
+    let scrollCount = 0;
+    for (const p of scrollPopups) {
+      if (p.scrollStats?.sessions) {
+        totalScrollSessions += p.scrollStats.sessions;
+        totalScrollDepth += p.scrollStats.avgDepth * p.scrollStats.sessions;
+        scrollCount += p.scrollStats.sessions;
+      }
+    }
+    const scrollAvgDepth = scrollCount > 0 ? Math.round(totalScrollDepth / scrollCount) : 0;
+
+    const period  = { views: dailyAgg[0]?.views || 0, clicks: dailyAgg[0]?.clicks || 0, leads: periodLeads, scrollSessions: totalScrollSessions, scrollAvgDepth };
     const allTime = popups.reduce((a, p) => {
       a.views  += p.statistics?.views  || 0;
       a.clicks += p.statistics?.clicks || 0;
@@ -314,6 +341,17 @@ function buildReportEmail(user, period, allTime, topElements, leads, label) {
         <td width="6"></td>
         ${statCell('📋', period.leads,  'Liidiä')}
       </tr>
+      ${period.scrollSessions > 0 ? `
+      <tr><td colspan="4" style="padding:4px"></td></tr>
+      <tr>
+        ${statCell('📊', period.scrollSessions.toLocaleString('fi-FI'), 'Vierityskertaa', '#f0fdf4')}
+        <td width="6"></td>
+        ${statCell('📏', period.scrollAvgDepth + '%', 'Keskisyvyys', '#f0fdf4')}
+        <td width="6"></td>
+        <td></td>
+        <td width="6"></td>
+        <td></td>
+      </tr>` : ''}
     </table>
 
     <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Kaikki aika yhteensä</div>

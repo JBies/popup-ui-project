@@ -84,6 +84,25 @@ async function getAllTimeStats(userId) {
 }
 
 /**
+ * Hakee vieritystilastot (scroll) käyttäjän kaikista elementeistä.
+ */
+async function getScrollStats(userId) {
+  const popups = await Popup.find({ userId }).select('scrollStats').lean();
+  let totalSessions = 0;
+  let totalDepth = 0;
+  let count = 0;
+  for (const p of popups) {
+    if (p.scrollStats?.sessions) {
+      totalSessions += p.scrollStats.sessions;
+      totalDepth += p.scrollStats.avgDepth * p.scrollStats.sessions;
+      count += p.scrollStats.sessions;
+    }
+  }
+  const avgDepth = count > 0 ? Math.round(totalDepth / count) : 0;
+  return { sessions: totalSessions, avgDepth };
+}
+
+/**
  * Hakee top-3 elementtiä konversion (clicks/views) perusteella
  */
 async function getTopElements(userId) {
@@ -206,13 +225,14 @@ async function sendWeeklyReports() {
         continue;
       }
 
-      const [topElements, weekLeads, silentElements] = await Promise.all([
+      const [topElements, weekLeads, silentElements, scrollStats] = await Promise.all([
         getTopElements(user._id),
         getWeekLeads(user._id, lastMonday, lastSunday),
         getSilentElements(user._id, lastMonday, lastSunday),
+        getScrollStats(user._id),
       ]);
 
-      const { subject, html } = buildWeeklyReport(user, stats, topElements, weekLeads, weekLabel, silentElements);
+      const { subject, html } = buildWeeklyReport(user, stats, topElements, weekLeads, weekLabel, silentElements, scrollStats);
       const ok = await sendMail(toEmail, subject, html);
 
       if (ok) sent++;

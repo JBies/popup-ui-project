@@ -44,6 +44,13 @@ class PageTrackingController {
                 clicks:      0,
                 active:      true,
                 createdAt:   new Date()
+              },
+              // Päivitä olemassa olevan elementin teksti ja cssSelector
+              // (voi muuttua jos sivun rakenne muuttuu)
+              $set: {
+                text:        (el.text || '').slice(0, 200),
+                cssSelector: el.cssSelector || '',
+                pageUrl:     el.pageUrl || ''
               }
             },
             { upsert: true }

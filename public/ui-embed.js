@@ -1022,11 +1022,20 @@ if (!window.ShowElement) {
       });
     }
 
-    if (batch.length > 0) {
+    // Tarkista onko elementit jo löydetty (localStorage) – discover tehdään vain kerran
+    var discoveredKey = 'ue_discovered_' + popupId;
+    var alreadyDiscovered = false;
+    try { alreadyDiscovered = localStorage.getItem(discoveredKey) === '1'; } catch(e) {}
+
+    if (!alreadyDiscovered && batch.length > 0) {
       fetch(API_BASE + '/api/popups/page-elements/' + popupId + '/discover', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ elements: batch })
+      }).then(function(r) {
+        if (r.ok) {
+          try { localStorage.setItem(discoveredKey, '1'); } catch(e) {}
+        }
       }).catch(function() {});
     }
 

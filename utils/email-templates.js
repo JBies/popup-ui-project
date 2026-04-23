@@ -122,7 +122,7 @@ function buildLeadNotification(popup, lead) {
  * @param {string} weekLabel – Esim. "17.–23.6.2025"
  * @returns {{ subject: string, html: string }}
  */
-function buildWeeklyReport(user, stats, topEls, leads, weekLabel, silentEls = []) {
+function buildWeeklyReport(user, stats, topEls, leads, weekLabel, silentEls = [], scrollStats = {}) {
   const subject = `📊 Viikkoraportti ${weekLabel} – ${BRAND}`;
   const firstName = (user.displayName || 'Hei').split(' ')[0];
 
@@ -158,7 +158,18 @@ function buildWeeklyReport(user, stats, topEls, leads, weekLabel, silentEls = []
         <td width="8"></td>
         ${statBox('📋', 'Liidiä yhteensä', stats.allLeads || 0, null, '#f1f5f9')}
       </tr>
-    </table>`;
+    </table>
+    ${scrollStats.sessions > 0 ? `
+    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-top:16px;margin-bottom:8px">Vieritysseuranta</div>
+    <table width="100%" cellpadding="6" cellspacing="0">
+      <tr>
+        ${statBox('📊', scrollStats.sessions, 'Vierityskertaa', null, '#f0fdf4')}
+        <td width="8"></td>
+        ${statBox('📏', scrollStats.avgDepth + '%', 'Keskisyvyys', null, '#f0fdf4')}
+        <td width="8"></td>
+        <td></td>
+      </tr>
+    </table>` : ''}`;
 
   const TYPE_LABELS_EMAIL = {
     sticky_bar: 'Sticky Bar', fab: 'Floating Button', slide_in: 'Slide-in',
