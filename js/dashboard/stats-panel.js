@@ -421,24 +421,11 @@ async function loadPageTrackingStats(popupId, cfg, el) {
 
   if (cfg.trackPageLinks) {
     try {
-      // Pura URL-targeting-säännöt suoraan el-objektista
-      const urlRules = el?.targeting?.enabled
-        ? (el.targeting.rules?.filter(r => r.type === 'url') || [])
-        : [];
-
-      // Hae kaikki page-elements
       const r = await fetch('/api/popups/page-elements/' + popupId);
       if (r.ok) {
         const allElements = await r.json();
-
         if (allElements.length) {
-          if (urlRules.length > 0) {
-            // Näytä tabs targeting-säännöille
-            html += renderTargetingRuleTabs(popupId, urlRules, allElements);
-          } else {
-            // Ei sääntöjä = näytä kaikki elementit vanhallakin tavalla
-            html += renderAllElementsView(allElements);
-          }
+          html += renderAllElementsView(allElements);
         } else {
           html += `<div style="font-size:12px;color:#64748b;padding:6px 0;display:flex;align-items:center;gap:6px">
             <i class="fa fa-info-circle" style="color:#3b82f6"></i>

@@ -1089,9 +1089,12 @@ if (!window.ShowElement) {
       }, 2000);
     }
 
+    var flushTimer = null;
+
     function sendData() {
       if (sent) return;
       sent = true;
+      clearTimeout(flushTimer);
       var payload = JSON.stringify({ maxDepth: maxDepth, pauses: pauses, pageUrl: window.location.href });
       var url = API_BASE + '/api/popups/scroll/' + popupId;
       if (navigator.sendBeacon) {
@@ -1101,7 +1104,13 @@ if (!window.ShowElement) {
       }
     }
 
-    window.addEventListener('scroll', onScroll, { passive: true });
+    function scheduleFlush() {
+      clearTimeout(flushTimer);
+      // Lähetä data 15 sekuntia viimeisen scrollin jälkeen (jos ei ole jo lähetetty)
+      flushTimer = setTimeout(sendData, 15000);
+    }
+
+    window.addEventListener('scroll', function() { onScroll(); scheduleFlush(); }, { passive: true });
     window.addEventListener('beforeunload', sendData);
     document.addEventListener('visibilitychange', function() {
       if (document.visibilityState === 'hidden') sendData();
