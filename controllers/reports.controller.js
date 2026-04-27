@@ -121,8 +121,7 @@ exports.getReport = async (req, res) => {
         clicks: p.statistics?.clicks || 0,
         leads:  p.statistics?.leads  || 0,
       }))
-      .sort((a, b) => b.leads - a.leads || b.clicks - a.clicks || b.views - a.views)
-      .slice(0, 5);
+      .sort((a, b) => b.leads - a.leads || b.clicks - a.clicks || b.views - a.views);
 
     // ── Viimeisimmät liidit jaksolla ──────────────────────────────────────────
     const recentLeadsRaw = await Lead
