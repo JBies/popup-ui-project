@@ -31,14 +31,17 @@ if (!window.ShowElement) {
     fetch(API_BASE + '/api/popups/embed/' + elementId)
       .then(function (r) { return r.json(); })
       .then(function (el) {
-        // Sivun seuranta käynnistetään aina – riippumatta siitä näytetäänkö popup vai ei
-        var cfg = el.elementConfig || {};
-        if (cfg.trackPageLinks) initPageLinkTracking(el);
-        if (cfg.trackScroll)    initScrollTracking(el);
-
         // Näyttökerta rekisteröidään aina kun elementti on aktiivinen ja sivulla käydään.
         // viewCooldown-asetus huolehtii palvelinpuolella ettei samaa IP:tä lasketa liian usein.
         if (el.active !== false) trackView(elementId);
+
+        // Sivukohtainen seuranta käynnistetään vain jos sivu täsmää kohdennussääntöihin –
+        // muuten etusivun popup keräisi elementtejä myös muilta sivuilta.
+        var cfg = el.elementConfig || {};
+        if (matchesTargeting(el)) {
+          if (cfg.trackPageLinks) initPageLinkTracking(el);
+          if (cfg.trackScroll)    initScrollTracking(el);
+        }
 
         if (!shouldShow(el)) return;
         if (!matchesTargeting(el)) return;
