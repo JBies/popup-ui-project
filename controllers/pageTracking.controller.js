@@ -268,19 +268,8 @@ class PageTrackingController {
         .map(([depth, count]) => ({ depth: Number(depth), count }))
         .sort((a, b) => a.depth - b.depth);
 
-      // Laske sessions ScrollStats-riveistä (luotettavampi kuin Popup.scrollStats joka voi olla epäsynkassa)
-      const sessionsFromRows = Object.values(totals).reduce((a, b) => a + b, 0);
-      // avgDepth: käytä Popup.scrollStats jos synkassa, muuten estimoi bucket-keskiarvoista
-      let avgDepth = popup.scrollStats?.avgDepth || 0;
-      if (sessionsFromRows > 0 && (!popup.scrollStats?.sessions || popup.scrollStats.sessions !== sessionsFromRows)) {
-        // Popup.scrollStats epäsynkassa → estimoi bucket-painotetusta keskiarvosta
-        const midpoints = { d10: 5, d25: 17, d50: 37, d75: 62, d90: 82, d100: 95 };
-        const weightedSum = Object.entries(totals).reduce((s, [k, v]) => s + (midpoints[k] || 0) * v, 0);
-        avgDepth = sessionsFromRows > 0 ? Math.round(weightedSum / sessionsFromRows) : 0;
-      }
-
       res.json({
-        summary: { sessions: sessionsFromRows, avgDepth },
+        summary: popup.scrollStats || { sessions: 0, avgDepth: 0 },
         buckets: totals,
         pauses
       });
