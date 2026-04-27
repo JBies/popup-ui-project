@@ -436,13 +436,13 @@ async function loadPageTrackingStats(popupId, cfg, el) {
     } catch {}
   }
 
-  if (cfg.trackScroll) {
-    try {
-      const r = await fetch('/api/popups/scroll/' + popupId);
-      if (r.ok) {
-        const data = await r.json();
-        const summary = data.summary || {};
-        if (summary.sessions > 0) {
+  // Hae scroll-data aina (ei vain kun trackScroll on päällä) — data voi olla olemassa vaikka asetus olisi pois
+  try {
+    const r = await fetch('/api/popups/scroll/' + popupId);
+    if (r.ok) {
+      const data = await r.json();
+      const summary = data.summary || {};
+      if (summary.sessions > 0) {
           const b = data.buckets || {};
           const buckets = [
             { label: '0–10%',   val: b.d10  || 0 },
@@ -470,7 +470,8 @@ async function loadPageTrackingStats(popupId, cfg, el) {
             </div>
             ${bars}
           </div>`;
-        } else {
+        } else if (cfg.trackScroll) {
+          // Näytä tyhjä tila vain jos seuranta on päällä
           html += `<div style="font-size:12px;color:#64748b;padding:6px 0;display:flex;align-items:center;gap:6px">
             <i class="fa fa-arrows-alt-v" style="color:#3b82f6"></i>
             Ei vieritystietoja vielä. Scroll-data kertyy kun sivustolla vieraillaan.
