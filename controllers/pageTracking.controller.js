@@ -36,17 +36,13 @@ class PageTrackingController {
                 popupId:     popup._id,
                 userId:      popup.userId,
                 type:        el.type || 'link',
-                text:        (el.text || '').slice(0, 200),
                 href:        el.href || '',
-                cssSelector: el.cssSelector || '',
                 fingerprint: el.fingerprint,
-                pageUrl:     el.pageUrl || '',
                 clicks:      0,
                 active:      true,
                 createdAt:   new Date()
               },
-              // Päivitä olemassa olevan elementin teksti ja cssSelector
-              // (voi muuttua jos sivun rakenne muuttuu)
+              // Päivitä aina – teksti/selektori/url voi muuttua jos sivun rakenne muuttuu
               $set: {
                 text:        (el.text || '').slice(0, 200),
                 cssSelector: el.cssSelector || '',
