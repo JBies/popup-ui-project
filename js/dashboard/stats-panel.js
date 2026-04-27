@@ -36,16 +36,31 @@ export function openStats(el) {
     const ptDiv     = root.querySelector('#s-page-tracking');
     const arrow     = root.querySelector('#s-pt-arrow');
     let loaded = false;
+
+    const openTracking = async () => {
+      if (ptDiv) ptDiv.style.display = 'block';
+      if (arrow) arrow.textContent = '▲';
+      if (!loaded) {
+        loaded = true;
+        await loadPageTrackingStats(el._id, cfg, el);
+      }
+    };
+
     if (toggleBtn && ptDiv) {
       toggleBtn.addEventListener('click', async () => {
         const open = ptDiv.style.display !== 'none';
-        ptDiv.style.display = open ? 'none' : 'block';
-        if (arrow) arrow.textContent = open ? '▼' : '▲';
-        if (!open && !loaded) {
-          loaded = true;
-          await loadPageTrackingStats(el._id, cfg, el);
+        if (open) {
+          ptDiv.style.display = 'none';
+          if (arrow) arrow.textContent = '▼';
+        } else {
+          await openTracking();
         }
       });
+    }
+
+    // Avaa automaattisesti jos seuranta on aktivoitu
+    if (cfg.trackPageLinks || cfg.trackScroll) {
+      openTracking();
     }
   }
 
@@ -424,6 +439,11 @@ async function loadPageTrackingStats(popupId, cfg, el) {
             // Ei sääntöjä = näytä kaikki elementit vanhallakin tavalla
             html += renderAllElementsView(allElements);
           }
+        } else {
+          html += `<div style="font-size:12px;color:#64748b;padding:6px 0;display:flex;align-items:center;gap:6px">
+            <i class="fa fa-info-circle" style="color:#3b82f6"></i>
+            Ei seurattuja elementtejä vielä. Skripti löytää linkit ja napit automaattisesti seuraavalla sivulatauksella.
+          </div>`;
         }
       }
     } catch {}
@@ -462,6 +482,11 @@ async function loadPageTrackingStats(popupId, cfg, el) {
               <span style="font-weight:400;color:#94a3b8;margin-left:4px">${summary.sessions} ${t('stats.sessions')} ${summary.avgDepth}%</span>
             </div>
             ${bars}
+          </div>`;
+        } else {
+          html += `<div style="font-size:12px;color:#64748b;padding:6px 0;display:flex;align-items:center;gap:6px">
+            <i class="fa fa-arrows-alt-v" style="color:#3b82f6"></i>
+            Ei vieritystietoja vielä. Scroll-data kertyy kun sivustolla vieraillaan.
           </div>`;
         }
       }

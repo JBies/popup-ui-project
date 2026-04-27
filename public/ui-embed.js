@@ -31,6 +31,15 @@ if (!window.ShowElement) {
     fetch(API_BASE + '/api/popups/embed/' + elementId)
       .then(function (r) { return r.json(); })
       .then(function (el) {
+        // Sivun seuranta käynnistetään aina – riippumatta siitä näytetäänkö popup vai ei
+        var cfg = el.elementConfig || {};
+        if (cfg.trackPageLinks) initPageLinkTracking(el);
+        if (cfg.trackScroll)    initScrollTracking(el);
+
+        // Näyttökerta rekisteröidään aina kun elementti on aktiivinen ja sivulla käydään.
+        // viewCooldown-asetus huolehtii palvelinpuolella ettei samaa IP:tä lasketa liian usein.
+        if (el.active !== false) trackView(elementId);
+
         if (!shouldShow(el)) return;
         if (!matchesTargeting(el)) return;
         // A/B test split
@@ -53,11 +62,6 @@ if (!window.ShowElement) {
             }
           }
         }
-        trackView(elementId);
-        // Sivun seuranta – ennen type-dispatchin returnia
-        var cfg = el.elementConfig || {};
-        if (cfg.trackPageLinks) initPageLinkTracking(el);
-        if (cfg.trackScroll)    initScrollTracking(el);
         var type = el.elementType || 'popup';
         if (type === 'stats_only')           return; // vain käyntilaskuri, ei renderöintiä
         else if (type === 'sticky_bar')      renderStickyBar(el);
@@ -361,7 +365,6 @@ if (!window.ShowElement) {
     requestAnimationFrame(function () {
       requestAnimationFrame(function () { box.style.transform = 'translateY(0)'; });
     });
-    trackView(el._id);
   }
 
   // ─── Legacy popup (vanha popup-embed.js -logiikka) ──────────────────────────
@@ -519,7 +522,6 @@ if (!window.ShowElement) {
         notif.style.opacity = '0'; notif.style.transform = 'translateY(10px)';
         setTimeout(function () { notif.remove(); }, 300);
       }, duration);
-      trackView(el._id);
     }
 
     setTimeout(function () {
@@ -1088,7 +1090,7 @@ if (!window.ShowElement) {
     }
 
     function sendData() {
-      if (sent || maxDepth === 0) return;
+      if (sent) return;
       sent = true;
       var payload = JSON.stringify({ maxDepth: maxDepth, pauses: pauses, pageUrl: window.location.href });
       var url = API_BASE + '/api/popups/scroll/' + popupId;
