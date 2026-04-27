@@ -163,9 +163,9 @@ function buildWeeklyReport(user, stats, topEls, leads, weekLabel, silentEls = []
     <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-top:16px;margin-bottom:8px">Vieritysseuranta</div>
     <table width="100%" cellpadding="6" cellspacing="0">
       <tr>
-        ${statBox('📊', scrollStats.sessions, 'Vierityskertaa', null, '#f0fdf4')}
+        ${statBox('📊', 'Vierityskertaa', scrollStats.sessions, null, '#f0fdf4')}
         <td width="8"></td>
-        ${statBox('📏', scrollStats.avgDepth + '%', 'Keskisyvyys', null, '#f0fdf4')}
+        ${statBox('📏', 'Keskisyvyys', scrollStats.avgDepth + '%', null, '#f0fdf4')}
         <td width="8"></td>
         <td></td>
       </tr>

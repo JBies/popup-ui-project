@@ -219,12 +219,6 @@ async function sendWeeklyReports() {
         allLeads:  allTime.leads,
       };
 
-      // Skipata jos viikolla ei tullut yhtään liidiä
-      if (thisPeriod.leads === 0) {
-        console.log(`[weekly-report] Ei liidejä viikolla – skipataan: ${user.email}`);
-        continue;
-      }
-
       const [topElements, weekLeads, silentElements, scrollStats] = await Promise.all([
         getTopElements(user._id),
         getWeekLeads(user._id, lastMonday, lastSunday),

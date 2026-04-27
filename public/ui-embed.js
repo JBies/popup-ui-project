@@ -1097,18 +1097,23 @@ if (!window.ShowElement) {
       clearTimeout(flushTimer);
       var payload = JSON.stringify({ maxDepth: maxDepth, pauses: pauses, pageUrl: window.location.href });
       var url = API_BASE + '/api/popups/scroll/' + popupId;
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(url, new Blob([payload], { type: 'application/json' }));
-      } else {
-        fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(function() {});
-      }
+      // Käytetään fetch + keepalive kaikkialla – toimii CORS:n kanssa toisin kuin sendBeacon+Blob
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true
+      }).catch(function() {});
     }
 
     function scheduleFlush() {
       clearTimeout(flushTimer);
-      // Lähetä data 15 sekuntia viimeisen scrollin jälkeen (jos ei ole jo lähetetty)
+      // Lähetä data 15 sekuntia viimeisen scrollin jälkeen
       flushTimer = setTimeout(sendData, 15000);
     }
+
+    // Käynnistä ajastin heti sivulatauksen jälkeen (30s) varmuuden vuoksi
+    flushTimer = setTimeout(sendData, 30000);
 
     window.addEventListener('scroll', function() { onScroll(); scheduleFlush(); }, { passive: true });
     window.addEventListener('beforeunload', sendData);
