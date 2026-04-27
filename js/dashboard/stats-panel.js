@@ -479,7 +479,6 @@ async function loadPageTrackingStats(popupId, cfg, el) {
         }
       }
     } catch {}
-  }
 
   if (html) {
     container.innerHTML = html;
