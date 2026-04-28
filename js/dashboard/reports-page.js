@@ -3,6 +3,7 @@
 
 import { showToast } from './dashboard-main.js';
 import { t, getCurrentLanguage } from '../i18n.js';
+import { initSchedulesTab } from './report-schedules.js';
 
 let cachedSites   = [];
 let cachedPopups  = [];
@@ -12,6 +13,7 @@ let customTo      = '';
 let filterPopupId = '';
 let filterSiteId  = '';
 let initialized   = false;
+let activeTab     = 'report'; // 'report' | 'schedules'
 
 function locale() {
   return getCurrentLanguage() === 'fi' ? 'fi-FI' : 'en-GB';
@@ -36,8 +38,38 @@ async function onEnter() {
   }
   await loadPopups();
 
-  renderShell(container);
-  loadReport();
+  renderTabs(container);
+}
+
+function renderTabs(container) {
+  container.innerHTML = `
+    <div style="display:flex;gap:4px;margin-bottom:24px;border-bottom:2px solid #e2e8f0">
+      <button class="rpt-tab-btn" data-tab="report"
+        style="padding:10px 18px;border:none;background:none;font-size:14px;font-weight:600;cursor:pointer;border-bottom:2px solid ${activeTab==='report'?'#3b82f6':'transparent'};margin-bottom:-2px;color:${activeTab==='report'?'#1d4ed8':'#64748b'}">
+        📊 Raportit
+      </button>
+      <button class="rpt-tab-btn" data-tab="schedules"
+        style="padding:10px 18px;border:none;background:none;font-size:14px;font-weight:600;cursor:pointer;border-bottom:2px solid ${activeTab==='schedules'?'#3b82f6':'transparent'};margin-bottom:-2px;color:${activeTab==='schedules'?'#1d4ed8':'#64748b'}">
+        ⏰ Automatisoi raportit
+      </button>
+    </div>
+    <div id="tab-report"    style="display:${activeTab==='report'?'block':'none'}"></div>
+    <div id="tab-schedules" style="display:${activeTab==='schedules'?'block':'none'}"></div>`;
+
+  container.querySelectorAll('.rpt-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTab = btn.dataset.tab;
+      renderTabs(container);
+    });
+  });
+
+  if (activeTab === 'report') {
+    const reportDiv = document.getElementById('tab-report');
+    renderShell(reportDiv);
+    loadReport();
+  } else {
+    initSchedulesTab(cachedSites, cachedPopups);
+  }
 }
 
 // ─── Data loading ─────────────────────────────────────────────────────────────
@@ -77,7 +109,7 @@ function getDateRange() {
 }
 
 async function loadReport() {
-  const container = document.getElementById('reports-content');
+  const container = document.getElementById('tab-report');
   if (!container) return;
 
   const resultsEl = document.getElementById('report-results');
@@ -102,7 +134,8 @@ async function loadReport() {
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 
-function renderShell(container) {
+function renderShell(container = document.getElementById('tab-report')) {
+  if (!container) return;
   const sitesOpts = cachedSites.map(s =>
     `<option value="${s._id}">${esc(s.name)}${s.domain ? ' ('+esc(s.domain)+')' : ''}</option>`
   ).join('');

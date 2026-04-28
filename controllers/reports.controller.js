@@ -6,7 +6,8 @@ const Lead        = require('../models/Lead');
 const DailyStats  = require('../models/DailyStats');
 const PageElement = require('../models/PageElement');
 const ScrollStats = require('../models/ScrollStats');
-const { sendMail } = require('../utils/email');
+const { sendMail }       = require('../utils/email');
+const { fetchReportData } = require('../utils/report-data');
 
 // Rate limiting: max 3 raporttisähköpostia tunnissa per käyttäjä
 const emailCooldown = new Map();
@@ -33,111 +34,27 @@ exports.getReport = async (req, res) => {
     const { fromDate, toDate, fromStr, toStr } = parseDateRange(req.query.from, req.query.to);
     const { popupId, siteId } = req.query;
 
-    // Rakenna popup-suodatin
     const popupFilter = { userId };
     if (popupId) popupFilter._id = popupId;
     if (siteId === '_none') popupFilter.siteId = null;
     else if (siteId) popupFilter.siteId = siteId;
 
-    // Hae sopivat popupit (tarvitaan id-lista ja all-time summat)
-    const popups = await Popup.find(popupFilter)
-      .select('_id name elementType statistics siteId')
-      .lean();
+    // Sivuelementtien klikit haetaan erikseen (ei osana fetchReportData)
+    const popups = await Popup.find(popupFilter).select('_id').lean();
     const popupIds = popups.map(p => p._id);
+    const pageElementsAgg = popupIds.length
+      ? await PageElement.aggregate([
+          { $match: { popupId: { $in: popupIds } } },
+          { $group: { _id: null, totalClicks: { $sum: '$clicks' } } },
+        ])
+      : [];
 
-    if (!popupIds.length) {
-      return res.json({
-        period:   { views: 0, clicks: 0, leads: 0 },
-        allTime:  { views: 0, clicks: 0, leads: 0 },
-        topElements: [],
-        recentLeads: [],
-      });
-    }
+    const { period, allTime, topElements, recentLeads } = await fetchReportData(
+      popupFilter, fromDate, toDate, fromStr, toStr,
+      { leadLimit: 50, sortTopBy: 'leads' }
+    );
 
-    // ── Jaksokohtaiset tilastot ────────────────────────────────────────────────
-    // Liidit haetaan userId:llä (ei popupId-suodatuksella) jotta poistettujen
-    // elementtien liidit eivät katoa raportista.
-    const leadFilter = { userId, submittedAt: { $gte: fromDate, $lte: toDate } };
-    if (popupId) leadFilter.popupId = popupId; // yksittäinen elementtisuodatus säilyy
-
-    const [dailyAgg, periodLeads, pageElementsAgg] = await Promise.all([
-      // Views + clicks DailyStats-kokoelmasta (vain olemassa olevat elementit)
-      DailyStats.aggregate([
-        { $match: { popupId: { $in: popupIds }, date: { $gte: fromStr, $lte: toStr } } },
-        { $group: { _id: null, views: { $sum: '$views' }, clicks: { $sum: '$clicks' } } },
-      ]),
-      // Liidit kaikilta käyttäjän elementeiltä, myös poistetuista
-      Lead.countDocuments(leadFilter),
-      // Sivuelementtien klikit yhteensä
-      PageElement.aggregate([
-        { $match: { popupId: { $in: popupIds } } },
-        { $group: { _id: null, totalClicks: { $sum: '$clicks' } } },
-      ]),
-    ]);
-
-    // Vieritystilastot: hae Popup.scrollStats-kentästä (ScrollStats-kokoelmassa ei ole sessions/avgDepth-kenttiä)
-    const scrollPopups = await Popup.find({ _id: { $in: popupIds } })
-      .select('scrollStats')
-      .lean();
-    let totalScrollSessions = 0;
-    let totalScrollDepth = 0;
-    let scrollCount = 0;
-    for (const p of scrollPopups) {
-      if (p.scrollStats?.sessions) {
-        totalScrollSessions += p.scrollStats.sessions;
-        totalScrollDepth += p.scrollStats.avgDepth * p.scrollStats.sessions;
-        scrollCount += p.scrollStats.sessions;
-      }
-    }
-    const scrollAvgDepth = scrollCount > 0 ? Math.round(totalScrollDepth / scrollCount) : 0;
-
-    const period = {
-      views:  dailyAgg[0]?.views  || 0,
-      clicks: dailyAgg[0]?.clicks || 0,
-      leads:  periodLeads,
-      pageElementsClicks: pageElementsAgg[0]?.totalClicks || 0,
-      scrollSessions: totalScrollSessions,
-      scrollAvgDepth: scrollAvgDepth,
-    };
-
-    // ── Kaikki-aikainen summa ─────────────────────────────────────────────────
-    const allTime = popups.reduce((acc, p) => {
-      acc.views  += p.statistics?.views  || 0;
-      acc.clicks += p.statistics?.clicks || 0;
-      acc.leads  += p.statistics?.leads  || 0;
-      return acc;
-    }, { views: 0, clicks: 0, leads: 0 });
-
-    // ── Top-elementit: käytetään kumulatiivista Popup.statistics-dataa ────────
-    // DailyStats on uusi → ei historiadataa vanhemmilta jaksoilta.
-    // Kumulatiivinen data on aina saatavilla ja kertoo elementin kokonaissuorituksen.
-    const topElements = popups
-      .map(p => ({
-        _id:    p._id,
-        name:   p.name || 'Nimetön',
-        type:   p.elementType || 'popup',
-        siteId: p.siteId || null,
-        views:  p.statistics?.views  || 0,
-        clicks: p.statistics?.clicks || 0,
-        leads:  p.statistics?.leads  || 0,
-      }))
-      .sort((a, b) => b.leads - a.leads || b.clicks - a.clicks || b.views - a.views);
-
-    // ── Viimeisimmät liidit jaksolla ──────────────────────────────────────────
-    const recentLeadsRaw = await Lead
-      .find(leadFilter)
-      .sort({ submittedAt: -1 })
-      .limit(50)
-      .populate('popupId', 'name elementType siteId')
-      .lean();
-
-    const recentLeads = recentLeadsRaw.map(l => ({
-      popupName:   l.popupId?.name || '(poistettu elementti)',
-      elementType: l.popupId?.elementType || null,
-      siteId:      l.popupId?.siteId || null,
-      data:        l.data || {},
-      submittedAt: l.submittedAt,
-    }));
+    period.pageElementsClicks = pageElementsAgg[0]?.totalClicks || 0;
 
     res.json({ period, allTime, topElements, recentLeads });
   } catch (err) {
@@ -168,72 +85,19 @@ exports.emailReport = async (req, res) => {
     const { from, to, popupId, siteId } = req.body;
     const { fromDate, toDate, fromStr, toStr } = parseDateRange(from, to);
 
-    // Hae data (sama logiikka kuin getReport)
     const popupFilter = { userId };
     if (popupId) popupFilter._id = popupId;
     if (siteId === '_none') popupFilter.siteId = null;
     else if (siteId) popupFilter.siteId = siteId;
 
-    const popups = await Popup.find(popupFilter).select('_id name elementType statistics siteId').lean();
-    const popupIds = popups.map(p => p._id);
+    const { period, allTime, topElements, recentLeads } = await fetchReportData(
+      popupFilter, fromDate, toDate, fromStr, toStr,
+      { leadLimit: 20, sortTopBy: 'views' }
+    );
 
-    const [dailyAgg, periodLeads, recentLeadsRaw] = await Promise.all([
-      DailyStats.aggregate([
-        { $match: { popupId: { $in: popupIds }, date: { $gte: fromStr, $lte: toStr } } },
-        { $group: { _id: null, views: { $sum: '$views' }, clicks: { $sum: '$clicks' } } },
-      ]),
-      Lead.countDocuments({ userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } }),
-      Lead.find({ userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } })
-        .sort({ submittedAt: -1 }).limit(20).populate('popupId', 'name elementType').lean(),
-    ]);
-
-    // Vieritystilastot sähköpostiraporttiin
-    const scrollPopups = await Popup.find({ _id: { $in: popupIds } })
-      .select('scrollStats')
-      .lean();
-    let totalScrollSessions = 0;
-    let totalScrollDepth = 0;
-    let scrollCount = 0;
-    for (const p of scrollPopups) {
-      if (p.scrollStats?.sessions) {
-        totalScrollSessions += p.scrollStats.sessions;
-        totalScrollDepth += p.scrollStats.avgDepth * p.scrollStats.sessions;
-        scrollCount += p.scrollStats.sessions;
-      }
-    }
-    const scrollAvgDepth = scrollCount > 0 ? Math.round(totalScrollDepth / scrollCount) : 0;
-
-    const period  = { views: dailyAgg[0]?.views || 0, clicks: dailyAgg[0]?.clicks || 0, leads: periodLeads, scrollSessions: totalScrollSessions, scrollAvgDepth };
-    const allTime = popups.reduce((a, p) => {
-      a.views  += p.statistics?.views  || 0;
-      a.clicks += p.statistics?.clicks || 0;
-      a.leads  += p.statistics?.leads  || 0;
-      return a;
-    }, { views: 0, clicks: 0, leads: 0 });
-
-    // Kaikki elementit näyttöjen mukaan järjestettynä
-    const topElements = popups
-      .map(p => ({
-        name:   p.name || 'Nimetön',
-        type:   p.elementType || 'popup',
-        views:  p.statistics?.views  || 0,
-        clicks: p.statistics?.clicks || 0,
-        leads:  p.statistics?.leads  || 0,
-      }))
-      .sort((a, b) => b.views - a.views || b.clicks - a.clicks || b.leads - a.leads);
-
-    const recentLeads = recentLeadsRaw.map(l => ({
-      popupName:   l.popupId?.name || 'Tuntematon',
-      elementType: l.popupId?.elementType || null,
-      data:        l.data || {},
-      submittedAt: l.submittedAt,
-    }));
-
-    // Muodosta aikaväli-label
     const fmt = d => new Date(d).toLocaleDateString('fi-FI');
     const label = from && to ? `${fmt(fromDate)}–${fmt(toDate)}` : from ? `${fmt(fromDate)} alkaen` : 'Kaikki aika';
 
-    // Rakenna HTML-sähköposti
     const html = buildReportEmail(req.user, period, allTime, topElements, recentLeads, label);
     const subject = `📊 Raportti: ${label} – UI Manager`;
 
@@ -260,8 +124,8 @@ const TYPE_ICONS_EMAIL = {
   sticky_bar: '📌', fab: '🔘', slide_in: '💬', popup: '⬜', lead_form: '📝', stats_only: '📊',
 };
 
-function buildReportEmail(user, period, allTime, topElements, leads, label) {
-  const name = (user.displayName || 'Hei').split(' ')[0];
+function buildReportEmail(user, period, allTime, topElements, leads, label, opts = {}) {
+  const name = opts.clientName || (user.displayName || 'Hei').split(' ')[0];
   const periodCtr = period.views > 0 ? ((period.clicks / period.views) * 100).toFixed(1) : '0.0';
   const allCtr    = allTime.views  > 0 ? ((allTime.clicks  / allTime.views)  * 100).toFixed(1) : '0.0';
 
@@ -326,8 +190,13 @@ function buildReportEmail(user, period, allTime, topElements, leads, label) {
       Ei liidejä valitulla ajanjaksolla.
     </div>`;
 
+  const introHtml = opts.introMessage
+    ? `<p style="font-size:14px;color:#374151;margin:0 0 16px;padding:12px 16px;background:#f8fafc;border-radius:8px;border-left:3px solid #1e40af">${esc(opts.introMessage)}</p>`
+    : '';
+
   const body = `
     <p style="font-size:15px;color:#374151;margin:0 0 20px">Hei ${esc(name)}! Tässä raporttisi ajalta <strong>${esc(label)}</strong>.</p>
+    ${introHtml}
 
     <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Valittu aikaväli</div>
     <table width="100%" cellpadding="6" cellspacing="0" style="margin-bottom:20px">
@@ -383,7 +252,7 @@ function buildReportEmail(user, period, allTime, topElements, leads, label) {
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
         <tr><td style="background:#1e40af;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
-          <span style="color:#fff;font-size:20px;font-weight:700">UI Manager</span>
+          <span style="color:#fff;font-size:20px;font-weight:700">${opts.clientName ? esc(opts.clientName) + ' · ' : ''}UI Manager</span>
         </td></tr>
         <tr><td style="background:#fff;border-radius:0 0 12px 12px;padding:32px;border:1px solid #e2e8f0;border-top:none">
           ${body}
@@ -396,3 +265,6 @@ function buildReportEmail(user, period, allTime, topElements, leads, label) {
   </table>
 </body></html>`;
 }
+
+exports.buildReportEmail = buildReportEmail;
+exports.parseDateRange   = parseDateRange;

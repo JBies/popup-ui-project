@@ -22,7 +22,17 @@ function initScheduler() {
     }
   }, { timezone: 'Europe/Helsinki' });
 
-  console.log('[scheduler] Ajastimet käynnistetty (viikkoraportti: ma 08:00 Helsinki)');
+  // ── Automatisoidut raportit: 15 min välein ────────────────────────────────
+  cron.schedule('*/15 * * * *', async () => {
+    try {
+      const { runScheduledReports } = require('./scheduled-reports');
+      await runScheduledReports();
+    } catch (err) {
+      console.error('[scheduler] Automatisoidut raportit epäonnistuivat:', err.message);
+    }
+  }, { timezone: 'Europe/Helsinki' });
+
+  console.log('[scheduler] Ajastimet käynnistetty (viikkoraportti: ma 08:00, automaattiset raportit: 15 min välein)');
 }
 
 module.exports = { initScheduler };

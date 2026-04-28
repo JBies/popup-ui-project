@@ -20,7 +20,8 @@ const userRoutes    = require('./routes/user.routes');
 const popupRoutes   = require('./routes/popup.routes');
 const imageRoutes   = require('./routes/image.routes');
 const adminRoutes   = require('./routes/admin.routes');
-const reportsRoutes = require('./routes/reports.routes');
+const reportsRoutes         = require('./routes/reports.routes');
+const reportScheduleRoutes  = require('./routes/reportSchedule.routes');
 
 // Middleware
 const authMiddleware = require('./middleware/auth.middleware');
@@ -246,7 +247,8 @@ app.get('/testisivu', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/popups', authMiddleware.isUser, popupRoutes);
-app.use('/api/reports', authMiddleware.isUser, reportsRoutes);
+app.use('/api/reports',          authMiddleware.isUser, reportsRoutes);
+app.use('/api/report-schedules', authMiddleware.isUser, reportScheduleRoutes);
 app.use('/api/upload', authMiddleware.isUser, imageRoutes);
 app.use('/api/images', authMiddleware.isUser, imageRoutes);
 app.use('/api/admin', authMiddleware.isAdmin, adminRoutes);
