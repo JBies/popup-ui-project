@@ -31,6 +31,10 @@
   background: var(--color-brand-800);
   transform: translateY(0);
 }
+.btn-primary:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
+}
 
 .btn-primary--lg {
   padding: 1rem 2rem;
@@ -85,14 +89,23 @@
   border: 2px solid var(--color-gray-300);
   cursor: pointer;
   transition: border-color var(--transition-default),
-              color var(--transition-default);
+              color var(--transition-default),
+              background var(--transition-default),
+              box-shadow var(--transition-default);
   text-decoration: none;
   font-size: 0.875rem;
 }
 
 .btn-outline:hover {
-  border-color: var(--color-gray-400);
-  color: var(--color-gray-900);
+  border-color: var(--color-brand-400);
+  color: var(--color-brand-700);
+  background: var(--color-brand-50);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+}
+
+.btn-outline:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
 }
 
 /* Language Toggle Button */

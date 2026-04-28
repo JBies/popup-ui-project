@@ -5,131 +5,205 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Pending Approval</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
     <style>
-        .pending-container {
-            max-width: 700px;
-            margin: 80px auto;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .pending-icon {
-            font-size: 80px;
-            color: #f39c12;
-            margin-bottom: 20px;
-        }
-        
-        .pending-title {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 15px;
-        }
-        
-        .pending-message {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-        
-        .contact-info {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 30px 0;
-        }
-        
-        .contact-info p {
-            margin: 5px 0;
-        }
-        
-        .contact-email {
-            font-weight: bold;
-            color: #3498db;
-        }
-        
-        .logout-btn {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        .logout-btn:hover {
-            background-color: #c0392b;
-        }
-        
-        .user-info {
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 30px;
+            padding: 24px;
         }
-        
-        .user-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-right: 15px;
-            object-fit: cover;
-            border: 3px solid #f39c12;
+
+        .pending-container {
+            max-width: 480px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.08);
+            padding: 40px 36px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
         }
-        
-        .user-details {
+
+        .pending-icon-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            background: #fef3c7;
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+
+        .pending-icon {
+            font-size: 32px;
+            color: #d97706;
+        }
+
+        .pending-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        .pending-message {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 28px;
+            line-height: 1.7;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 24px;
             text-align: left;
         }
-        
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fde68a;
+            flex-shrink: 0;
+        }
+
+        .user-details { flex: 1; min-width: 0; }
+
         .user-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0;
-        }
-        
-        .user-email {
             font-size: 14px;
-            color: #666;
-            margin: 5px 0 0 0;
+            font-weight: 600;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
+        .user-email {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .contact-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 28px;
+            text-align: left;
+        }
+
+        .contact-info p {
+            font-size: 13px;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .contact-info p:last-child { margin-bottom: 0; }
+
+        .contact-email {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1.5px solid #fecaca;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
+        }
+
+        .logout-btn:hover {
+            background: #fee2e2;
+            box-shadow: 0 4px 12px rgba(239,68,68,0.18);
+            transform: translateY(-1px);
+        }
+
+        .logout-btn:active { transform: scale(0.97); }
+        .logout-btn:focus-visible { outline: 2px solid #ef4444; outline-offset: 2px; }
+
+        .lang-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            color: #475569;
+            font-family: inherit;
+            transition: background 0.15s;
+            z-index: 100;
+        }
+        .lang-toggle:hover { background: #f1f5f9; }
     </style>
 </head>
 <body>
-    <button class="lang-toggle" style="position:fixed;top:16px;right:16px;z-index:100" aria-label="Switch to Finnish">FI</button>
+    <button class="lang-toggle" aria-label="Switch to Finnish">FI</button>
     <div class="pending-container">
-        <i class="fas fa-clock pending-icon"></i>
-        
+        <div class="pending-icon-wrap">
+            <i class="fas fa-clock pending-icon"></i>
+        </div>
+
         <h1 class="pending-title" data-i18n="pending.title">Your account is pending approval</h1>
+
+        <p class="pending-message" data-i18n="pending.message">
+            Thank you for registering! Your account has been created and is awaiting administrator approval.
+            You will gain access once your account has been approved.
+        </p>
 
         <div class="user-info">
             <img id="userAvatar" src="" alt="User avatar" class="user-avatar">
             <div class="user-details">
-                <p id="userName" class="user-name"></p>
-                <p id="userEmail" class="user-email"></p>
+                <div id="userName" class="user-name"></div>
+                <div id="userEmail" class="user-email"></div>
             </div>
         </div>
-        
-        <p class="pending-message" data-i18n="pending.message">
-            Thank you for registering! Your account has been created and is awaiting administrator approval.
-            You will gain access to the application's features once your account has been approved.
-        </p>
 
         <div class="contact-info">
-            <p data-i18n="pending.contact">Questions? Contact the administrator:</p>
-            <p class="contact-email">joni.bies@gmail.com</p>
-            <p class="contact-phone">Puh. 0405 374 474</p>
+            <p data-i18n="pending.contact"><strong>Questions?</strong> Contact the administrator:</p>
+            <p class="contact-email"><i class="fas fa-envelope" style="margin-right:6px;opacity:.7"></i>joni.bies@gmail.com</p>
+            <p><i class="fas fa-phone" style="margin-right:6px;opacity:.7"></i>0405 374 474</p>
         </div>
-        
+
         <form action="/auth/logout" method="post">
-            <button type="submit" class="logout-btn" data-i18n="pending.signout">Sign out</button>
+            <button type="submit" class="logout-btn" data-i18n="pending.signout">
+                <i class="fas fa-sign-out-alt"></i> Sign out
+            </button>
         </form>
     </div>
 
