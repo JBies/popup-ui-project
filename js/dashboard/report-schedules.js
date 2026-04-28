@@ -196,22 +196,61 @@ async function doDelete(id) {
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
+function buildElementCheckboxes(siteId, selectedPopupIds) {
+  const filtered = cachedPopups.filter(p => {
+    if (!siteId) return true;
+    if (siteId === '_none') return !p.siteId;
+    return String(p.siteId) === siteId;
+  });
+
+  if (!filtered.length) {
+    return `<div style="font-size:12px;color:#94a3b8;padding:8px 0">Ei elementtejä tällä sivustolla</div>`;
+  }
+
+  const allSelected = !selectedPopupIds || selectedPopupIds.length === 0;
+  const rows = filtered.map(p => {
+    const checked = allSelected || selectedPopupIds.includes(String(p._id));
+    const typeIcon = { popup:'⬜', sticky_bar:'📌', fab:'🔘', slide_in:'💬', lead_form:'📝', stats_only:'📊' }[p.elementType] || '◻';
+    return `<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;cursor:pointer;transition:background 0.1s"
+        onmouseenter="this.style.background='#f8fafc'" onmouseleave="this.style.background=''">
+      <input type="checkbox" name="popupIds" value="${p._id}" ${checked ? 'checked' : ''}
+        style="width:15px;height:15px;accent-color:#3b82f6;flex-shrink:0">
+      <span style="font-size:12px;color:#374151">${typeIcon} ${esc(p.name)}</span>
+    </label>`;
+  }).join('');
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:12px;color:#64748b">${filtered.length} elementtiä — poista rasti jätettävistä pois</span>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="sched-check-all" style="font-size:11px;color:#3b82f6;background:none;border:none;cursor:pointer;padding:0">Valitse kaikki</button>
+        <button type="button" id="sched-uncheck-all" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;padding:0">Poista kaikki</button>
+      </div>
+    </div>
+    <div id="sched-popup-list" style="border:1px solid #e2e8f0;border-radius:8px;max-height:180px;overflow-y:auto;padding:4px">
+      ${rows}
+    </div>`;
+}
+
 function openModal(schedule) {
   const isEdit = !!schedule;
   const s = schedule || {};
 
-  const sitesOpts = cachedSites.map(st =>
-    `<option value="${st._id}" ${(s.siteIds||[]).includes(String(st._id)) ? 'selected' : ''}>${esc(st.name)}${st.domain ? ' ('+esc(st.domain)+')' : ''}</option>`
-  ).join('');
-
-  const popupsOpts = cachedPopups.map(p =>
-    `<option value="${p._id}" ${(s.popupIds||[]).includes(String(p._id)) ? 'selected' : ''}>${esc(p.name)}</option>`
-  ).join('');
+  // Sivusto-valinta: jos siteIds on tyhjä = kaikki, muuten ensimmäinen valittu
+  const selectedSiteId = (s.siteIds && s.siteIds.length === 1) ? s.siteIds[0] : '';
+  const selectedPopupIds = s.popupIds || [];
 
   const freq = s.frequency || 'weekly';
   const hour = s.hour ?? 8;
   const min  = s.minute ?? 0;
   const recipients = (s.recipients || ['']).join('\n');
+
+  const sitesOpts = [
+    `<option value="">Kaikki sivustot</option>`,
+    ...cachedSites.map(st =>
+      `<option value="${st._id}" ${selectedSiteId === String(st._id) ? 'selected' : ''}>${esc(st.name)}${st.domain ? ' ('+esc(st.domain)+')' : ''}</option>`
+    ),
+  ].join('');
 
   const modal = document.createElement('div');
   modal.id = 'sched-modal-overlay';
@@ -225,17 +264,17 @@ function openModal(schedule) {
         <label class="sched-label">Nimi *</label>
         <input name="name" value="${esc(s.name||'')}" required maxlength="120" class="sched-input" placeholder="esim. Asiakas Oy viikkoraportti">
 
-        <label class="sched-label" style="margin-top:14px">Sivustot</label>
-        <div style="font-size:12px;color:#64748b;margin-bottom:4px">Tyhjä = kaikki sivustot</div>
+        <label class="sched-label" style="margin-top:14px">Sivusto</label>
         ${cachedSites.length
-          ? `<select name="siteIds" multiple class="sched-input" style="height:80px">${sitesOpts}</select>`
-          : `<div style="font-size:12px;color:#94a3b8;padding:8px">Ei sivustoja</div>`}
+          ? `<select name="siteId" class="sched-input" style="width:auto">${sitesOpts}</select>`
+          : `<div style="font-size:12px;color:#94a3b8;padding:8px 0">Ei sivustoja</div>`}
 
-        <label class="sched-label" style="margin-top:14px">Elementit</label>
-        <div style="font-size:12px;color:#64748b;margin-bottom:4px">Tyhjä = kaikki elementit valituilla sivustoilla</div>
-        ${cachedPopups.length
-          ? `<select name="popupIds" multiple class="sched-input" style="height:80px">${popupsOpts}</select>`
-          : `<div style="font-size:12px;color:#94a3b8;padding:8px">Ei elementtejä</div>`}
+        <div style="margin-top:14px">
+          <label class="sched-label">Elementit</label>
+          <div id="sched-element-list">
+            ${buildElementCheckboxes(selectedSiteId, selectedPopupIds)}
+          </div>
+        </div>
 
         <label class="sched-label" style="margin-top:14px">Toistuvuus *</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
@@ -302,6 +341,24 @@ function openModal(schedule) {
   updateTrack();
   checkBox.addEventListener('change', updateTrack);
 
+  // Sivusto-dropdown → päivitä elementtilista
+  function rebuildElementList() {
+    const siteId  = modal.querySelector('select[name="siteId"]')?.value || '';
+    const listEl  = modal.querySelector('#sched-element-list');
+    if (listEl) listEl.innerHTML = buildElementCheckboxes(siteId, []);
+    wireCheckAllButtons();
+  }
+  function wireCheckAllButtons() {
+    modal.querySelector('#sched-check-all')?.addEventListener('click', () => {
+      modal.querySelectorAll('input[name="popupIds"]').forEach(cb => cb.checked = true);
+    });
+    modal.querySelector('#sched-uncheck-all')?.addEventListener('click', () => {
+      modal.querySelectorAll('input[name="popupIds"]').forEach(cb => cb.checked = false);
+    });
+  }
+  modal.querySelector('select[name="siteId"]')?.addEventListener('change', rebuildElementList);
+  wireCheckAllButtons();
+
   // Frequency extra fields
   function renderFreqExtra() {
     const f   = modal.querySelector('input[name="frequency"]:checked')?.value || 'weekly';
@@ -346,10 +403,22 @@ function openModal(schedule) {
     const recipientRaw = (form.recipients?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
 
     const freq = form.frequency?.value || 'weekly';
+
+    // Sivusto: yksittäinen dropdown → taulukko (tyhjä = kaikki)
+    const siteIdVal = modal.querySelector('select[name="siteId"]')?.value || '';
+    const siteIds   = siteIdVal ? [siteIdVal] : [];
+
+    // Elementit: checkboxlista — jos kaikki on valittu, lähetä tyhjä (= kaikki)
+    const allBoxes     = [...modal.querySelectorAll('input[name="popupIds"]')];
+    const checkedBoxes = allBoxes.filter(cb => cb.checked);
+    const popupIds     = (allBoxes.length > 0 && checkedBoxes.length < allBoxes.length)
+      ? checkedBoxes.map(cb => cb.value)
+      : [];
+
     const body = {
       name:               form.name?.value?.trim(),
-      siteIds:            [...(form.siteIds?.selectedOptions || [])].map(o => o.value),
-      popupIds:           [...(form.popupIds?.selectedOptions || [])].map(o => o.value),
+      siteIds,
+      popupIds,
       frequency:          freq,
       weekDay:            Number(form.weekDay?.value ?? 1),
       monthDay:           Number(form.monthDay?.value ?? 1),
