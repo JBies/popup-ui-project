@@ -31,20 +31,21 @@ if (!window.ShowElement) {
     fetch(API_BASE + '/api/popups/embed/' + elementId)
       .then(function (r) { return r.json(); })
       .then(function (el) {
-        // Näyttökerta rekisteröidään aina kun elementti on aktiivinen ja sivulla käydään.
+        var cfg = el.elementConfig || {};
+
+        // Targeting-tarkistus ensin: elementit joilla on URL/laite-säännöt lasketaan
+        // VAIN oikealla sivulla. Elementit ilman sääntöjä lasketaan kaikilla sivuilla.
+        if (!matchesTargeting(el)) return;
+
+        // Näyttökerta rekisteröidään vain kun sivu täsmää kohdennussääntöihin.
         // viewCooldown-asetus huolehtii palvelinpuolella ettei samaa IP:tä lasketa liian usein.
         if (el.active !== false) trackView(elementId);
 
-        // Sivukohtainen seuranta käynnistetään vain jos sivu täsmää kohdennussääntöihin –
-        // muuten etusivun popup keräisi elementtejä myös muilta sivuilta.
-        var cfg = el.elementConfig || {};
-        if (matchesTargeting(el)) {
-          if (cfg.trackPageLinks) initPageLinkTracking(el);
-          if (cfg.trackScroll)    initScrollTracking(el);
-        }
+        // Sivukohtainen seuranta (linkit + scroll) käynnistetään samalla ehdolla.
+        if (cfg.trackPageLinks) initPageLinkTracking(el);
+        if (cfg.trackScroll)    initScrollTracking(el);
 
         if (!shouldShow(el)) return;
-        if (!matchesTargeting(el)) return;
         // A/B test split
         if (el.abTest && el.abTest.enabled) {
           var stored = sessionStorage.getItem('ue_variant_' + elementId);
