@@ -1012,7 +1012,7 @@ if (!window.ShowElement) {
       var cs = node.style && (node.style.display === 'none' || node.style.visibility === 'hidden');
       if (cs) continue;
 
-      var fp = djb2(window.location.href + '|' + href + '|' + text + '|' + tagName);
+      var fp = djb2(href + '|' + text + '|' + tagName);
       if (seen[fp]) continue;
       seen[fp] = true;
 
@@ -1051,7 +1051,7 @@ if (!window.ShowElement) {
         var href2 = node2.href || '';
         var tag2 = node2.tagName.toLowerCase();
         if (!text2 && !href2) return;
-        var fp2 = djb2(window.location.href + '|' + href2 + '|' + text2 + '|' + tag2);
+        var fp2 = djb2(href2 + '|' + text2 + '|' + tag2);
         node2.addEventListener('click', function() {
           fetch(API_BASE + '/api/popups/page-elements/' + popupId + '/click', {
             method: 'POST',
