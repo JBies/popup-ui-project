@@ -1013,7 +1013,10 @@ if (!window.ShowElement) {
       var cs = node.style && (node.style.display === 'none' || node.style.visibility === 'hidden');
       if (cs) continue;
 
-      var fp = djb2(href + '|' + text + '|' + tagName);
+      // Normalisoi href: poista query-parametrit (?...) ja ankkurit (#...)
+      // jotta sama linkki eri sivuilla (UTM, fbclid, #-hash) ei luo duplikaatteja
+      var hrefBase = href ? href.split('?')[0].split('#')[0] : '';
+      var fp = djb2(hrefBase + '|' + text + '|' + tagName);
       if (seen[fp]) continue;
       seen[fp] = true;
 
@@ -1052,7 +1055,8 @@ if (!window.ShowElement) {
         var href2 = node2.href || '';
         var tag2 = node2.tagName.toLowerCase();
         if (!text2 && !href2) return;
-        var fp2 = djb2(href2 + '|' + text2 + '|' + tag2);
+        var hrefBase2 = href2 ? href2.split('?')[0].split('#')[0] : '';
+        var fp2 = djb2(hrefBase2 + '|' + text2 + '|' + tag2);
         node2.addEventListener('click', function() {
           fetch(API_BASE + '/api/popups/page-elements/' + popupId + '/click', {
             method: 'POST',

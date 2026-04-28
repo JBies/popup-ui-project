@@ -1,14 +1,18 @@
 // scripts/cleanup-duplicate-elements.js
 // Siivoa duplikaatti PageElement -dokumentit
-// Vanhat elementit tallennettiin URL+href+text+tag -fingerprintilla.
-// Uusi fingerprint on pelkka href+text+tag.
-// Ryhmitellaan popupId + href + text + type mukaan ja poistetaan duplikaatit.
+// Ryhmitellaan popupId + href(normalisoitu) + text + type mukaan.
 // Aja: node scripts/cleanup-duplicate-elements.js
 
 const mongoose = require('mongoose');
 require('dotenv').config();
 
 const PageElement = require('../models/PageElement');
+
+// Sama normalisointi kuin ui-embed.js:ssa: poista ?query ja #anchor
+function normalizeHref(href) {
+  if (!href) return '';
+  return href.split('?')[0].split('#')[0];
+}
 
 async function run() {
   await mongoose.connect(process.env.MONGODB_URI);
@@ -17,34 +21,30 @@ async function run() {
   const total = await PageElement.countDocuments();
   console.log('Elementteja yhteensa ennen siivousta:', total);
 
-  // Ryhmittele popupId + href + text + type mukaan (uusi fingerprint-logiikka)
-  // Nain loydetaan elementit jotka ovat sama nappi/linkki eri URL-fingerprintilla
-  const dups = await PageElement.aggregate([
-    { $group: {
-      _id: {
-        popupId: '$popupId',
-        href:    '$href',
-        text:    '$text',
-        type:    '$type'
-      },
-      ids:         { $push: '$_id' },
-      totalClicks: { $sum: '$clicks' },
-      count:       { $sum: 1 }
-    }},
-    { $match: { count: { $gt: 1 } } }
-  ]);
+  // Hae kaikki dokumentit
+  const all = await PageElement.find({}).lean();
 
-  console.log('Duplikaattiryhmia loydetty:', dups.length);
+  // Ryhmittele popupId + normalisoituHref + text + type mukaan
+  const groups = {};
+  for (const el of all) {
+    const key = String(el.popupId) + '|' + normalizeHref(el.href) + '|' + (el.text || '') + '|' + (el.type || '');
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(el);
+  }
 
   let removed = 0;
-  for (const d of dups) {
-    // Sailyta ensimmainen, poista loput
-    const [keepId, ...removeIds] = d.ids;
-    // Paivita sailytettava dokumentti yhteisklikkimaaralla
-    await PageElement.updateOne({ _id: keepId }, { $set: { clicks: d.totalClicks } });
-    // Poista duplikaatit
-    await PageElement.deleteMany({ _id: { $in: removeIds } });
-    removed += removeIds.length;
+  for (const [key, els] of Object.entries(groups)) {
+    if (els.length <= 1) continue;
+
+    // Sailyta se jolla on eniten klikkeja, tai ensimmainen
+    els.sort((a, b) => (b.clicks || 0) - (a.clicks || 0));
+    const keep = els[0];
+    const remove = els.slice(1);
+
+    const totalClicks = els.reduce((s, e) => s + (e.clicks || 0), 0);
+    await PageElement.updateOne({ _id: keep._id }, { $set: { clicks: totalClicks } });
+    await PageElement.deleteMany({ _id: { $in: remove.map(e => e._id) } });
+    removed += remove.length;
   }
 
   const after = await PageElement.countDocuments();
