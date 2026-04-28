@@ -111,8 +111,8 @@ const reportScheduleSchema = new mongoose.Schema({
 
   dataRange: {
     type:    String,
-    enum:    ['last7days', 'last30days', 'last90days', 'lastWeek', 'lastMonth'],
-    default: 'last7days',
+    enum:    ['lastWeek', 'lastMonth', 'last90days', 'lastYear'],
+    default: 'lastWeek',
   },
 
   recipients:         { type: [String], required: true, validate: v => v.length >= 1 && v.length <= 5 },

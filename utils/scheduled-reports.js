@@ -12,8 +12,6 @@ function resolveDataRange(dataRange) {
   const ymd = d => d.toISOString().slice(0, 10);
 
   switch (dataRange) {
-    case 'last7days':  return { from: ymd(new Date(now - 7  * 864e5)), to: ymd(now) };
-    case 'last30days': return { from: ymd(new Date(now - 30 * 864e5)), to: ymd(now) };
     case 'last90days': return { from: ymd(new Date(now - 90 * 864e5)), to: ymd(now) };
     case 'lastWeek': {
       const day = now.getDay() || 7;
@@ -25,6 +23,11 @@ function resolveDataRange(dataRange) {
     case 'lastMonth': {
       const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const last  = new Date(now.getFullYear(), now.getMonth(), 0);
+      return { from: ymd(first), to: ymd(last) };
+    }
+    case 'lastYear': {
+      const first = new Date(now.getFullYear() - 1, 0, 1);
+      const last  = new Date(now.getFullYear() - 1, 11, 31);
       return { from: ymd(first), to: ymd(last) };
     }
     default: return { from: ymd(new Date(now - 7 * 864e5)), to: ymd(now) };

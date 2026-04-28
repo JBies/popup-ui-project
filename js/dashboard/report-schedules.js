@@ -2,7 +2,7 @@
 // Automatisoidut raportit -välilehti
 
 import { showToast } from './dashboard-main.js';
-import { t } from '../i18n.js';
+import { t, getCurrentLanguage } from '../i18n.js';
 
 let cachedSites  = [];
 let cachedPopups = [];
@@ -38,18 +38,18 @@ function renderScheduleList(schedules) {
   const header = `
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
       <div>
-        <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin:0">⏰ Automatisoi raportit</h2>
-        <p style="font-size:13px;color:#64748b;margin:4px 0 0">Aikatauluta raportteja automaattisesti asiakkaille tai tiimille</p>
+        <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin:0">⏰ ${t('sched.title')}</h2>
+        <p style="font-size:13px;color:#64748b;margin:4px 0 0">${t('sched.subtitle')}</p>
       </div>
-      <button id="sched-new-btn" class="btn btn-primary btn-sm">+ Uusi aikataulu</button>
+      <button id="sched-new-btn" class="btn btn-primary btn-sm">${t('sched.newBtn')}</button>
     </div>`;
 
   const cards = schedules.length
     ? schedules.map(s => renderCard(s)).join('')
     : `<div style="padding:40px;text-align:center;color:#94a3b8;background:#f8fafc;border-radius:12px;border:1px dashed #e2e8f0">
         <div style="font-size:32px;margin-bottom:12px">⏰</div>
-        <div style="font-size:14px;font-weight:600;margin-bottom:6px">Ei aikataulutettuja raportteja</div>
-        <div style="font-size:13px">Luo ensimmäinen aikataulu klikkaamalla "Uusi aikataulu"</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px">${t('sched.empty.title')}</div>
+        <div style="font-size:13px">${t('sched.empty.body')}</div>
        </div>`;
 
   container.innerHTML = header + `<div id="sched-list">${cards}</div>`;
@@ -75,23 +75,28 @@ function renderScheduleList(schedules) {
 
 function renderCard(s) {
   const activeColor = s.active ? '#16a34a' : '#94a3b8';
-  const activeTxt   = s.active ? '● Aktiivinen' : '○ Tauolla';
+  const activeTxt   = s.active ? t('sched.active') : t('sched.paused');
 
+  const weekDays = getCurrentLanguage() === 'fi'
+    ? ['Su','Ma','Ti','Ke','To','Pe','La']
+    : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const freqLabel = {
-    daily:   'Päivittäin',
-    weekly:  `Viikoittain (${['Su','Ma','Ti','Ke','To','Pe','La'][s.weekDay ?? 1]})`,
-    monthly: `Kuukausittain (${s.monthDay}. pv)`,
-    custom:  `Joka ${s.customIntervalDays} pv`,
+    daily:   t('sched.freq.daily'),
+    weekly:  `${t('sched.freq.weekly')} (${weekDays[s.weekDay ?? 1]})`,
+    monthly: `${t('sched.freq.monthly')} (${s.monthDay}.)`,
+    custom:  `${t('sched.freq.custom')} / ${s.customIntervalDays} pv`,
   }[s.frequency] || s.frequency;
 
   const rangeLabel = {
-    last7days:  'Viim. 7 pv', last30days: 'Viim. 30 pv',
-    last90days: 'Viim. 90 pv', lastWeek: 'Ed. viikko', lastMonth: 'Ed. kuukausi',
+    lastWeek:  t('sched.range.lastWeek'),
+    lastMonth: t('sched.range.lastMonth'),
+    last90days:t('sched.range.last90'),
+    lastYear:  t('sched.range.lastYear'),
   }[s.dataRange] || s.dataRange;
 
   const siteLabel = s.siteIds?.length
     ? s.siteIds.map(id => cachedSites.find(st => String(st._id) === id)?.name || id).join(', ')
-    : 'Kaikki sivustot';
+    : t('sched.allSites');
 
   const nextSend = s.nextSendAt
     ? new Date(s.nextSendAt).toLocaleString('fi-FI', { day:'numeric', month:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' })
@@ -115,7 +120,7 @@ function renderCard(s) {
 
   const logSection = s.deliveryLog?.length
     ? `<details style="margin-top:10px">
-        <summary style="font-size:11px;color:#64748b;cursor:pointer">Toimitushistoria (${s.deliveryLog.length})</summary>
+        <summary style="font-size:11px;color:#64748b;cursor:pointer">${t('sched.history')} (${s.deliveryLog.length})</summary>
         <table style="width:100%;border-collapse:collapse;margin-top:6px">${logRows}</table>
        </details>`
     : '';
@@ -135,16 +140,16 @@ function renderCard(s) {
             <span>✉️ ${(s.recipients||[]).join(', ')}</span>
           </div>
           <div style="font-size:11px;color:#94a3b8;margin-top:6px;display:flex;gap:16px;flex-wrap:wrap">
-            <span>Seuraava: <strong style="color:#374151">${nextSend}</strong></span>
-            <span>Viimeksi: <strong style="color:#374151">${lastSendTxt}</strong></span>
+            <span>${t('sched.next')} <strong style="color:#374151">${nextSend}</strong></span>
+            <span>${t('sched.last')} <strong style="color:#374151">${lastSendTxt}</strong></span>
           </div>
           ${logSection}
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
-          <button data-sched-edit="${s._id}" class="btn btn-secondary btn-xs">Muokkaa</button>
-          <button data-sched-preview="${s._id}" class="btn btn-secondary btn-xs">Esikatsele</button>
-          <button data-sched-toggle="${s._id}" class="btn btn-secondary btn-xs">${s.active ? 'Tauko' : 'Aktivoi'}</button>
-          <button data-sched-delete="${s._id}" class="btn btn-xs" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca">Poista</button>
+          <button data-sched-edit="${s._id}" class="btn btn-secondary btn-xs">${t('sched.btn.edit')}</button>
+          <button data-sched-preview="${s._id}" class="btn btn-secondary btn-xs">${t('sched.btn.test')}</button>
+          <button data-sched-toggle="${s._id}" class="btn btn-secondary btn-xs">${s.active ? t('sched.btn.pause') : t('sched.btn.activate')}</button>
+          <button data-sched-delete="${s._id}" class="btn btn-xs" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca">${t('sched.btn.delete')}</button>
         </div>
       </div>
     </div>`;
@@ -160,10 +165,10 @@ async function doPreview(id, btn) {
     const r = await fetch('/api/report-schedules/' + id + '/preview', { method: 'POST' });
     const data = await r.json();
     if (!r.ok) throw new Error(data.message || 'Virhe');
-    showToast(`Testiraportti lähetetty (${data.recipientCount} vastaanottajaa)`);
+    showToast(`${t('sched.testSent')} (${data.recipientCount})`);
     loadSchedules();
   } catch (e) {
-    showToast(e.message, 'error');
+    showToast(e.message || t('sched.testFail'), 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = orig;
@@ -177,20 +182,20 @@ async function doToggle(id, btn) {
     if (!r.ok) throw new Error();
     loadSchedules();
   } catch {
-    showToast('Tilamuutos epäonnistui', 'error');
+    showToast(t('sched.toggleFail'), 'error');
     btn.disabled = false;
   }
 }
 
 async function doDelete(id) {
-  if (!confirm('Poistetaanko tämä aikataulu?')) return;
+  if (!confirm(t('sched.deleteConfirm'))) return;
   try {
     const r = await fetch('/api/report-schedules/' + id, { method: 'DELETE' });
     if (!r.ok) throw new Error();
-    showToast('Aikataulu poistettu');
+    showToast(t('sched.deleted'));
     loadSchedules();
   } catch {
-    showToast('Poisto epäonnistui', 'error');
+    showToast(t('sched.deleteFail'), 'error');
   }
 }
 
@@ -204,7 +209,7 @@ function buildElementCheckboxes(siteId, selectedPopupIds) {
   });
 
   if (!filtered.length) {
-    return `<div style="font-size:12px;color:#94a3b8;padding:8px 0">Ei elementtejä tällä sivustolla</div>`;
+    return `<div style="font-size:12px;color:#94a3b8;padding:8px 0">${t('sched.noElements')}</div>`;
   }
 
   const allSelected = !selectedPopupIds || selectedPopupIds.length === 0;
@@ -221,10 +226,10 @@ function buildElementCheckboxes(siteId, selectedPopupIds) {
 
   return `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <span style="font-size:12px;color:#64748b">${filtered.length} elementtiä — poista rasti jätettävistä pois</span>
+      <span style="font-size:12px;color:#64748b">${filtered.length} ${t('sched.allElements')}</span>
       <div style="display:flex;gap:8px">
-        <button type="button" id="sched-check-all" style="font-size:11px;color:#3b82f6;background:none;border:none;cursor:pointer;padding:0">Valitse kaikki</button>
-        <button type="button" id="sched-uncheck-all" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;padding:0">Poista kaikki</button>
+        <button type="button" id="sched-check-all" style="font-size:11px;color:#3b82f6;background:none;border:none;cursor:pointer;padding:0">${t('sched.checkAll')}</button>
+        <button type="button" id="sched-uncheck-all" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;padding:0">${t('sched.uncheckAll')}</button>
       </div>
     </div>
     <div id="sched-popup-list" style="border:1px solid #e2e8f0;border-radius:8px;max-height:180px;overflow-y:auto;padding:4px">
@@ -258,58 +263,58 @@ function openModal(schedule) {
   modal.innerHTML = `
     <div style="background:#fff;border-radius:16px;padding:28px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;position:relative">
       <button id="sched-modal-close" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8">✕</button>
-      <h3 style="font-size:17px;font-weight:800;margin:0 0 20px">${isEdit ? 'Muokkaa aikataulua' : 'Uusi aikataulu'}</h3>
+      <h3 style="font-size:17px;font-weight:800;margin:0 0 20px">${isEdit ? t('sched.modal.edit') : t('sched.modal.new')}</h3>
       <form id="sched-form">
 
-        <label class="sched-label">Nimi *</label>
+        <label class="sched-label">${t('sched.field.name')}</label>
         <input name="name" value="${esc(s.name||'')}" required maxlength="120" class="sched-input" placeholder="esim. Asiakas Oy viikkoraportti">
 
-        <label class="sched-label" style="margin-top:14px">Sivusto</label>
+        <label class="sched-label" style="margin-top:14px">${t('sched.field.site')}</label>
         ${cachedSites.length
           ? `<select name="siteId" class="sched-input" style="width:auto">${sitesOpts}</select>`
-          : `<div style="font-size:12px;color:#94a3b8;padding:8px 0">Ei sivustoja</div>`}
+          : `<div style="font-size:12px;color:#94a3b8;padding:8px 0">${t('sched.noSites')}</div>`}
 
         <div style="margin-top:14px">
-          <label class="sched-label">Elementit</label>
+          <label class="sched-label">${t('sched.field.elements')}</label>
           <div id="sched-element-list">
             ${buildElementCheckboxes(selectedSiteId, selectedPopupIds)}
           </div>
         </div>
 
-        <label class="sched-label" style="margin-top:14px">Toistuvuus *</label>
+        <label class="sched-label" style="margin-top:14px">${t('sched.field.freq')}</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           ${['daily','weekly','monthly','custom'].map(f => `
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer">
               <input type="radio" name="frequency" value="${f}" ${freq===f?'checked':''}>
-              ${{ daily:'Päivittäin', weekly:'Viikoittain', monthly:'Kuukausittain', custom:'Mukautettu' }[f]}
+              ${t('sched.freq.' + f)}
             </label>`).join('')}
         </div>
 
         <div id="sched-freq-extra" style="margin-bottom:10px"></div>
 
-        <label class="sched-label">Kellonaika (Helsinki) *</label>
+        <label class="sched-label">${t('sched.field.time')}</label>
         <input type="time" name="time" value="${String(hour).padStart(2,'0')}:${String(min).padStart(2,'0')}" required class="sched-input" style="width:140px">
 
-        <label class="sched-label" style="margin-top:14px">Raporttijakso *</label>
+        <label class="sched-label" style="margin-top:14px">${t('sched.field.range')}</label>
         <select name="dataRange" class="sched-input" style="width:auto">
-          ${[['last7days','Viim. 7 päivää'],['last30days','Viim. 30 päivää'],['last90days','Viim. 90 päivää'],['lastWeek','Edellinen viikko'],['lastMonth','Edellinen kuukausi']]
-            .map(([v,l]) => `<option value="${v}" ${(s.dataRange||'last7days')===v?'selected':''}>${l}</option>`).join('')}
+          ${[['lastWeek','sched.range.lastWeek'],['lastMonth','sched.range.lastMonth'],['last90days','sched.range.last90'],['lastYear','sched.range.lastYear']]
+            .map(([v,k]) => `<option value="${v}" ${(s.dataRange||'lastWeek')===v?'selected':''}>${t(k)}</option>`).join('')}
         </select>
 
-        <label class="sched-label" style="margin-top:14px">Vastaanottajat * <span style="font-weight:400;color:#94a3b8">(max 5, yksi per rivi)</span></label>
+        <label class="sched-label" style="margin-top:14px">${t('sched.field.recipients')}</label>
         <textarea name="recipients" rows="3" class="sched-input" placeholder="asiakas@yritys.fi&#10;toinen@yritys.fi">${esc(recipients)}</textarea>
 
-        <label class="sched-label" style="margin-top:14px">Otsikko <span style="font-weight:400;color:#94a3b8">(valinnainen)</span></label>
-        <input name="customSubject" value="${esc(s.customSubject||'')}" class="sched-input" placeholder="Jätetään tyhjäksi = automaattinen otsikko">
+        <label class="sched-label" style="margin-top:14px">${t('sched.field.subject')}</label>
+        <input name="customSubject" value="${esc(s.customSubject||'')}" class="sched-input" placeholder="—">
 
-        <label class="sched-label" style="margin-top:14px">Asiakkaan nimi <span style="font-weight:400;color:#94a3b8">(näkyy sähköpostin otsikossa)</span></label>
+        <label class="sched-label" style="margin-top:14px">${t('sched.field.client')}</label>
         <input name="clientName" value="${esc(s.clientName||'')}" class="sched-input" placeholder="esim. Asiakas Oy">
 
-        <label class="sched-label" style="margin-top:14px">Intro-viesti <span style="font-weight:400;color:#94a3b8">(valinnainen, näkyy sähköpostin alussa)</span></label>
-        <textarea name="customIntroMessage" rows="2" class="sched-input" placeholder="esim. Hei! Tässä kuukausiraporttinne...">${esc(s.customIntroMessage||'')}</textarea>
+        <label class="sched-label" style="margin-top:14px">${t('sched.field.intro')}</label>
+        <textarea name="customIntroMessage" rows="2" class="sched-input" placeholder="—">${esc(s.customIntroMessage||'')}</textarea>
 
         <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
-          <label style="font-size:13px;font-weight:600;color:#374151">Aktiivinen</label>
+          <label style="font-size:13px;font-weight:600;color:#374151">${t('sched.field.active')}</label>
           <label style="position:relative;display:inline-block;width:40px;height:22px">
             <input type="checkbox" name="active" ${s.active !== false ? 'checked' : ''} style="opacity:0;width:0;height:0">
             <span style="position:absolute;inset:0;background:#e2e8f0;border-radius:22px;transition:0.2s;cursor:pointer"
@@ -320,8 +325,8 @@ function openModal(schedule) {
         <div id="sched-form-error" style="display:none;color:#ef4444;font-size:13px;margin-top:10px;padding:10px;background:#fef2f2;border-radius:8px"></div>
 
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9">
-          <button type="button" id="sched-modal-cancel" class="btn btn-secondary">Peruuta</button>
-          <button type="submit" class="btn btn-primary" id="sched-save-btn">${isEdit ? 'Tallenna' : 'Luo aikataulu'}</button>
+          <button type="button" id="sched-modal-cancel" class="btn btn-secondary">${t('sched.modal.cancel')}</button>
+          <button type="submit" class="btn btn-primary" id="sched-save-btn">${isEdit ? t('sched.modal.update') : t('sched.modal.save')}</button>
         </div>
       </form>
     </div>`;
@@ -364,16 +369,18 @@ function openModal(schedule) {
     const f   = modal.querySelector('input[name="frequency"]:checked')?.value || 'weekly';
     const ex  = modal.querySelector('#sched-freq-extra');
     if (f === 'weekly') {
-      const days = ['Su','Ma','Ti','Ke','To','Pe','La'];
-      ex.innerHTML = `<label class="sched-label">Viikonpäivä *</label>
+      const days = getCurrentLanguage() === 'fi'
+        ? ['Su','Ma','Ti','Ke','To','Pe','La']
+        : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      ex.innerHTML = `<label class="sched-label">${t('sched.weekday')}</label>
         <select name="weekDay" class="sched-input" style="width:auto">
           ${days.map((d,i) => `<option value="${i}" ${(s.weekDay??1)===i?'selected':''}>${d}</option>`).join('')}
         </select>`;
     } else if (f === 'monthly') {
-      ex.innerHTML = `<label class="sched-label">Kuukauden päivä *</label>
+      ex.innerHTML = `<label class="sched-label">${t('sched.monthday')}</label>
         <input type="number" name="monthDay" min="1" max="31" value="${s.monthDay||1}" class="sched-input" style="width:80px">`;
     } else if (f === 'custom') {
-      ex.innerHTML = `<label class="sched-label">Toistumisväli (päiviä) *</label>
+      ex.innerHTML = `<label class="sched-label">${t('sched.interval')}</label>
         <input type="number" name="customIntervalDays" min="1" max="365" value="${s.customIntervalDays||7}" class="sched-input" style="width:90px">`;
     } else {
       ex.innerHTML = '';
@@ -395,7 +402,7 @@ function openModal(schedule) {
     const saveBtn = modal.querySelector('#sched-save-btn');
     errEl.style.display = 'none';
     saveBtn.disabled = true;
-    saveBtn.textContent = 'Tallennetaan...';
+    saveBtn.textContent = t('sched.modal.saving');
 
     const form = e.target;
     const timeVal = form.time?.value || '08:00';
@@ -443,7 +450,7 @@ function openModal(schedule) {
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.message || 'Virhe');
-      showToast(isEdit ? 'Aikataulu päivitetty' : 'Aikataulu luotu');
+      showToast(isEdit ? t('sched.saved') : t('sched.created'));
       close();
       loadSchedules();
     } catch (err) {
@@ -451,7 +458,7 @@ function openModal(schedule) {
       errEl.style.display = 'block';
     } finally {
       saveBtn.disabled = false;
-      saveBtn.textContent = isEdit ? 'Tallenna' : 'Luo aikataulu';
+      saveBtn.textContent = isEdit ? t('sched.modal.update') : t('sched.modal.save');
     }
   });
 }

@@ -238,12 +238,7 @@ function buildReportEmail(user, period, allTime, topElements, leads, label, opts
     ${topElsHtml}
     ${leadsHtml}
 
-    <div style="margin-top:28px">
-      <a href="${process.env.APP_URL || 'https://popupmanager.net'}/dashboard#reports"
-        style="display:inline-block;background:#1e40af;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600">
-        📊 Avaa Raportit-sivu →
-      </a>
-    </div>`;
+`;
 
   const APP_URL = process.env.APP_URL || 'https://popupmanager.net';
   return `<!DOCTYPE html><html lang="fi"><head><meta charset="UTF-8"></head>

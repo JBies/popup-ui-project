@@ -50,7 +50,7 @@ function renderTabs(container) {
       </button>
       <button class="rpt-tab-btn" data-tab="schedules"
         style="padding:10px 18px;border:none;background:none;font-size:14px;font-weight:600;cursor:pointer;border-bottom:2px solid ${activeTab==='schedules'?'#3b82f6':'transparent'};margin-bottom:-2px;color:${activeTab==='schedules'?'#1d4ed8':'#64748b'}">
-        ⏰ Automatisoi raportit
+        ⏰ ${t('sched.title')}
       </button>
     </div>
     <div id="tab-report"    style="display:${activeTab==='report'?'block':'none'}"></div>
