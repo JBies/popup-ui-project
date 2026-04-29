@@ -1,7 +1,9 @@
 // controllers/reportSchedule.controller.js
 
 const ReportSchedule = require('../models/ReportSchedule');
-const { executeSchedule } = require('../utils/scheduled-reports');
+const { executeSchedule, runScheduledReports } = require('../utils/scheduled-reports');
+
+const VALID_DATA_RANGES = ['lastWeek', 'lastMonth', 'last90days', 'lastYear'];
 
 function validateScheduleBody(body) {
   const errors = [];
@@ -35,6 +37,9 @@ function validateScheduleBody(body) {
     errors.push('Kuukaudenpäivä (1–31) vaaditaan kuukausittaiselle aikataululle');
   if (frequency === 'custom' && (!customIntervalDays || customIntervalDays < 1 || customIntervalDays > 365))
     errors.push('Toistumisväli (1–365 päivää) vaaditaan mukautetulle aikataululle');
+
+  if (body.dataRange && !VALID_DATA_RANGES.includes(body.dataRange))
+    errors.push(`Virheellinen raporttijakso. Sallitut: ${VALID_DATA_RANGES.join(', ')}`);
 
   return errors;
 }
@@ -140,6 +145,48 @@ exports.deleteSchedule = async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ message: 'Poisto epäonnistui' });
+  }
+};
+
+// GET /api/report-schedules/debug/status  — näyttää kaikkien aikataulujen tila
+exports.debugStatus = async (req, res) => {
+  try {
+    const now = new Date();
+    const schedules = await ReportSchedule.find({ userId: req.user._id })
+      .select('name active frequency hour minute nextSendAt lastSentAt deliveryLog dataRange')
+      .lean();
+
+    const result = schedules.map(s => ({
+      name:        s.name,
+      active:      s.active,
+      frequency:   s.frequency,
+      hour:        s.hour,
+      minute:      s.minute,
+      dataRange:   s.dataRange,
+      nextSendAt:  s.nextSendAt,
+      nextSendAt_helsinki: s.nextSendAt
+        ? new Date(s.nextSendAt).toLocaleString('fi-FI', { timeZone: 'Europe/Helsinki' })
+        : null,
+      isDue:       s.nextSendAt ? s.nextSendAt <= now : false,
+      lastSentAt:  s.lastSentAt,
+      lastLog:     s.deliveryLog?.slice(-1)[0] || null,
+      serverNow:   now.toISOString(),
+      serverNow_helsinki: now.toLocaleString('fi-FI', { timeZone: 'Europe/Helsinki' }),
+    }));
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/report-schedules/debug/trigger  — ajaa erääntyneet heti manuaalisesti
+exports.debugTrigger = async (req, res) => {
+  try {
+    await runScheduledReports();
+    res.json({ ok: true, message: 'Scheduler ajettu manuaalisesti — katso palvelinlokit' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 

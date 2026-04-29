@@ -66,13 +66,15 @@ async function executeSchedule(schedule, now, isPreview = false) {
       : `📊 Raportti: ${label}${schedule.clientName ? ' – ' + schedule.clientName : ''}`;
 
     let allOk = true;
+    const failed = [];
     for (const email of schedule.recipients) {
       const ok = await sendMail(email, subject, html);
-      if (!ok) allOk = false;
+      if (!ok) { allOk = false; failed.push(email); }
     }
 
     logEntry.success        = allOk;
     logEntry.recipientCount = schedule.recipients.length;
+    if (!allOk) logEntry.error = `Lähetys epäonnistui: ${failed.join(', ')}`;
   } catch (err) {
     console.error(`[scheduled-reports] Virhe aikataulussa ${schedule._id}:`, err.message);
     logEntry.error = err.message;
@@ -97,15 +99,21 @@ async function executeSchedule(schedule, now, isPreview = false) {
 
 async function runScheduledReports() {
   const now = new Date();
-  const due = await ReportSchedule.find({
-    active:     true,
-    nextSendAt: { $lte: now },
-  }).lean();
+
+  // Diagnostiikka: laske kaikki aktiiviset, ei vain erääntyneet
+  const [due, totalActive] = await Promise.all([
+    ReportSchedule.find({ active: true, nextSendAt: { $lte: now } }).lean(),
+    ReportSchedule.countDocuments({ active: true }),
+  ]);
+
+  if (totalActive > 0) {
+    console.log(`[scheduled-reports] Tarkistus ${now.toISOString()} — aktiivisia: ${totalActive}, erääntyneitä: ${due.length}`);
+  }
 
   if (!due.length) return;
-  console.log(`[scheduled-reports] ${due.length} aikataulu(a) ajettavana`);
 
   for (const schedule of due) {
+    console.log(`[scheduled-reports] Ajetaan: "${schedule.name}" (${schedule._id})`);
     await executeSchedule(schedule, now);
   }
 }

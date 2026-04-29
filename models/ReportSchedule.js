@@ -2,28 +2,42 @@
 
 const mongoose = require('mongoose');
 
-// Helsinki UTC-offset laskettuna ilman kirjastoja
-function helOffset(date) {
-  const utcStr = date.toLocaleString('en-CA', { timeZone: 'UTC' });
-  const helStr = date.toLocaleString('en-CA', { timeZone: 'Europe/Helsinki' });
-  return Math.round((new Date(helStr) - new Date(utcStr)) / 60000); // +120 tai +180
-}
+// ─── Helsinki-aikalaskenta (ei locale-string-parsintaa, ei kirjastoja) ────────
 
-function helNow(date) {
-  const parts = new Intl.DateTimeFormat('en-CA', {
+// Palauttaa Helsinki-ajan komponentit Intl:n avulla
+function helParts(date) {
+  const fmt = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Helsinki',
     year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', hour12: false,
-  }).formatToParts(date);
-  const get = t => Number(parts.find(p => p.type === t).value);
-  return { year: get('year'), month: get('month') - 1, day: get('day'), hour: get('hour'), minute: get('minute') };
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    weekday: 'short', hour12: false,
+  });
+  const parts = fmt.formatToParts(date);
+  const get = type => parts.find(p => p.type === type)?.value;
+  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return {
+    year:    Number(get('year')),
+    month:   Number(get('month')) - 1,   // 0-indeksoitu
+    day:     Number(get('day')),
+    hour:    Number(get('hour')),
+    minute:  Number(get('minute')),
+    weekDay: weekdays.indexOf(get('weekday')), // 0=Su, 1=Ma, 2=Ti...
+  };
 }
 
-function candidateUTC(year, month, day, hour, minute) {
-  const nominalUTC  = Date.UTC(year, month, day, hour, minute, 0);
-  const nominalDate = new Date(nominalUTC);
-  const offset      = helOffset(nominalDate);
-  return new Date(nominalUTC - offset * 60000);
+// Helsinki UTC-offset minuutteina: rekonstruoi Helsinki-hetki UTC-timestampiksi
+// eikä käytä new Date(localeString) -parsintaa (epäluotettava)
+function helOffset(date) {
+  const p = helParts(date);
+  const helAsUTC = Date.UTC(p.year, p.month, p.day, p.hour, p.minute);
+  return Math.round((helAsUTC - date.getTime()) / 60000); // esim. 120 tai 180
+}
+
+// Muodostaa UTC Date:n annetulle Helsinki-kalenteripäivälle + kelloajalle
+function helToUTC(year, month, day, hour, minute) {
+  const approx  = new Date(Date.UTC(year, month, day, hour, minute));
+  const offset  = helOffset(approx);
+  return new Date(Date.UTC(year, month, day, hour, minute) - offset * 60000);
 }
 
 function addDays(date, n) {
@@ -32,59 +46,50 @@ function addDays(date, n) {
 
 function computeNextSendAt(schedule, now = new Date()) {
   const { frequency, hour, minute, weekDay, monthDay, customIntervalDays, lastSentAt } = schedule;
-  const hel = helNow(now);
+  const hel = helParts(now);
 
   if (frequency === 'daily') {
-    let cand = candidateUTC(hel.year, hel.month, hel.day, hour, minute);
-    if (cand <= now) cand = addDays(cand, 1);
+    let cand = helToUTC(hel.year, hel.month, hel.day, hour, minute);
+    if (cand <= now) cand = helToUTC(hel.year, hel.month, hel.day + 1, hour, minute);
     return cand;
   }
 
   if (frequency === 'weekly') {
-    const todayCand = candidateUTC(hel.year, hel.month, hel.day, hour, minute);
-    const helDay = helNow(todayCand).day;
-    // Laske viikonpäivä Helsinki-ajassa
-    const todayDate = new Date(Date.UTC(hel.year, hel.month, hel.day));
-    const todayWeekDay = new Date(todayDate.toLocaleString('en-CA', { timeZone: 'Europe/Helsinki' })).getDay
-      ? (() => {
-          const d = new Date(Date.UTC(hel.year, hel.month, hel.day, 12));
-          return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Helsinki', weekday: 'short' })
-            .format(d) === 'Sun' ? 0
-            : ['Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(
-                new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Helsinki', weekday: 'short' }).format(d)
-              ) + 1;
-        })()
-      : 0;
-
-    // Yksinkertainen laskenta: käytä UTC-viikonpäivää kandidaatille
-    let daysAhead = (weekDay - todayWeekDay + 7) % 7;
+    const todayCand = helToUTC(hel.year, hel.month, hel.day, hour, minute);
+    let daysAhead = (weekDay - hel.weekDay + 7) % 7;
     if (daysAhead === 0 && todayCand <= now) daysAhead = 7;
-    return addDays(candidateUTC(hel.year, hel.month, hel.day, hour, minute), daysAhead);
+    return helToUTC(hel.year, hel.month, hel.day + daysAhead, hour, minute);
   }
 
   if (frequency === 'monthly') {
     for (let offset = 0; offset <= 2; offset++) {
-      const rawMonth  = hel.month + offset;
+      const rawMonth    = hel.month + offset;
       const targetYear  = hel.year + Math.floor(rawMonth / 12);
       const targetMonth = rawMonth % 12;
       const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-      const d = Math.min(monthDay, daysInMonth);
-      const cand = candidateUTC(targetYear, targetMonth, d, hour, minute);
+      const d    = Math.min(monthDay, daysInMonth);
+      const cand = helToUTC(targetYear, targetMonth, d, hour, minute);
       if (cand > now) return cand;
     }
   }
 
   if (frequency === 'custom') {
-    const base = lastSentAt ? new Date(lastSentAt) : now;
-    let cand = addDays(base, customIntervalDays);
-    const helC = helNow(cand);
-    cand = candidateUTC(helC.year, helC.month, helC.day, hour, minute);
-    if (cand <= now) cand = addDays(cand, customIntervalDays);
+    const base    = lastSentAt ? new Date(lastSentAt) : now;
+    const baseFwd = addDays(base, customIntervalDays);
+    const fwdHel  = helParts(baseFwd);
+    let cand = helToUTC(fwdHel.year, fwdHel.month, fwdHel.day, hour, minute);
+    if (cand <= now) {
+      const nowFwd = addDays(now, customIntervalDays);
+      const nowHel = helParts(nowFwd);
+      cand = helToUTC(nowHel.year, nowHel.month, nowHel.day, hour, minute);
+    }
     return cand;
   }
 
   return null;
 }
+
+// ─── Schema ───────────────────────────────────────────────────────────────────
 
 const deliveryLogEntrySchema = new mongoose.Schema({
   sentAt:         { type: Date, required: true },
