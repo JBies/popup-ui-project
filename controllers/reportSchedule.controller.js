@@ -3,6 +3,25 @@
 const ReportSchedule = require('../models/ReportSchedule');
 const { executeSchedule, runScheduledReports } = require('../utils/scheduled-reports');
 
+// Rate limit: max 2 testisähköpostia per 30 min per käyttäjä
+const previewCooldown = new Map();
+const PREVIEW_LIMIT    = 2;
+const PREVIEW_WINDOW   = 30 * 60 * 1000; // 30 min
+
+function checkPreviewRateLimit(userId) {
+  const key    = String(userId);
+  const now    = Date.now();
+  const record = previewCooldown.get(key) || { count: 0, reset: now + PREVIEW_WINDOW };
+  if (now > record.reset) { record.count = 0; record.reset = now + PREVIEW_WINDOW; }
+  if (record.count >= PREVIEW_LIMIT) {
+    const minLeft = Math.ceil((record.reset - now) / 60000);
+    return { blocked: true, minLeft };
+  }
+  record.count++;
+  previewCooldown.set(key, record);
+  return { blocked: false };
+}
+
 const VALID_DATA_RANGES = ['lastWeek', 'lastMonth', 'last90days', 'lastYear'];
 
 function validateScheduleBody(body) {
@@ -193,6 +212,11 @@ exports.debugTrigger = async (req, res) => {
 // POST /api/report-schedules/:id/preview
 exports.previewSchedule = async (req, res) => {
   try {
+    const rl = checkPreviewRateLimit(req.user._id);
+    if (rl.blocked) {
+      return res.status(429).json({ message: `Odota ${rl.minLeft} min ennen seuraavaa testilähetystä.` });
+    }
+
     const schedule = await ReportSchedule.findOne({ _id: req.params.id, userId: req.user._id }).lean();
     if (!schedule) return res.status(404).json({ message: 'Aikataulua ei löydy' });
 
