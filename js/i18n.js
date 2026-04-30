@@ -477,6 +477,7 @@ const translations = {
     'rpt.type.stats':      'Stats collector',
 
     // --- Automated reports ---
+    'sched.tabReport':     '📊 Reports',
     'sched.title':         'Automate Reports',
     'sched.subtitle':      'Schedule reports automatically to clients or your team',
     'sched.newBtn':        '+ New Schedule',
@@ -661,6 +662,53 @@ const translations = {
     'leads.noExport':      'No leads to export',
     'leads.csvDone':       'CSV downloaded!',
     'leads.csvFile':       'leads',
+
+    // --- Sites & Code (install section) ---
+    'install.title':          'Installation Guide',
+    'install.subtitle':       'Three steps and your element is live on your site.',
+    'install.howWorks.title': '💡 How does the system know what to show?',
+    'install.howWorks.desc':  'Each site gets its own unique token. When the code is on your site, it tells the system: <em>"this is Kuntokeitaan — show Kuntokeitaan\'s elements."</em>',
+    'install.example1.name':  '🌐 Joensuun Kuntokeidas',
+    'install.example1.sub':   'Own code → own elements',
+    'install.example1.tag':   '✓ Popup "Open door to spring"',
+    'install.example2.name':  '🌐 Cryostudio Joensuu',
+    'install.example2.sub':   'Different code → different elements',
+    'install.example2.tag':   '✓ Sticky bar "Book a time"',
+    'install.bullet1':        '<strong>✅ Code added only once</strong> — the same code works on all pages of the same site (home, booking, etc.).',
+    'install.bullet2':        '<strong>✅ Add elements any time</strong> — they appear automatically, no need to change the site code.',
+    'install.bullet3':        '<strong>✅ Activate and deactivate with toggle</strong> — from the element list, without touching the site code.',
+    'install.step1.title':    'Copy the install code',
+    'install.step1.desc':     'Add a site below and copy its code. One code covers all elements!',
+    'install.step2.title':    'Open your site settings',
+    'install.step2.desc':     'Find <strong>"Add script"</strong>, <strong>"Header scripts"</strong> or <strong>"Custom HTML"</strong> — in most site builders it\'s under Settings → Code.',
+    'install.step3.title':    'Paste the code and save',
+    'install.step3.desc':     'Paste the code into the field and save. Your element appears on the site immediately — activate and deactivate from the dashboard list.',
+    'install.csp.title':      'Code not working? Check CSP settings',
+    'install.csp.desc':       'If your site uses <strong>Content Security Policy</strong> headers and the code doesn\'t work, add <code style="background:#fef3c7;padding:1px 5px;border-radius:3px;font-size:11px">https://popupmanager.net</code> to the allowed scripts list:',
+    'install.csp.nginx':      '<strong>Nginx / Apache (HTTP header)</strong><br><code style="font-size:11px;color:#92400e">Content-Security-Policy: script-src \'self\' https://popupmanager.net</code>',
+    'install.csp.next':       '<strong>Next.js</strong> — <code style="font-size:11px;color:#92400e">next.config.js</code> → headers() function → add <code style="font-size:11px;color:#92400e">https://popupmanager.net</code> to script-src',
+    'install.csp.wp':         '<strong>WordPress</strong> — use a plugin like <em>Headers & CSP Manager</em> or add to the server .htaccess file',
+    'install.csp.shopify':    '<strong>Shopify / Squarespace / Wix</strong> — these generally don\'t have their own CSP, so the code works directly without changes',
+    'install.csp.tip':        '💡 Check if CSP is active: open F12 → Console → if you see a "Content Security Policy" error, CSP is on.',
+    'install.copyBtn':        'Copy code',
+    'install.addSite':        '+ Add site',
+    'install.addSiteFirst':   '+ Add site',
+    'install.copy':           'Copy',
+    'install.loginAgain':     '<!-- Log in again to generate the code -->',
+    'install.modal.title':    'Add site',
+    'install.modal.name':     'Site name *',
+    'install.modal.namePh':   'e.g. Main site, Online store…',
+    'install.modal.domain':   'Domain (optional)',
+    'install.modal.domainPh': 'e.g. mainsite.com',
+    'install.modal.cancel':   'Cancel',
+    'install.modal.save':     'Create site',
+    'install.toast.copied':   'Code copied!',
+    'install.toast.created':  'Site created!',
+    'install.toast.createFail': 'Failed to create site',
+    'install.toast.deleted':  'Site deleted',
+    'install.toast.deleteFail': 'Delete failed',
+    'install.toast.nameRequired': 'Name is required',
+    'install.delete.confirm': 'Delete site? Elements remain but are detached from this site.',
   },
 
   fi: {
@@ -1160,6 +1208,7 @@ const translations = {
     'rpt.type.stats':      'Tilastojen kerääjä',
 
     // --- Automatisoidut raportit ---
+    'sched.tabReport':     '📊 Raportit',
     'sched.title':         'Automatisoi raportit',
     'sched.subtitle':      'Aikatauluta raportteja automaattisesti asiakkaille tai tiimille',
     'sched.newBtn':        '+ Uusi aikataulu',
@@ -1343,6 +1392,53 @@ const translations = {
     'leads.noExport':      'Ei liidejä vietäväksi',
     'leads.csvDone':       'CSV ladattu!',
     'leads.csvFile':       'liidit',
+
+    // --- Sivusto & Koodi (asennusosio) ---
+    'install.title':          'Asennusohje',
+    'install.subtitle':       'Kolme askelta ja elementtisi on live sivustollasi.',
+    'install.howWorks.title': '💡 Miten järjestelmä tietää mitä näyttää?',
+    'install.howWorks.desc':  'Jokaiselle sivustollesi luodaan oma tunnistuskoodi. Kun koodi on sivustolla, se kertoo järjestelmälle: <em>"tämä on Kuntokeitaan sivu — näytä Kuntokeitaan elementit."</em>',
+    'install.example1.name':  '🌐 Joensuun Kuntokeidas',
+    'install.example1.sub':   'Oma koodi → omat elementit',
+    'install.example1.tag':   '✓ Popup "Avaa ovi keväälle"',
+    'install.example2.name':  '🌐 Cryostudio Joensuu',
+    'install.example2.sub':   'Eri koodi → eri elementit',
+    'install.example2.tag':   '✓ Sticky bar "Varaa aika"',
+    'install.bullet1':        '<strong>✅ Koodi lisätään vain kerran</strong> — kaikilla saman sivuston sivuilla (etusivu, varaussivu, yms.) toimii sama koodi.',
+    'install.bullet2':        '<strong>✅ Lisää elementtejä milloin vain</strong> — ne ilmestyvät automaattisesti, koodia ei tarvitse vaihtaa.',
+    'install.bullet3':        '<strong>✅ Aktivoi ja sammuta togglella</strong> — elementtilistasta, ei koskematta sivuston koodiin.',
+    'install.step1.title':    'Kopioi asennuskoodi',
+    'install.step1.desc':     'Lisää sivusto alta ja kopioi sen koodi. Yksi koodi riittää kaikille elementeille!',
+    'install.step2.title':    'Avaa sivustosi asetukset',
+    'install.step2.desc':     'Etsi kohta <strong>"Lisää skripti"</strong>, <strong>"Header scripts"</strong> tai <strong>"Mukautettu HTML"</strong> — useimmissa sivustopalveluissa se löytyy kohdasta Asetukset → Koodi.',
+    'install.step3.title':    'Liitä koodi ja tallenna',
+    'install.step3.desc':     'Liitä koodi kenttään ja tallenna. Elementtisi ilmestyy sivustolle heti — voit aktivoida ja deaktivoida ne dashboard-listauksesta.',
+    'install.csp.title':      'Koodi ei toimi? Tarkista CSP-asetukset',
+    'install.csp.desc':       'Jos sivustosi käyttää <strong>Content Security Policy</strong> -otsakkeita eikä koodi toimi, lisää <code style="background:#fef3c7;padding:1px 5px;border-radius:3px;font-size:11px">https://popupmanager.net</code> sallittujen skriptien listaan:',
+    'install.csp.nginx':      '<strong>Nginx / Apache (HTTP-otsake)</strong><br><code style="font-size:11px;color:#92400e">Content-Security-Policy: script-src \'self\' https://popupmanager.net</code>',
+    'install.csp.next':       '<strong>Next.js</strong> — <code style="font-size:11px;color:#92400e">next.config.js</code> → headers()-funktio → lisää <code style="font-size:11px;color:#92400e">https://popupmanager.net</code> script-src:ään',
+    'install.csp.wp':         '<strong>WordPress</strong> — käytä lisäosaa kuten <em>Headers & CSP Manager</em> tai lisää palvelimen .htaccess-tiedostoon',
+    'install.csp.shopify':    '<strong>Shopify / Squarespace / Wix</strong> — näissä ei yleensä ole omaa CSP:tä, joten koodi toimii suoraan ilman muutoksia',
+    'install.csp.tip':        '💡 Tarkista onko CSP käytössä: avaa F12 → Console → jos näet "Content Security Policy"-virheen, CSP on päällä.',
+    'install.copyBtn':        'Kopioi koodi',
+    'install.addSite':        '+ Lisää sivusto',
+    'install.addSiteFirst':   '+ Lisää sivusto',
+    'install.copy':           'Kopioi',
+    'install.loginAgain':     '<!-- Kirjaudu uudelleen niin koodi generoidaan -->',
+    'install.modal.title':    'Lisää sivusto',
+    'install.modal.name':     'Sivuston nimi *',
+    'install.modal.namePh':   'esim. Pääsivu, Verkkokauppa…',
+    'install.modal.domain':   'Domain (vapaaehtoinen)',
+    'install.modal.domainPh': 'esim. paasivu.fi',
+    'install.modal.cancel':   'Peruuta',
+    'install.modal.save':     'Luo sivusto',
+    'install.toast.copied':   'Koodi kopioitu!',
+    'install.toast.created':  'Sivusto luotu!',
+    'install.toast.createFail': 'Sivuston luonti epäonnistui',
+    'install.toast.deleted':  'Sivusto poistettu',
+    'install.toast.deleteFail': 'Poisto epäonnistui',
+    'install.toast.nameRequired': 'Nimi on pakollinen',
+    'install.delete.confirm': 'Poistetaanko sivusto? Elementit eivät katoa, mutta ne irrotetaan tästä sivustosta.',
   }
 };
 
@@ -1387,9 +1483,13 @@ export async function syncLanguageFromAccount() {
     window._i18nUserLoggedIn = true;
     const lang = data.user.language;
     if (lang && ['en', 'fi'].includes(lang)) {
+      const prev = localStorage.getItem('language') || 'en';
       localStorage.setItem('language', lang);
       applyTranslations();
       updateLangButton();
+      if (lang !== prev) {
+        window.dispatchEvent(new CustomEvent('languagechange', { detail: { lang } }));
+      }
     }
   } catch (_) {}
 }

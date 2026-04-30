@@ -25,6 +25,9 @@ export function initReportsPage() {
   window.addEventListener('hashchange', () => {
     if (window.location.hash === '#reports') onEnter();
   });
+  window.addEventListener('languagechange', () => {
+    if (window.location.hash === '#reports') onEnter();
+  });
   if (window.location.hash === '#reports') onEnter();
 }
 
@@ -46,7 +49,7 @@ function renderTabs(container) {
     <div style="display:flex;gap:4px;margin-bottom:24px;border-bottom:2px solid #e2e8f0">
       <button class="rpt-tab-btn" data-tab="report"
         style="padding:10px 18px;border:none;background:none;font-size:14px;font-weight:600;cursor:pointer;border-bottom:2px solid ${activeTab==='report'?'#3b82f6':'transparent'};margin-bottom:-2px;color:${activeTab==='report'?'#1d4ed8':'#64748b'}">
-        📊 Raportit
+        ${t('sched.tabReport')}
       </button>
       <button class="rpt-tab-btn" data-tab="schedules"
         style="padding:10px 18px;border:none;background:none;font-size:14px;font-weight:600;cursor:pointer;border-bottom:2px solid ${activeTab==='schedules'?'#3b82f6':'transparent'};margin-bottom:-2px;color:${activeTab==='schedules'?'#1d4ed8':'#64748b'}">

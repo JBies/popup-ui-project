@@ -1,11 +1,11 @@
 // js/dashboard/dashboard-main.js
-import { t, initLanguage } from '../i18n.js';
+import { t, initLanguage, syncLanguageFromAccount } from '../i18n.js';
 import { initSidebar } from './sidebar.js';
 import { initElementList } from './element-list.js';
 import { initTemplateLibrary } from './template-library.js';
 import { openEditor } from './element-editor.js';
 import { initAnalyticsPage }  from './analytics-page.js';
-import { initHelpPanel }      from './help-panel.js';
+import { initHelpPanel, renderHelp } from './help-panel.js';
 import { initLeadsPanel }     from './leads-panel.js';
 import { initImageLibraryPanel } from './image-library-panel.js';
 import { initReportsPage }    from './reports-page.js';
@@ -56,6 +56,7 @@ async function init() {
   setupNavigation();
   setupLogout();
   initLanguage();
+  syncLanguageFromAccount();
 
   // Re-render title on language change
   window.addEventListener('languagechange', () => showView(currentView));
@@ -88,6 +89,9 @@ export function showView(name) {
 
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = t('view.' + name) || 'UI Manager';
+
+  if (name === 'help') renderHelp();
+  if (name === 'settings') renderInstallSection(window.__currentUser__);
 }
 
 function setupNavigation() {
@@ -170,7 +174,7 @@ async function renderInstallSection(user) {
               ${s.domain ? `<span style="font-size:11px;color:#94a3b8;margin-left:8px">${escHtml(s.domain)}</span>` : ''}
             </div>
             <button class="copy-site-btn btn btn-primary btn-sm" data-code="${escHtml(code)}" style="font-size:11px">
-              <i class="fa fa-copy"></i> Kopioi koodi
+              <i class="fa fa-copy"></i> ${t('install.copyBtn')}
             </button>
             <button class="delete-site-btn" data-id="${s._id}" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:4px 8px" title="Poista">✕</button>
           </div>
@@ -183,31 +187,31 @@ async function renderInstallSection(user) {
     container.innerHTML = `
       <!-- 3-vaiheen ohje -->
       <div style="margin-bottom:28px">
-        <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin:0 0 6px">Asennusohje</h2>
-        <p style="font-size:13px;color:#64748b;margin:0 0 20px">Kolme askelta ja elementtisi on live sivustollasi.</p>
+        <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin:0 0 6px">${t('install.title')}</h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 20px">${t('install.subtitle')}</p>
 
         <!-- Selitys: miten toimii -->
         <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px 18px;margin-bottom:20px">
-          <div style="font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:10px">💡 Miten järjestelmä tietää mitä näyttää?</div>
+          <div style="font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:10px">${t('install.howWorks.title')}</div>
           <p style="font-size:13px;color:#1e40af;margin:0 0 12px;line-height:1.6">
-            Jokaiselle sivustollesi luodaan oma tunnistuskoodi. Kun koodi on sivustolla, se kertoo järjestelmälle: <em>"tämä on Kuntokeitaan sivu — näytä Kuntokeitaan elementit."</em>
+            ${t('install.howWorks.desc')}
           </p>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
             <div style="background:#fff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;flex:1;min-width:160px">
-              <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:4px">🌐 Joensuun Kuntokeidas</div>
-              <div style="font-size:11px;color:#64748b;margin-bottom:6px">Oma koodi → omat elementit</div>
-              <div style="font-size:10px;color:#10b981;font-weight:600">✓ Popup "Avaa ovi keväälle"</div>
+              <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:4px">${t('install.example1.name')}</div>
+              <div style="font-size:11px;color:#64748b;margin-bottom:6px">${t('install.example1.sub')}</div>
+              <div style="font-size:10px;color:#10b981;font-weight:600">${t('install.example1.tag')}</div>
             </div>
             <div style="background:#fff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;flex:1;min-width:160px">
-              <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:4px">🌐 Cryostudio Joensuu</div>
-              <div style="font-size:11px;color:#64748b;margin-bottom:6px">Eri koodi → eri elementit</div>
-              <div style="font-size:10px;color:#10b981;font-weight:600">✓ Sticky bar "Varaa aika"</div>
+              <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:4px">${t('install.example2.name')}</div>
+              <div style="font-size:11px;color:#64748b;margin-bottom:6px">${t('install.example2.sub')}</div>
+              <div style="font-size:10px;color:#10b981;font-weight:600">${t('install.example2.tag')}</div>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:5px">
-            <div style="font-size:12px;color:#1d4ed8"><span style="font-weight:700">✅ Koodi lisätään vain kerran</span> — kaikilla saman sivuston sivuilla (etusivu, varaussivu, yms.) toimii sama koodi.</div>
-            <div style="font-size:12px;color:#1d4ed8"><span style="font-weight:700">✅ Lisää elementtejä milloin vain</span> — ne ilmestyvät automaattisesti, koodia ei tarvitse vaihtaa.</div>
-            <div style="font-size:12px;color:#1d4ed8"><span style="font-weight:700">✅ Aktivoi ja sammuta togglella</span> — elementtilistasta, ei koskematta sivuston koodiin.</div>
+            <div style="font-size:12px;color:#1d4ed8">${t('install.bullet1')}</div>
+            <div style="font-size:12px;color:#1d4ed8">${t('install.bullet2')}</div>
+            <div style="font-size:12px;color:#1d4ed8">${t('install.bullet3')}</div>
           </div>
         </div>
 
@@ -215,17 +219,17 @@ async function renderInstallSection(user) {
           <div style="display:flex;gap:14px;align-items:flex-start;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 16px">
             <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
             <div style="flex:1">
-              <div style="font-size:13px;font-weight:700;color:#14532d;margin-bottom:4px">Kopioi asennuskoodi</div>
-              <div style="font-size:12px;color:#15803d;margin-bottom:10px">Lisää sivusto alta ja kopioi sen koodi. Yksi koodi riittää kaikille elementeille!</div>
+              <div style="font-size:13px;font-weight:700;color:#14532d;margin-bottom:4px">${t('install.step1.title')}</div>
+              <div style="font-size:12px;color:#15803d;margin-bottom:10px">${t('install.step1.desc')}</div>
               ${hasSites ? `
                 <div id="sites-list">${sitesHTML}</div>
-                <button id="btn-add-site" class="btn btn-secondary btn-sm" style="margin-top:6px"><i class="fa fa-plus"></i> Lisää sivusto</button>
+                <button id="btn-add-site" class="btn btn-secondary btn-sm" style="margin-top:6px"><i class="fa fa-plus"></i> ${t('install.addSite')}</button>
               ` : `
                 <div style="background:#1e293b;border-radius:8px;padding:12px;position:relative;margin-bottom:10px">
                   <pre id="install-universal" style="color:#e2e8f0;font-family:monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;margin:0">${escHtml(primaryCode)}</pre>
-                  <button id="btn-copy-universal" style="position:absolute;top:8px;right:8px;background:#334155;border:none;color:#94a3b8;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px"><i class="fa fa-copy"></i> Kopioi</button>
+                  <button id="btn-copy-universal" style="position:absolute;top:8px;right:8px;background:#334155;border:none;color:#94a3b8;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px"><i class="fa fa-copy"></i> ${t('install.copy')}</button>
                 </div>
-                <button id="btn-add-site" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Lisää sivusto</button>
+                <button id="btn-add-site" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> ${t('install.addSiteFirst')}</button>
               `}
             </div>
           </div>
@@ -233,41 +237,30 @@ async function renderInstallSection(user) {
           <div style="display:flex;gap:14px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px">
             <div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
             <div>
-              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">Avaa sivustosi asetukset</div>
-              <div style="font-size:12px;color:#64748b">Etsi kohta <strong>"Lisää skripti"</strong>, <strong>"Header scripts"</strong> tai <strong>"Mukautettu HTML"</strong> — useimmissa sivustopalveluissa se löytyy kohdasta Asetukset → Koodi.</div>
+              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">${t('install.step2.title')}</div>
+              <div style="font-size:12px;color:#64748b">${t('install.step2.desc')}</div>
             </div>
           </div>
 
           <div style="display:flex;gap:14px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px">
             <div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
             <div>
-              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">Liitä koodi ja tallenna</div>
-              <div style="font-size:12px;color:#64748b">Liitä koodi kenttään ja tallenna. Elementtisi ilmestyy sivustolle heti — voit aktivoida ja deaktivoida ne dashboard-listauksesta.</div>
+              <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">${t('install.step3.title')}</div>
+              <div style="font-size:12px;color:#64748b">${t('install.step3.desc')}</div>
             </div>
           </div>
 
           <div style="display:flex;gap:12px;align-items:flex-start;background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:14px 16px">
             <div style="font-size:18px;flex-shrink:0">⚠️</div>
             <div>
-              <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:4px">Koodi ei toimi? Tarkista CSP-asetukset</div>
-              <div style="font-size:12px;color:#78350f;line-height:1.6">
-                Jos sivustosi käyttää <strong>Content Security Policy</strong> -otsakkeita eikä koodi toimi, lisää <code style="background:#fef3c7;padding:1px 5px;border-radius:3px;font-size:11px">https://popupmanager.net</code> sallittujen skriptien listaan:
-              </div>
+              <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:4px">${t('install.csp.title')}</div>
+              <div style="font-size:12px;color:#78350f;line-height:1.6">${t('install.csp.desc')}</div>
               <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;font-size:12px;color:#78350f">
-                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">
-                  <strong>Nginx / Apache (HTTP-otsake)</strong><br>
-                  <code style="font-size:11px;color:#92400e">Content-Security-Policy: script-src 'self' https://popupmanager.net</code>
-                </div>
-                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">
-                  <strong>Next.js</strong> — <code style="font-size:11px;color:#92400e">next.config.js</code> → headers()-funktio → lisää <code style="font-size:11px;color:#92400e">https://popupmanager.net</code> script-src:ään
-                </div>
-                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">
-                  <strong>WordPress</strong> — käytä lisäosaa kuten <em>Headers & CSP Manager</em> tai lisää palvelimen .htaccess-tiedostoon
-                </div>
-                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">
-                  <strong>Shopify / Squarespace / Wix</strong> — näissä ei yleensä ole omaa CSP:tä, joten koodi toimii suoraan ilman muutoksia
-                </div>
-                <div style="font-size:11px;color:#a16207;margin-top:2px">💡 Tarkista onko CSP käytössä: avaa F12 → Console → jos näet "Content Security Policy"-virheen, CSP on päällä.</div>
+                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">${t('install.csp.nginx')}</div>
+                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">${t('install.csp.next')}</div>
+                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">${t('install.csp.wp')}</div>
+                <div style="background:#fff8e1;border-radius:6px;padding:8px 10px">${t('install.csp.shopify')}</div>
+                <div style="font-size:11px;color:#a16207;margin-top:2px">${t('install.csp.tip')}</div>
               </div>
             </div>
           </div>
@@ -283,18 +276,18 @@ async function renderInstallSection(user) {
       modalEl.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center';
       modalEl.innerHTML = `
         <div style="background:#fff;border-radius:12px;padding:28px;width:420px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
-          <h3 style="font-size:16px;font-weight:700;margin:0 0 20px">Lisää sivusto</h3>
+          <h3 style="font-size:16px;font-weight:700;margin:0 0 20px">${t('install.modal.title')}</h3>
           <div style="margin-bottom:14px">
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Sivuston nimi *</label>
-            <input id="new-site-name" type="text" placeholder="esim. Pääsivu, Verkkokauppa…" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box">
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">${t('install.modal.name')}</label>
+            <input id="new-site-name" type="text" placeholder="${t('install.modal.namePh')}" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box">
           </div>
           <div style="margin-bottom:20px">
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Domain (vapaaehtoinen)</label>
-            <input id="new-site-domain" type="text" placeholder="esim. paasivu.fi" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box">
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">${t('install.modal.domain')}</label>
+            <input id="new-site-domain" type="text" placeholder="${t('install.modal.domainPh')}" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box">
           </div>
           <div style="display:flex;gap:10px;justify-content:flex-end">
-            <button id="cancel-site-modal" class="btn btn-secondary">Peruuta</button>
-            <button id="confirm-add-site" class="btn btn-primary">Luo sivusto</button>
+            <button id="cancel-site-modal" class="btn btn-secondary">${t('install.modal.cancel')}</button>
+            <button id="confirm-add-site" class="btn btn-primary">${t('install.modal.save')}</button>
           </div>
         </div>`;
       document.body.appendChild(modalEl);
@@ -313,16 +306,16 @@ async function renderInstallSection(user) {
     document.getElementById('confirm-add-site')?.addEventListener('click', async () => {
       const name = document.getElementById('new-site-name')?.value?.trim();
       const domain = document.getElementById('new-site-domain')?.value?.trim();
-      if (!name) { showToast('Nimi on pakollinen', 'error'); return; }
+      if (!name) { showToast(t('install.toast.nameRequired'), 'error'); return; }
       const r = await fetch('/api/sites', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, domain })
       });
-      if (!r.ok) { showToast('Sivuston luonti epäonnistui', 'error'); return; }
+      if (!r.ok) { showToast(t('install.toast.createFail'), 'error'); return; }
       document.getElementById('add-site-modal').style.display = 'none';
       document.getElementById('new-site-name').value = '';
       document.getElementById('new-site-domain').value = '';
-      showToast('Sivusto luotu!');
+      showToast(t('install.toast.created'));
       const newSite = await r.json();
       siteList.push(newSite);
       renderSites(siteList);
@@ -330,20 +323,20 @@ async function renderInstallSection(user) {
     });
     document.getElementById('btn-copy-universal')?.addEventListener('click', () => {
       const code = document.getElementById('install-universal')?.textContent || '';
-      navigator.clipboard.writeText(code).then(() => showToast('Koodi kopioitu!'));
+      navigator.clipboard.writeText(code).then(() => showToast(t('install.toast.copied')));
     });
     container.querySelectorAll('.copy-site-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const code = btn.closest('.site-block')?.querySelector('pre')?.textContent || '';
-        navigator.clipboard.writeText(code).then(() => showToast('Koodi kopioitu!'));
+        navigator.clipboard.writeText(code).then(() => showToast(t('install.toast.copied')));
       });
     });
     container.querySelectorAll('.delete-site-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
-        if (!confirm('Poistetaanko sivusto? Elementit eivät katoa, mutta ne irrotetaan tästä sivustosta.')) return;
+        if (!confirm(t('install.delete.confirm'))) return;
         const r = await fetch('/api/sites/' + btn.dataset.id, { method: 'DELETE' });
-        if (!r.ok) { showToast('Poisto epäonnistui', 'error'); return; }
-        showToast('Sivusto poistettu');
+        if (!r.ok) { showToast(t('install.toast.deleteFail'), 'error'); return; }
+        showToast(t('install.toast.deleted'));
         const idx = siteList.findIndex(s => String(s._id) === btn.dataset.id);
         if (idx !== -1) siteList.splice(idx, 1);
         renderSites(siteList);

@@ -5,10 +5,13 @@ export function initHelpPanel() {
   window.addEventListener('hashchange', () => {
     if (window.location.hash === '#help') renderHelp();
   });
+  window.addEventListener('languagechange', () => {
+    if (window.location.hash === '#help') renderHelp();
+  });
   if (window.location.hash === '#help') renderHelp();
 }
 
-function renderHelp() {
+export function renderHelp() {
   const container = document.getElementById('help-content');
   if (!container) return;
   if (getCurrentLanguage() === 'fi') {
@@ -215,6 +218,24 @@ function renderHelpEN(container) {
             Period impressions and clicks (blue cards) are collected from today onwards – there is no historical data from before activation.
             <br>Leads are always accurate because they have been stored with a timestamp from the start.
             <br>All time cards (grey) are immediately available – they use cumulative totals.
+          </div>
+        </div>`
+      ])}
+
+      ${section('fa-clock','Automate Reports','Schedule reports to be sent automatically to clients or your team', [
+        infoBlock('Create a scheduled report that delivers a summary of impressions, clicks and leads to any email address – automatically on your chosen schedule.',
+        [
+          ['Where to find it','Reports tab → "Automate Reports" tab at the top.'],
+          ['Create a schedule','Click "+ New Schedule" → enter a name, select a site and elements (or leave blank for all), set frequency, time and date range.'],
+          ['Recipients','Enter up to 5 email addresses – you can add a client\'s email directly. They receive the same professional report.'],
+          ['Test send','Click "Test" on a schedule card – a report is sent immediately to all recipients so you can preview it. Maximum 2 test sends per 30 minutes.'],
+          ['Delivery history','Each schedule card shows the last deliveries: date, recipients and success status.'],
+          ['Pause / resume','Toggle the schedule on or off from the card. Paused schedules do not send until re-activated.'],
+        ]),
+        `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-top:8px">
+          <div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:8px">⏰ How the schedule works</div>
+          <div style="font-size:12px;color:#1e40af;line-height:1.6">
+            The system checks every 15 minutes whether any schedule is due. Reports are sent at the configured Helsinki time (DST-safe). "Weekly" means a specific day of the week; "Monthly" means a specific day of the month; "Custom" lets you set any interval in days.
           </div>
         </div>`
       ])}
@@ -458,6 +479,24 @@ function renderHelpFI(container) {
             Jaksokohtaiset näyttö- ja klikkausmäärät (sininen kortit) kerätään tästä päivästä alkaen – ennen käyttöönottoa ei ole historiadataa.
             <br>Liidit ovat aina tarkkoja koska ne on tallennettu alusta asti aikaleimalla.
             <br>Kaikki-aika -kortit (harmaat) ovat välittömästi saatavilla – ne käyttävät kumulatiivisia kokonaissummia.
+          </div>
+        </div>`
+      ])}
+
+      ${section('fa-clock','Automatisoi raportit','Ajasta raportit lähetettäväksi automaattisesti asiakkaille tai tiimille', [
+        infoBlock('Luo ajastettu raportti, joka toimittaa yhteenvedon näyttökerroista, klikkauksista ja liideistä mihin tahansa sähköpostiosoitteeseen – automaattisesti valitsemallasi aikataululla.',
+        [
+          ['Mistä löytyy','Raportit-välilehti → "Automatisoi raportit" -välilehti ylhäällä.'],
+          ['Luo aikataulu','Klikkaa "+ Uusi aikataulu" → anna nimi, valitse sivusto ja elementit (tai jätä tyhjäksi kaikille), aseta toistuvuus, kellonaika ja raporttijakso.'],
+          ['Vastaanottajat','Syötä enintään 5 sähköpostiosoitetta – voit lisätä asiakkaan sähköpostin suoraan. He saavat saman ammattimaisen raportin.'],
+          ['Testaa-lähetys','Klikkaa "Testaa" aikataulukortissa – raportti lähetetään heti kaikille vastaanottajille, joten voit esikatsella sen. Enintään 2 testilähetystä 30 minuutissa.'],
+          ['Toimitushistoria','Jokainen aikataulukortti näyttää viimeisimmät toimitukset: päivämäärän, vastaanottajat ja onnistumistilan.'],
+          ['Tauko / jatkaminen','Kytke aikataulu päälle tai pois kortista. Tauotetut aikataulut eivät lähetä ennen kuin ne aktivoidaan uudelleen.'],
+        ]),
+        `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-top:8px">
+          <div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:8px">⏰ Miten aikataulu toimii</div>
+          <div style="font-size:12px;color:#1e40af;line-height:1.6">
+            Järjestelmä tarkistaa 15 minuutin välein onko jokin aikataulu erääntynyt. Raportit lähetetään asetettuun Helsinki-aikaan (kesäaika huomioitu). "Viikoittain" tarkoittaa tiettyä viikonpäivää; "Kuukausittain" tiettyä kuukaudenpäivää; "Mukautettu" antaa määrittää minkä tahansa välin päivissä.
           </div>
         </div>`
       ])}
