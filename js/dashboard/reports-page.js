@@ -262,10 +262,10 @@ function renderResults(data, from, to) {
                         currentRange === 'month'  ? t('rpt.range.month') :
                         (from && to ? `${fmtDate(from)} – ${fmtDate(to)}` : t('rpt.period.custom'));
     
-    // Lisää sivuelementtien klikit ja vieritystilastot
+    // Sivuelementtien klikit ja vieritystilastot ovat kaikki-aika -lukuja (ei päiväsuodatettuja)
     const pageElementsClicks = data.period.pageElementsClicks || 0;
-    const scrollSessions = data.period.scrollSessions || 0;
-    const scrollAvgDepth = data.period.scrollAvgDepth || 0;
+    const scrollSessions = data.allTime.scrollSessions || 0;
+    const scrollAvgDepth = data.allTime.scrollAvgDepth || 0;
 
   const statsMap = {};
   topElements.forEach(e => { statsMap[String(e._id)] = e; });
@@ -299,8 +299,6 @@ function renderResults(data, from, to) {
         ${statCard('🖱️', period.clicks, t('rpt.stat.clicks'), '#fff', '#3b82f6')}
         ${statCard('📋', period.leads,  t('rpt.stat.leads'),  '#fff', '#3b82f6')}
         ${statCard('📈', ctr + '%',     'CTR',                '#fff', '#3b82f6')}
-        ${statCard('🔗', pageElementsClicks, t('rpt.stat.pageClicks'), '#fff', '#ec4899')}
-        ${statCard('📊', scrollSessions, t('rpt.stat.scrollSessions'), '#fff', '#14b8a6')}
       </div>
     </div>
 
@@ -311,6 +309,8 @@ function renderResults(data, from, to) {
         ${statCard('🖱️', allTime.clicks, t('rpt.stat.clicks'), '#f8fafc', '#94a3b8')}
         ${statCard('📋', allTime.leads,  t('rpt.stat.leads'),  '#f8fafc', '#94a3b8')}
         ${statCard('📈', allCtr + '%',   'CTR',                '#f8fafc', '#94a3b8')}
+        ${pageElementsClicks > 0 ? statCard('🔗', pageElementsClicks, t('rpt.stat.pageClicks'), '#f8fafc', '#94a3b8') : ''}
+        ${scrollSessions > 0 ? statCard('📊', scrollSessions, t('rpt.stat.scrollSessions'), '#f8fafc', '#94a3b8') : ''}
       </div>
     </div>
 

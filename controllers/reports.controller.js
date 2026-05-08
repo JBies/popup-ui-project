@@ -209,17 +209,6 @@ function buildReportEmail(user, period, allTime, topElements, leads, label, opts
         <td width="6"></td>
         ${statCell('📋', period.leads,  'Liidiä')}
       </tr>
-      ${period.scrollSessions > 0 ? `
-      <tr><td colspan="4" style="padding:4px"></td></tr>
-      <tr>
-        ${statCell('📊', period.scrollSessions.toLocaleString('fi-FI'), 'Vierityskertaa', '#f0fdf4')}
-        <td width="6"></td>
-        ${statCell('📏', period.scrollAvgDepth + '%', 'Keskisyvyys', '#f0fdf4')}
-        <td width="6"></td>
-        <td></td>
-        <td width="6"></td>
-        <td></td>
-      </tr>` : ''}
     </table>
 
     <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Kaikki aika yhteensä</div>
@@ -233,6 +222,17 @@ function buildReportEmail(user, period, allTime, topElements, leads, label, opts
         <td width="6"></td>
         ${statCell('📋', allTime.leads, 'Liidiä', '#f1f5f9')}
       </tr>
+      ${allTime.scrollSessions > 0 ? `
+      <tr><td colspan="4" style="padding:4px"></td></tr>
+      <tr>
+        ${statCell('📊', allTime.scrollSessions.toLocaleString('fi-FI'), 'Vierityskertaa', '#f0fdf4')}
+        <td width="6"></td>
+        ${statCell('📏', allTime.scrollAvgDepth + '%', 'Keskisyvyys', '#f0fdf4')}
+        <td width="6"></td>
+        <td></td>
+        <td width="6"></td>
+        <td></td>
+      </tr>` : ''}
     </table>
 
     ${topElsHtml}

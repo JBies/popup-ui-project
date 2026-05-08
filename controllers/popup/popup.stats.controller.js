@@ -184,6 +184,9 @@ async function resetStats(req, res) {
       return res.status(404).json({ message: 'Popup not found' });
     }
 
+    // Poista myös päiväkohtaiset tilastot, jotta "kaikki aika" ja "aikaväli" pysyvät synkassa
+    await DailyStats.deleteMany({ popupId: req.params.id });
+
     res.json({ success: true, message: 'Statistics reset successfully' });
   } catch (err) {
     console.error('Error resetting popup statistics:', err);
