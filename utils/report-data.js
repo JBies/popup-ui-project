@@ -56,7 +56,13 @@ async function fetchReportData(popupFilter, fromDate, toDate, fromStr, toStr, op
       .lean(),
   ]);
 
-  // Vieritystilastot Popup.scrollStats-kentästä
+  const period = {
+    views:  dailyAgg[0]?.views  || 0,
+    clicks: dailyAgg[0]?.clicks || 0,
+    leads:  periodLeads,
+  };
+
+  // Vieritystilastot Popup.scrollStats-kentästä — nämä ovat kaikki-aika -lukuja, ei päiväsuodatettuja
   let totalScrollDepth = 0;
   let scrollCount = 0;
   let totalScrollSessions = 0;
@@ -69,20 +75,12 @@ async function fetchReportData(popupFilter, fromDate, toDate, fromStr, toStr, op
   }
   const scrollAvgDepth = scrollCount > 0 ? Math.round(totalScrollDepth / scrollCount) : 0;
 
-  const period = {
-    views:          dailyAgg[0]?.views  || 0,
-    clicks:         dailyAgg[0]?.clicks || 0,
-    leads:          periodLeads,
-    scrollSessions: totalScrollSessions,
-    scrollAvgDepth,
-  };
-
   const allTime = popups.reduce((acc, p) => {
     acc.views  += p.statistics?.views  || 0;
     acc.clicks += p.statistics?.clicks || 0;
     acc.leads  += p.statistics?.leads  || 0;
     return acc;
-  }, { views: 0, clicks: 0, leads: 0 });
+  }, { views: 0, clicks: 0, leads: 0, scrollSessions: totalScrollSessions, scrollAvgDepth });
 
   const topElements = popups
     .map(p => ({

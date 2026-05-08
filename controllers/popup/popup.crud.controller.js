@@ -4,6 +4,7 @@
 const Popup = require('../../models/Popup');
 const PageElement = require('../../models/PageElement');
 const ScrollStats = require('../../models/ScrollStats');
+const DailyStats  = require('../../models/DailyStats');
 const AuditLog = require('../../models/AuditLog');
 const { triggerWebhooks } = require('../../utils/webhooks');
 const {
@@ -355,6 +356,7 @@ async function deletePopup(req, res) {
     // Cascade-delete sivun seuranta -data
     await PageElement.deleteMany({ popupId: req.params.id });
     await ScrollStats.deleteMany({ popupId: req.params.id });
+    await DailyStats.deleteMany({ popupId: req.params.id });
 
     res.json({ message: 'Popup deleted successfully' });
   } catch (err) {
