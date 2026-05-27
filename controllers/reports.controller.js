@@ -139,7 +139,7 @@ function buildReportEmail(user, period, allTime, topElements, leads, label, opts
   // Top elementit -osio
   const topElsHtml = topElements.length
     ? `<div style="margin-top:28px">
-        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px">📊 Elementit (${topElements.length} kpl) – kaikki aika</div>
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px">📊 Elementit (${topElements.length} kpl) – ${esc(label)}</div>
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px">
           <tr style="background:#f8fafc">
             <th style="padding:8px 10px;text-align:left;color:#64748b;font-weight:600">Elementti</th>
@@ -211,32 +211,34 @@ function buildReportEmail(user, period, allTime, topElements, leads, label, opts
       </tr>
     </table>
 
-    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Kaikki aika yhteensä</div>
-    <table width="100%" cellpadding="6" cellspacing="0" style="margin-bottom:8px">
-      <tr>
-        ${statCell('👁️', allTime.views.toLocaleString('fi-FI'),  'Näyttöä', '#f1f5f9')}
-        <td width="6"></td>
-        ${statCell('🖱️', allTime.clicks.toLocaleString('fi-FI'), 'Klikkausta', '#f1f5f9')}
-        <td width="6"></td>
-        ${statCell('📈', allCtr + '%', 'CTR', '#f1f5f9')}
-        <td width="6"></td>
-        ${statCell('📋', allTime.leads, 'Liidiä', '#f1f5f9')}
-      </tr>
-      ${allTime.scrollSessions > 0 ? `
-      <tr><td colspan="4" style="padding:4px"></td></tr>
-      <tr>
-        ${statCell('📊', allTime.scrollSessions.toLocaleString('fi-FI'), 'Vierityskertaa', '#f0fdf4')}
-        <td width="6"></td>
-        ${statCell('📏', allTime.scrollAvgDepth + '%', 'Keskisyvyys', '#f0fdf4')}
-        <td width="6"></td>
-        <td></td>
-        <td width="6"></td>
-        <td></td>
-      </tr>` : ''}
-    </table>
-
     ${topElsHtml}
     ${leadsHtml}
+
+    <div style="margin-top:28px;border-top:1px solid #f1f5f9;padding-top:20px">
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Kaikki aika yhteensä</div>
+      <table width="100%" cellpadding="6" cellspacing="0" style="margin-bottom:8px">
+        <tr>
+          ${statCell('👁️', allTime.views.toLocaleString('fi-FI'),  'Näyttöä', '#f1f5f9')}
+          <td width="6"></td>
+          ${statCell('🖱️', allTime.clicks.toLocaleString('fi-FI'), 'Klikkausta', '#f1f5f9')}
+          <td width="6"></td>
+          ${statCell('📈', allCtr + '%', 'CTR', '#f1f5f9')}
+          <td width="6"></td>
+          ${statCell('📋', allTime.leads, 'Liidiä', '#f1f5f9')}
+        </tr>
+        ${allTime.scrollSessions > 0 ? `
+        <tr><td colspan="4" style="padding:4px"></td></tr>
+        <tr>
+          ${statCell('📊', allTime.scrollSessions.toLocaleString('fi-FI'), 'Vierityskertaa', '#f0fdf4')}
+          <td width="6"></td>
+          ${statCell('📏', allTime.scrollAvgDepth + '%', 'Keskisyvyys', '#f0fdf4')}
+          <td width="6"></td>
+          <td></td>
+          <td width="6"></td>
+          <td></td>
+        </tr>` : ''}
+      </table>
+    </div>
 
 `;
 

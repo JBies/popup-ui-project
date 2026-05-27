@@ -43,7 +43,7 @@ async function fetchReportData(popupFilter, fromDate, toDate, fromStr, toStr, op
     submittedAt: { $gte: fromDate, $lte: toDate },
   };
 
-  const [dailyAgg, periodLeads, recentLeadsRaw] = await Promise.all([
+  const [dailyAgg, periodLeads, recentLeadsRaw, dailyPerPopup, leadsPerPopup] = await Promise.all([
     DailyStats.aggregate([
       { $match: { popupId: { $in: popupIds }, date: { $gte: fromStr, $lte: toStr } } },
       { $group: { _id: null, views: { $sum: '$views' }, clicks: { $sum: '$clicks' } } },
@@ -54,6 +54,16 @@ async function fetchReportData(popupFilter, fromDate, toDate, fromStr, toStr, op
       .limit(leadLimit)
       .populate('popupId', 'name elementType siteId')
       .lean(),
+    // Aikavälikohtaiset views+clicks per elementti
+    DailyStats.aggregate([
+      { $match: { popupId: { $in: popupIds }, date: { $gte: fromStr, $lte: toStr } } },
+      { $group: { _id: '$popupId', views: { $sum: '$views' }, clicks: { $sum: '$clicks' } } },
+    ]),
+    // Aikavälikohtaiset liidit per elementti
+    Lead.aggregate([
+      { $match: { userId, popupId: { $in: popupIds }, submittedAt: { $gte: fromDate, $lte: toDate } } },
+      { $group: { _id: '$popupId', leads: { $sum: 1 } } },
+    ]),
   ]);
 
   const period = {
@@ -82,16 +92,24 @@ async function fetchReportData(popupFilter, fromDate, toDate, fromStr, toStr, op
     return acc;
   }, { views: 0, clicks: 0, leads: 0, scrollSessions: totalScrollSessions, scrollAvgDepth });
 
+  // Lookup-mapit: popupId → {views, clicks} ja {leads} aikavälikohtaisesti
+  const periodViewsMap = Object.fromEntries(dailyPerPopup.map(r => [String(r._id), { views: r.views, clicks: r.clicks }]));
+  const periodLeadsMap = Object.fromEntries(leadsPerPopup.map(r => [String(r._id), r.leads]));
+
   const topElements = popups
-    .map(p => ({
-      _id:    p._id,
-      name:   p.name || 'Nimetön',
-      type:   p.elementType || 'popup',
-      siteId: p.siteId || null,
-      views:  p.statistics?.views  || 0,
-      clicks: p.statistics?.clicks || 0,
-      leads:  p.statistics?.leads  || 0,
-    }))
+    .map(p => {
+      const pid    = String(p._id);
+      const pStats = periodViewsMap[pid] || { views: 0, clicks: 0 };
+      return {
+        _id:    p._id,
+        name:   p.name || 'Nimetön',
+        type:   p.elementType || 'popup',
+        siteId: p.siteId || null,
+        views:  pStats.views,
+        clicks: pStats.clicks,
+        leads:  periodLeadsMap[pid] || 0,
+      };
+    })
     .sort(sortTopBy === 'views'
       ? (a, b) => b.views - a.views || b.clicks - a.clicks || b.leads - a.leads
       : (a, b) => b.leads - a.leads || b.clicks - a.clicks || b.views - a.views

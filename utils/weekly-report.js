@@ -103,24 +103,46 @@ async function getScrollStats(userId) {
 }
 
 /**
- * Hakee top-3 elementtiä konversion (clicks/views) perusteella
+ * Hakee top-3 elementtiä viikon aikavälin tilastojen perusteella (DailyStats + Leads)
  */
-async function getTopElements(userId) {
+async function getTopElements(userId, from, to) {
+  const fromStr = from.toISOString().slice(0, 10);
+  const toStr   = to.toISOString().slice(0, 10);
+
   const popups = await Popup.find({ userId, elementType: { $ne: 'stats_only' } })
-    .select('name elementType statistics').lean();
+    .select('name elementType').lean();
+
+  if (!popups.length) return [];
+
+  const popupIds = popups.map(p => p._id);
+
+  const [dailyAgg, leadsAgg] = await Promise.all([
+    DailyStats.aggregate([
+      { $match: { popupId: { $in: popupIds }, date: { $gte: fromStr, $lte: toStr } } },
+      { $group: { _id: '$popupId', views: { $sum: '$views' }, clicks: { $sum: '$clicks' } } },
+    ]),
+    Lead.aggregate([
+      { $match: { userId, popupId: { $in: popupIds }, submittedAt: { $gte: from, $lte: to } } },
+      { $group: { _id: '$popupId', leads: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const viewsMap = Object.fromEntries(dailyAgg.map(r => [String(r._id), { views: r.views, clicks: r.clicks }]));
+  const leadsMap = Object.fromEntries(leadsAgg.map(r => [String(r._id), r.leads]));
+
   return popups
-    .map(p => ({
-      name:  p.name || 'Nimetön',
-      type:  p.elementType || 'popup',
-      views:  p.statistics?.views  || 0,
-      clicks: p.statistics?.clicks || 0,
-      leads:  p.statistics?.leads  || 0,
-    }))
-    .sort((a, b) => {
-      // Järjestä liidien, sitten klikkausten mukaan
-      if (b.leads !== a.leads) return b.leads - a.leads;
-      return b.clicks - a.clicks;
+    .map(p => {
+      const pid    = String(p._id);
+      const pStats = viewsMap[pid] || { views: 0, clicks: 0 };
+      return {
+        name:   p.name || 'Nimetön',
+        type:   p.elementType || 'popup',
+        views:  pStats.views,
+        clicks: pStats.clicks,
+        leads:  leadsMap[pid] || 0,
+      };
     })
+    .sort((a, b) => b.leads - a.leads || b.clicks - a.clicks || b.views - a.views)
     .slice(0, 3);
 }
 
@@ -220,7 +242,7 @@ async function sendWeeklyReports() {
       };
 
       const [topElements, weekLeads, silentElements, scrollStats] = await Promise.all([
-        getTopElements(user._id),
+        getTopElements(user._id, lastMonday, lastSunday),
         getWeekLeads(user._id, lastMonday, lastSunday),
         getSilentElements(user._id, lastMonday, lastSunday),
         getScrollStats(user._id),
