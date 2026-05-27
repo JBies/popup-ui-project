@@ -9,32 +9,62 @@ const { sendMail }   = require('./email');
 
 function resolveDataRange(dataRange) {
   const now = new Date();
-  const ymd = d => d.toISOString().slice(0, 10);
+  const ymd = d => new Date(d).toISOString().slice(0, 10);
+
+  // Helsinki-ajan osat viikonpäivä- ja kuukausilaskentaan
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Helsinki',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    weekday: 'short',
+  });
+  const parts = fmt.formatToParts(now);
+  const get = t => parts.find(p => p.type === t)?.value;
+  const helYear    = Number(get('year'));
+  const helMonth   = Number(get('month')) - 1; // 0-indeksoitu
+  const helDay     = Number(get('day'));
+  const weekdays   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const helWeekDay = weekdays.indexOf(get('weekday')); // 0=Su, 1=Ma...
+
+  // Helsinki-kalenteripäivä UTC-midnightina (käytetään päiväaritmetiikassa)
+  const helDateUTC = Date.UTC(helYear, helMonth, helDay);
 
   switch (dataRange) {
-    case 'last90days': return { from: ymd(new Date(now - 90 * 864e5)), to: ymd(now) };
+    case 'last90days':
+      return { from: ymd(now - 90 * 864e5), to: ymd(now) };
+
     case 'lastWeek': {
-      const day = now.getDay() || 7;
-      const thisMonday = new Date(now); thisMonday.setDate(now.getDate() - day + 1);
-      const lastMonday = new Date(thisMonday); lastMonday.setDate(thisMonday.getDate() - 7);
-      const lastSunday = new Date(thisMonday); lastSunday.setDate(thisMonday.getDate() - 1);
+      const day        = helWeekDay || 7; // 1=Ma ... 7=Su
+      const thisMonday = helDateUTC - (day - 1) * 864e5;
+      const lastMonday = thisMonday - 7 * 864e5;
+      const lastSunday = thisMonday - 864e5;
       return { from: ymd(lastMonday), to: ymd(lastSunday) };
     }
+
     case 'lastMonth': {
-      const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const last  = new Date(now.getFullYear(), now.getMonth(), 0);
+      const first = Date.UTC(helYear, helMonth - 1, 1);
+      const last  = Date.UTC(helYear, helMonth, 0);
       return { from: ymd(first), to: ymd(last) };
     }
+
     case 'lastYear': {
-      const first = new Date(now.getFullYear() - 1, 0, 1);
-      const last  = new Date(now.getFullYear() - 1, 11, 31);
+      const first = Date.UTC(helYear - 1, 0, 1);
+      const last  = Date.UTC(helYear - 1, 11, 31);
       return { from: ymd(first), to: ymd(last) };
     }
-    default: return { from: ymd(new Date(now - 7 * 864e5)), to: ymd(now) };
+
+    default:
+      return { from: ymd(now - 7 * 864e5), to: ymd(now) };
   }
 }
 
 async function executeSchedule(schedule, now, isPreview = false) {
+  if (!isPreview && schedule.lastSentAt) {
+    const minsSinceLast = (now - new Date(schedule.lastSentAt)) / 60000;
+    if (minsSinceLast < 30) {
+      console.warn(`[scheduled-reports] VAROITUS: Aikataulu "${schedule.name}" lähetettiin ${Math.round(minsSinceLast)} min sitten — mahdollinen duplikaatti!`);
+    }
+  }
+
   const logEntry = { sentAt: now, success: false, error: null, recipientCount: 0, isPreview };
 
   try {
@@ -98,23 +128,28 @@ async function executeSchedule(schedule, now, isPreview = false) {
 }
 
 async function runScheduledReports() {
-  const now = new Date();
+  const now       = new Date();
+  const lockUntil = new Date(now.getTime() + 10 * 60 * 1000); // 10 min väliaikaislukko
 
-  // Diagnostiikka: laske kaikki aktiiviset, ei vain erääntyneet
-  const [due, totalActive] = await Promise.all([
-    ReportSchedule.find({ active: true, nextSendAt: { $lte: now } }).lean(),
-    ReportSchedule.countDocuments({ active: true }),
-  ]);
+  // Atominen claim: findOneAndUpdate siirtää nextSendAt tulevaisuuteen ennen ajoa,
+  // joten kaksi samanaikaista prosessia ei voi koskaan ottaa samaa aikataulua käsittelyyn.
+  let processed = 0;
+  while (true) {
+    const schedule = await ReportSchedule.findOneAndUpdate(
+      { active: true, nextSendAt: { $lte: now } },
+      { $set: { nextSendAt: lockUntil } },
+      { new: false } // palauta dokumentti ennen muutosta (tarvitaan oikeat kentät executeSchedule:lle)
+    ).lean();
 
-  if (totalActive > 0) {
-    console.log(`[scheduled-reports] Tarkistus ${now.toISOString()} — aktiivisia: ${totalActive}, erääntyneitä: ${due.length}`);
+    if (!schedule) break;
+
+    console.log(`[scheduled-reports] Ajetaan: "${schedule.name}" (${schedule._id})`);
+    await executeSchedule(schedule, now); // asettaa oikean nextSendAt lopussa
+    processed++;
   }
 
-  if (!due.length) return;
-
-  for (const schedule of due) {
-    console.log(`[scheduled-reports] Ajetaan: "${schedule.name}" (${schedule._id})`);
-    await executeSchedule(schedule, now);
+  if (processed > 0) {
+    console.log(`[scheduled-reports] Ajettiin ${processed} aikataulua ${now.toISOString()}`);
   }
 }
 
