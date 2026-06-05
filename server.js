@@ -1,18 +1,5 @@
 // Parannellut server.js tuotantokäyttöön
 
-// Polyfill: openai/undici v6+ vaatii globaalin File-objektin (natiivi vasta Node.js 20+)
-if (typeof File === 'undefined') {
-  const { Blob } = require('buffer');
-  global.File = class File extends Blob {
-    constructor(sources, filename = '', options = {}) {
-      super(sources, options);
-      this.name = String(filename);
-      this.lastModified = options.lastModified ?? Date.now();
-    }
-    get [Symbol.toStringTag]() { return 'File'; }
-  };
-}
-
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');

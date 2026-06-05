@@ -1,4 +1,5 @@
-// utils/embeddings.js — tekstin vektorointi ja cosine similarity
+// utils/embeddings.js — tekstin vektorointi ja cosine similarity (axios, ei openai SDK)
+const axios   = require('axios');
 const Settings = require('../models/Settings');
 
 /**
@@ -12,27 +13,27 @@ async function embedText(text) {
     const apiKey   = settings.apiKeys[provider];
     if (!apiKey) throw new Error(`Embeddings API-avain puuttuu providerille: ${provider}`);
 
-    const { OpenAI } = require('openai');
-
     if (provider === 'openai') {
-        const client = new OpenAI({ apiKey });
-        const res = await client.embeddings.create({
+        const res = await axios.post('https://api.openai.com/v1/embeddings', {
             model: 'text-embedding-3-small',
-            input: text.slice(0, 8191)   // max input
+            input: text.slice(0, 8191)
+        }, {
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            timeout: 20000
         });
-        return res.data[0].embedding;
+        return res.data.data[0].embedding;
     }
 
     // Gemini embeddings (OpenAI-compatible endpoint)
-    const client = new OpenAI({
-        apiKey,
-        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/'
-    });
-    const res = await client.embeddings.create({
-        model: 'text-embedding-004',
-        input: text.slice(0, 2048)
-    });
-    return res.data[0].embedding;
+    const res = await axios.post(
+        'https://generativelanguage.googleapis.com/v1beta/openai/embeddings',
+        { model: 'text-embedding-004', input: text.slice(0, 2048) },
+        {
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            timeout: 20000
+        }
+    );
+    return res.data.data[0].embedding;
 }
 
 /**
@@ -52,11 +53,6 @@ function cosineSimilarity(a, b) {
 
 /**
  * Etsi top-k relevanteimmat chunkit kysymysvektorille.
- * @param {number[]} queryVector
- * @param {Array<{text, vector}>} chunks
- * @param {number} topK
- * @param {number} minScore  - minimiscore (0–1), alle tämän hylätään
- * @returns {Array<{text, score}>}
  */
 function findTopChunks(queryVector, chunks, topK = 4, minScore = 0.25) {
     const scored = chunks
