@@ -302,14 +302,17 @@ class ChatController {
     // POST /api/chatbots
     static async createBot(req, res) {
         try {
-            const user = await User.findById(req.user._id).select('chatbotLimits').lean();
-            const maxBots = user.chatbotLimits?.maxBots || 0;
-            if (maxBots === 0) {
-                return res.status(403).json({ message: 'Chatbot-ominaisuus ei ole käytössä tililläsi. Ota yhteyttä adminiin.' });
-            }
-            const count = await ChatBot.countDocuments({ userId: req.user._id });
-            if (count >= maxBots) {
-                return res.status(403).json({ message: `Olet saavuttanut bottirajan (${maxBots}).` });
+            // Admin ohittaa kaikki chatbot-rajoitukset
+            if (req.user.role !== 'admin') {
+                const user = await User.findById(req.user._id).select('chatbotLimits').lean();
+                const maxBots = user.chatbotLimits?.maxBots || 0;
+                if (maxBots === 0) {
+                    return res.status(403).json({ message: 'Chatbot-ominaisuus ei ole käytössä tililläsi. Ota yhteyttä adminiin.' });
+                }
+                const count = await ChatBot.countDocuments({ userId: req.user._id });
+                if (count >= maxBots) {
+                    return res.status(403).json({ message: `Olet saavuttanut bottirajan (${maxBots}).` });
+                }
             }
 
             const bot = new ChatBot({ ...req.body, userId: req.user._id });
@@ -374,9 +377,11 @@ class ChatController {
             if (!bot) return res.status(404).json({ message: 'Botti ei löydy' });
 
             const limits = await getChatbotLimits(req.user._id);
-            const docCount = await ChatDocument.countDocuments({ botId: bot._id });
-            if (docCount >= (limits.maxDocumentsPerBot || 10)) {
-                return res.status(403).json({ message: 'Dokumenttiraja täynnä. Poista vanhoja ennen uuden lisäystä.' });
+            if (req.user.role !== 'admin') {
+                const docCount = await ChatDocument.countDocuments({ botId: bot._id });
+                if (docCount >= (limits.maxDocumentsPerBot || 10)) {
+                    return res.status(403).json({ message: 'Dokumenttiraja täynnä. Poista vanhoja ennen uuden lisäystä.' });
+                }
             }
 
             // Vastaa heti — crawl jatkuu taustalla
@@ -431,9 +436,11 @@ class ChatController {
             if (!bot) return res.status(404).json({ message: 'Botti ei löydy' });
 
             const limits = await getChatbotLimits(req.user._id);
-            const docCount = await ChatDocument.countDocuments({ botId: bot._id });
-            if (docCount >= (limits.maxDocumentsPerBot || 10)) {
-                return res.status(403).json({ message: 'Dokumenttiraja täynnä.' });
+            if (req.user.role !== 'admin') {
+                const docCount = await ChatDocument.countDocuments({ botId: bot._id });
+                if (docCount >= (limits.maxDocumentsPerBot || 10)) {
+                    return res.status(403).json({ message: 'Dokumenttiraja täynnä.' });
+                }
             }
 
             if (!req.file) return res.status(400).json({ message: 'Tiedosto puuttuu' });
