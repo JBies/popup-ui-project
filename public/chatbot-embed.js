@@ -399,7 +399,8 @@
     if (btnIconType === 'emoji') {
       btnIconHtml = `<span class="pm-emoji" style="font-size:${Math.round(size*0.42)}px;line-height:1;pointer-events:none">${btnIconValue}</span>`;
     } else if (btnIconType === 'image') {
-      btnIconHtml = `<img src="${btnIconValue}" style="width:60%;height:60%;object-fit:contain;pointer-events:none" onerror="this.style.display='none'">`;
+      const imgPct = (btn.iconScale || 65) + '%';
+      btnIconHtml = `<img src="${btnIconValue}" style="width:${imgPct};height:${imgPct};object-fit:contain;pointer-events:none" onerror="this.style.display='none'">`;
     } else {
       // Preset SVG-ikoni nimen perusteella
       btnIconHtml = buildPresetSvg(btnIconValue || 'chat', iconSz, iconColor);

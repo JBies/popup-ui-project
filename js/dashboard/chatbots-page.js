@@ -223,11 +223,53 @@ function renderBotEditor(container, bot) {
   const firstTab = container.querySelector('.cb-tab');
   if (firstTab) { firstTab.click(); }
 
-  // Koodi-nappi
+  // Koodi-nappi — avaa modaali jossa koodi näkyvissä
   container.querySelector('#cb-copy-snippet').addEventListener('click', () => {
     const snippet = `<script src="${location.origin}/chatbot-embed.js" data-bot-id="${bot._id}" async><\/script>`;
-    navigator.clipboard.writeText(snippet).then(() => showToast('Koodi kopioitu!', 'success')).catch(() => {
-      prompt('Kopioi tämä koodi sivustollesi:', snippet);
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:18px;padding:28px;width:520px;max-width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:15px;font-weight:700;color:#1e293b;display:flex;align-items:center;gap:8px">
+            <i class="fa fa-code" style="color:#2563EB"></i> Lisää chatbot sivustollesi
+          </div>
+          <button id="cb-snippet-close" style="background:none;border:none;font-size:20px;color:#94a3b8;cursor:pointer;line-height:1;padding:0">✕</button>
+        </div>
+        <p style="font-size:13px;color:#64748b;margin:0 0 14px">Liitä tämä koodi sivustosi <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px">&lt;head&gt;</code>- tai <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px">&lt;body&gt;</code>-osioon.</p>
+        <div style="position:relative">
+          <pre id="cb-snippet-code" style="background:#1e293b;color:#93c5fd;border-radius:10px;padding:16px 48px 16px 16px;font-size:12px;font-family:monospace;white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.6;user-select:all">${snippet.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+          <button id="cb-snippet-copy" title="Kopioi" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:7px;padding:6px 10px;cursor:pointer;color:#e2e8f0;font-size:11px;font-family:inherit;display:flex;align-items:center;gap:5px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.22)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
+            <i class="fa fa-copy"></i> Kopioi
+          </button>
+        </div>
+        <div style="margin-top:14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;padding:11px 14px;font-size:12px;color:#166534">
+          <i class="fa fa-check-circle" style="margin-right:6px"></i>Tehdään kerran — chatbot latautuu kaikilla sivuilla automaattisesti.
+        </div>
+      </div>`;
+
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#cb-snippet-close').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    overlay.querySelector('#cb-snippet-copy').addEventListener('click', () => {
+      navigator.clipboard.writeText(snippet)
+        .then(() => {
+          const btn = overlay.querySelector('#cb-snippet-copy');
+          btn.innerHTML = '<i class="fa fa-check"></i> Kopioitu!';
+          btn.style.background = 'rgba(34,197,94,0.25)';
+          btn.style.borderColor = 'rgba(34,197,94,0.4)';
+          btn.style.color = '#4ade80';
+          setTimeout(() => {
+            btn.innerHTML = '<i class="fa fa-copy"></i> Kopioi';
+            btn.style.background = 'rgba(255,255,255,0.12)';
+            btn.style.borderColor = 'rgba(255,255,255,0.2)';
+            btn.style.color = '#e2e8f0';
+          }, 2000);
+        })
+        .catch(() => showToast('Kopioi koodi manuaalisesti', 'error'));
     });
   });
 
@@ -356,6 +398,17 @@ function renderAppearanceTab(tc, bot) {
                 </div>
               </div>
               <p style="font-size:11px;color:#94a3b8;margin-top:6px">Suositeltu koko: 64×64 px tai suurempi neliö</p>
+              <!-- Kuvan koko napissa -->
+              <div style="margin-top:12px">
+                <label class="cb-label" style="display:flex;align-items:center;justify-content:space-between">
+                  <span>Kuvan koko napissa</span>
+                  <span id="ap-icon-scale-label" style="font-weight:700;color:#1e293b">${b.iconScale||65}%</span>
+                </label>
+                <input type="range" id="ap-icon-scale" min="30" max="95" step="5" value="${b.iconScale||65}"
+                  style="width:100%;margin-top:6px;accent-color:#2563EB"
+                  oninput="document.getElementById('ap-icon-scale-label').textContent=this.value+'%'">
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-top:2px"><span>Pieni</span><span>Suuri</span></div>
+              </div>
             </div>
             <!-- Piilokenttä tallennusta varten -->
             <input type="hidden" id="ap-icon-type"  value="${b.iconType||'svg'}">
@@ -659,6 +712,7 @@ function renderAppearanceTab(tc, bot) {
         iconColor:  tc.querySelector('#ap-icon-color').value,
         iconType:   tc.querySelector('#ap-icon-type').value,
         iconValue:  tc.querySelector('#ap-icon-value')?.value || 'chat',
+        iconScale:  Number(tc.querySelector('#ap-icon-scale')?.value || 65),
         position:   tc.querySelector('#ap-position').value
       },
       grabber: {
