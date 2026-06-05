@@ -253,6 +253,47 @@ function renderHelpEN(container) {
         ])
       ])}
 
+      ${section('fa-robot','Chatbots','AI chatbot or Q&A bot embedded on your website with one line of code', [
+        infoBlock('Dashboard → Chatbots. Create and manage AI chatbots that can answer your visitors\' questions automatically.',
+        [
+          ['AI chatbot mode','The bot answers based on documents you upload (RAG). Uses DeepSeek AI. Best for customer support and product questions.'],
+          ['Q&A-only mode','Predefined question–answer pairs. No AI API costs. Best for FAQs with a fixed set of questions.'],
+          ['Create a chatbot','Chatbots tab → "+ New chatbot" → enter a name → choose mode → Create. Then configure in the editor.'],
+          ['Embed on your site','Open the chatbot → click the "Code" button → copy the one-line snippet → paste it in your site\'s &lt;head&gt; or &lt;body&gt;. The chat button appears immediately.'],
+        ]),
+        infoBlock('🎨 Appearance settings',
+        [
+          ['Chat button','Choose shape (circle / rounded square), size, background colour and icon colour.'],
+          ['Button icon – presets','8 ready-made SVG icons: Chat, Question, Star, Phone, Person, Message, Bolt, Heart. Select from the grid.'],
+          ['Button icon – emoji','Switch to the Emoji tab and paste any emoji, e.g. 🤖 or 💬.'],
+          ['Button icon – custom image','Switch to the Image URL tab → click "Upload image from device" (PNG, JPG, SVG, WebP). <strong>Tip: use a PNG with transparent background</strong> — this way the image blends seamlessly with any button colour. Recommended size 64×64 px or larger square.'],
+          ['Button position','4 positions: bottom-right, bottom-left, top-right, top-left.'],
+          ['Grabber text','Optional speech-bubble text that appears next to the button, e.g. "Ask us anything!"'],
+          ['Chat window','Set window title, subtitle, welcome message and placeholder text. Preview shows both button and window states.'],
+        ]),
+        infoBlock('📚 Knowledge base (AI mode)',
+        [
+          ['Upload documents','Knowledge tab → upload PDF, TXT or DOCX files. The AI uses these as its source of truth when answering questions.'],
+          ['Multiple documents','You can upload several files. The bot combines information from all of them.'],
+          ['Update knowledge','Delete old documents and upload new versions whenever your content changes.'],
+        ]),
+        infoBlock('⚙️ Behaviour settings',
+        [
+          ['System prompt','Define the bot\'s personality and restrictions, e.g. "You are a friendly customer service agent. Only answer questions about our products."'],
+          ['Language','The bot responds in the language the visitor writes in by default. You can force a specific language in the system prompt.'],
+          ['Q&A pairs (Q&A mode)','Q&A tab → add question–answer pairs. The bot shows these as clickable suggestions or matches the visitor\'s question to the closest one.'],
+        ]),
+        `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:14px 16px;margin-top:4px">
+          <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:8px">💡 Tips for best results</div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#78350f">
+            <div><strong>Custom image icon:</strong> Export as PNG with transparent background in Canva / Photoshop. The transparent areas will show the button colour you set.</div>
+            <div><strong>AI mode:</strong> The better your documents, the better the answers. Use clear, well-structured text files.</div>
+            <div><strong>Q&A mode:</strong> Write questions exactly as visitors would ask them. More pairs = better coverage.</div>
+            <div><strong>Testing:</strong> Use the Chat logs tab to review real conversations and improve your bot.</div>
+          </div>
+        </div>`
+      ])}
+
       ${section('fa-envelope','Email notifications','Automatic notifications and weekly report', [
         infoBlock('Settings are in <strong>Install Code → Email notifications</strong>.',
         [
@@ -512,6 +553,47 @@ function renderHelpFI(container) {
           ['Manuaalinen lisäys','Jos skripti ei automaattisesti löydä jotain elementtiä, voit lisätä CSS-selectorin käsin: kirjoita selektori (esim. #osta-nyt tai .cta-button) ja kuvaus → klikkaa Lisää.'],
           ['Tilastot','Avaa elementin Tilastot-painike → klikkaa "📎 Sivun seuranta ▼" -nappia → näet klikatuimmat linkit/napit ja scroll-syvyyskaavion. Raportit-sivulla paina elementin rivin ▼-nappia saadaksesi samat tiedot raporttiin upotettuna.'],
         ])
+      ])}
+
+      ${section('fa-robot','Chatbotit','Tekoälychatbotti tai Q&A-botti sivustollesi yhdellä koodirivilla', [
+        infoBlock('Dashboard → Chatbotit. Luo ja hallinnoi tekoälychatbotteja jotka vastaavat kävijöiden kysymyksiin automaattisesti.',
+        [
+          ['AI-chatbot-moodi','Botti vastaa lataamiesi dokumenttien perusteella (RAG). Käyttää DeepSeek-tekoälyä. Paras asiakaspalveluun ja tuotekysymyksiin.'],
+          ['Q&A-only-moodi','Ennalta määritellyt kysymys-vastausparit. Ei tekoäly-API-kuluja. Paras UKK-tyyppiseen käyttöön.'],
+          ['Chatbotin luonti','Chatbotit-välilehti → "+ Uusi chatbot" → anna nimi → valitse moodi → Luo botti. Konfiguroi sen jälkeen editorissa.'],
+          ['Upotus sivustollesi','Avaa chatbot → klikkaa "Koodi"-nappia → kopioi yksirivinen snippet → liitä sivustosi &lt;head&gt;- tai &lt;body&gt;-osioon. Chat-nappi ilmestyy heti.'],
+        ]),
+        infoBlock('🎨 Ulkoasuasetukset',
+        [
+          ['Chat-nappi','Valitse muoto (pyöreä / pyöristetty neliö), koko, taustaväri ja ikonin väri.'],
+          ['Napin ikoni – esiasetetut','8 valmista SVG-ikonia: Chat, Kysymys, Tähti, Puhelin, Henkilö, Viesti, Salama, Sydän. Valitse ruudukosta.'],
+          ['Napin ikoni – emoji','Vaihda Emoji-välilehdelle ja liitä haluamasi emoji, esim. 🤖 tai 💬.'],
+          ['Napin ikoni – oma kuva','Vaihda Kuva URL -välilehdelle → klikkaa "Lataa kuva koneelta" (PNG, JPG, SVG, WebP). <strong>Vinkki: käytä PNG-kuvaa läpinäkyvällä taustalla</strong> — näin kuva sulautuu saumattomasti mihin tahansa nappiväriisi. Suositeltu koko 64×64 px tai suurempi neliö.'],
+          ['Napin sijainti','4 sijaintia: oikea ala, vasen ala, oikea ylä, vasen ylä.'],
+          ['Heräteteksti','Valinnainen puhepallon teksti napin vieressä, esim. "Kysy meiltä mitä vain!"'],
+          ['Chat-ikkuna','Aseta ikkunan otsikko, alaotsikko, tervetuloviesti ja placeholder-teksti. Esikatselu näyttää sekä nappi- että ikkunatilan.'],
+        ]),
+        infoBlock('📚 Tietokanta (AI-moodi)',
+        [
+          ['Dokumenttien lataus','Tietokanta-välilehti → lataa PDF-, TXT- tai DOCX-tiedostoja. Tekoäly käyttää näitä vastatessaan kysymyksiin.'],
+          ['Useita dokumentteja','Voit ladata useita tiedostoja. Botti yhdistää tiedot kaikista niistä.'],
+          ['Tietokannan päivitys','Poista vanhat dokumentit ja lataa uudet versiot aina kun sisältösi muuttuu.'],
+        ]),
+        infoBlock('⚙️ Käyttäytymisasetukset',
+        [
+          ['Järjestelmäprompt','Määritä botin persoonallisuus ja rajoitukset, esim. "Olet ystävällinen asiakaspalvelija. Vastaa vain tuotteitamme koskeviin kysymyksiin."'],
+          ['Kieli','Botti vastaa oletuksena samalla kielellä kuin kävijä kirjoittaa. Voit pakottaa kielen järjestelmäpromptilla.'],
+          ['Q&A-parit (Q&A-moodi)','Q&A-välilehti → lisää kysymys-vastauspareja. Botti näyttää nämä klikattavina ehdotuksina tai sovittaa kävijän kysymyksen lähimpään pariin.'],
+        ]),
+        `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:14px 16px;margin-top:4px">
+          <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:8px">💡 Vinkkejä parhaisiin tuloksiin</div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#78350f">
+            <div><strong>Oma kuva ikoniksi:</strong> Vie PNG-muodossa läpinäkyvällä taustalla Canvasta / Photoshopista. Läpinäkyvät alueet näyttävät asettamasi nappivärin.</div>
+            <div><strong>AI-moodi:</strong> Mitä paremmat dokumentit, sitä paremmat vastaukset. Käytä selkeitä, hyvin jäsenneltyjä tekstitiedostoja.</div>
+            <div><strong>Q&A-moodi:</strong> Kirjoita kysymykset juuri niin kuin kävijät niitä esittäisivät. Enemmän pareja = parempi kattavuus.</div>
+            <div><strong>Testaus:</strong> Käytä Chat-logit-välilehteä todellisten keskustelujen tarkasteluun ja botin kehittämiseen.</div>
+          </div>
+        </div>`
       ])}
 
       ${section('fa-envelope','Sähköposti-ilmoitukset','Automaattiset ilmoitukset ja viikkoraportti', [
