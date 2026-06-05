@@ -48,6 +48,7 @@ const translations = {
     'view.settings':        'Install Code',
     'view.help':            'Help',
     'view.leads':           'Leads',
+    'view.chatbots':        '🤖 AI Chatbots',
 
     // --- Dashboard topbar buttons ---
     'btn.createNew':        'Create new',
@@ -945,6 +946,7 @@ const translations = {
     'view.settings':        'Asennuskoodi',
     'view.help':            'Ohjeet',
     'view.leads':           'Liidit',
+    'view.chatbots':        '🤖 AI Chatbotit',
 
     // --- Dashboard topbar buttons ---
     'btn.createNew':        'Luo uusi',

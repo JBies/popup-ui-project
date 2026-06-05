@@ -543,13 +543,7 @@ function renderAppearanceTab(tc, bot) {
         <div class="cb-card" style="margin-bottom:16px">
           <div class="cb-card-title">Pikavalinnat – valmiit tekstipainikkeet chatissa</div>
           <p style="font-size:12px;color:#64748b;margin:0 0 12px;line-height:1.5">Kävijä voi klikata näitä lähettääkseen viestin suoraan — tai kirjoittaa itse. Näkyvät chat-ikkunan alaosassa.</p>
-          <div id="ap-qr-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
-            ${(bot.quickReplies||[]).map((t,i) => `
-              <div class="ap-qr-row" style="display:flex;align-items:center;gap:8px">
-                <input type="text" class="ap-qr-input cb-input" value="${escHtml(t)}" placeholder="esim. Varaa vuoro" style="flex:1">
-                <button class="ap-qr-del" data-i="${i}" title="Poista" style="padding:6px 9px;border:1px solid #fecaca;background:#fff;color:#ef4444;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit">✕</button>
-              </div>`).join('')}
-          </div>
+          <div id="ap-qr-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
           <button id="ap-qr-add" style="padding:7px 14px;border:1.5px dashed #2563EB;background:#eff6ff;color:#2563EB;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px">
             <i class="fa fa-plus"></i> Lisää pikavalinta
           </button>
@@ -717,21 +711,58 @@ function renderAppearanceTab(tc, bot) {
     });
   });
 
+  function addQRRow(list, value = '') {
+    const row = document.createElement('div');
+    row.className = 'ap-qr-row';
+    row.style.cssText = 'display:flex;align-items:center;gap:8px';
+    row.innerHTML = `<input type="text" class="ap-qr-input cb-input" value="${escHtml(value)}" placeholder="esim. Yhteystiedot" style="flex:1"><button class="ap-qr-del" title="Poista" style="padding:6px 9px;border:1px solid #fecaca;background:#fff;color:#ef4444;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit">✕</button>`;
+    list.appendChild(row);
+    const input = row.querySelector('.ap-qr-input');
+    const delBtn = row.querySelector('.ap-qr-del');
+    delBtn.addEventListener('click', () => row.remove());
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const next = row.nextElementSibling;
+        if (next?.querySelector('.ap-qr-input')) {
+          next.querySelector('.ap-qr-input').focus();
+        } else {
+          addQRRow(list);
+          list.lastElementChild?.querySelector('.ap-qr-input')?.focus();
+        }
+      }
+    });
+    return input;
+  }
+
   // Pikavalinnat – lisää rivi
   tc.querySelector('#ap-qr-add').addEventListener('click', () => {
     const list = tc.querySelector('#ap-qr-list');
-    const row  = document.createElement('div');
-    row.className = 'ap-qr-row';
-    row.style.cssText = 'display:flex;align-items:center;gap:8px';
-    row.innerHTML = `<input type="text" class="ap-qr-input cb-input" placeholder="esim. Yhteystiedot" style="flex:1"><button class="ap-qr-del" title="Poista" style="padding:6px 9px;border:1px solid #fecaca;background:#fff;color:#ef4444;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit">✕</button>`;
-    list.appendChild(row);
-    row.querySelector('.ap-qr-del').addEventListener('click', () => row.remove());
-    row.querySelector('.ap-qr-input').focus();
+    addQRRow(list).focus();
   });
 
-  // Olemassa olevien poisto
-  tc.querySelectorAll('.ap-qr-del').forEach(btn => {
-    btn.addEventListener('click', () => btn.closest('.ap-qr-row').remove());
+  // Populoi olemassa olevat pikavalinnat
+  const qrList = tc.querySelector('#ap-qr-list');
+  (bot.quickReplies || []).forEach(t => addQRRow(qrList, t));
+
+  // Olemassa olevien poisto + Enter (varakoodi — addQRRow hoitaa nämä itse)
+  tc.querySelectorAll('.ap-qr-row').forEach(row => {
+    const list = tc.querySelector('#ap-qr-list');
+    const input = row.querySelector('.ap-qr-input');
+    const delBtn = row.querySelector('.ap-qr-del');
+    delBtn.addEventListener('click', () => row.remove());
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const next = row.nextElementSibling;
+        if (next?.querySelector('.ap-qr-input')) {
+          next.querySelector('.ap-qr-input').focus();
+        } else {
+          addQRRow(list);
+          list.lastElementChild?.querySelector('.ap-qr-input')?.focus();
+        }
+      }
+    });
   });
 
   // Tallenna
@@ -773,9 +804,15 @@ function renderAppearanceTab(tc, bot) {
     };
     payload.quickReplies = [...tc.querySelectorAll('.ap-qr-input')]
       .map(i => i.value.trim()).filter(Boolean);
-    await saveBot(bot._id, payload, tc.querySelector('#ap-save'));
-    Object.assign(bot, payload);
-    tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(bot, previewState);
+    const saveBtn = tc.querySelector('#ap-save');
+    try {
+      await saveBot(bot._id, payload, saveBtn);
+      Object.assign(bot, payload);
+      tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(bot, previewState);
+    } catch (err) {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa fa-save"></i> Tallenna ulkoasuasetukset'; }
+      showToast('Tallentaminen epäonnistui', 'error');
+    }
   });
 }
 
@@ -1150,8 +1187,14 @@ function renderBehaviorTab(tc, bot) {
         }
       }
     };
-    await saveBot(bot._id, payload, tc.querySelector('#bh-save'));
-    Object.assign(bot, payload);
+    const saveBtn = tc.querySelector('#bh-save');
+    try {
+      await saveBot(bot._id, payload, saveBtn);
+      Object.assign(bot, payload);
+    } catch (err) {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa fa-save"></i> Tallenna asetukset'; }
+      showToast('Tallentaminen epäonnistui', 'error');
+    }
   });
 }
 

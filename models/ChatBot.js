@@ -18,6 +18,7 @@ const chatBotSchema = new mongoose.Schema({
         color:      { type: String, default: '#2563EB' },   // taustaväri
         iconColor:  { type: String, default: '#ffffff' },
         position:   { type: String, enum: ['bottom-right', 'bottom-left', 'top-right', 'top-left'], default: 'bottom-right' },
+        iconScale:  { type: Number, default: 65 },          // % kuvan koko napissa (kuvamoodi)
         offsetX:    { type: Number, default: 20 },          // px
         offsetY:    { type: Number, default: 20 }
     },
@@ -60,6 +61,8 @@ const chatBotSchema = new mongoose.Schema({
         systemPrompt:       { type: String, default: '' },
         fallbackMessage:    { type: String, default: 'En löydä vastausta tähän kysymykseen. Ota yhteyttä meihin suoraan.' },
         fallbackContactUrl: { type: String, default: '' },
+        fallbackPhone:      { type: String, default: '' },
+        fallbackEmail:      { type: String, default: '' },
         temperature:        { type: Number, default: 0.3 }
     },
 
@@ -74,6 +77,9 @@ const chatBotSchema = new mongoose.Schema({
             phone: { type: Boolean, default: false }
         }
     },
+
+    // Pikavalinnat — valmiit tekstipainikkeet chat-ikkunassa
+    quickReplies: [{ type: String }],
 
     // "Powered by X" -teksti widgetissä (null = käytetään globaalia Settings-arvoa)
     poweredByLabel: { type: String, default: null }
