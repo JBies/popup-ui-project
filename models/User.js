@@ -114,7 +114,18 @@ const userSchema = new mongoose.Schema({
         weeklyReport: { type: Boolean, default: true },   // Viikkoraportti maanantaisin
         notifyEmail:  { type: String,  default: '' }      // Tyhjä = käytetään tili-emailia
     },
-    language: { type: String, default: 'en', enum: ['en', 'fi'] }
+    language: { type: String, default: 'en', enum: ['en', 'fi'] },
+    chatbotLimits: {
+        maxBots:               { type: Number, default: 0 },   // 0 = ei pääsyä
+        maxChunksPerBot:       { type: Number, default: 500 },
+        maxDocumentsPerBot:    { type: Number, default: 10 },
+        maxPagesPerCrawl:      { type: Number, default: 50 },
+        maxCrawlDepth:         { type: Number, default: 2 },
+        maxMessagesPerDay:     { type: Number, default: 200 },
+        maxMessagesPerMonth:   { type: Number, default: 3000 },
+        maxMessagesPerSession: { type: Number, default: 20 },
+        maxCharsPerMessage:    { type: Number, default: 500 }
+    }
 });
 
 // Luo User-malli

@@ -191,6 +191,7 @@
 <div class="admin-tabs">
   <button class="admin-tab active" data-tab="users"><i class="fa fa-users"></i> <span data-i18n="admin.tab.users">Users</span></button>
   <button class="admin-tab" data-tab="audit"><i class="fa fa-history"></i> <span data-i18n="admin.tab.audit">Audit Log</span></button>
+  <button class="admin-tab" data-tab="ai-settings"><i class="fa fa-robot"></i> AI-asetukset</button>
 </div>
 
 <div id="users-view">
@@ -273,6 +274,112 @@
     <span id="audit-page-info"></span>
     <button class="audit-page-btn" id="audit-next" data-i18n="audit.next">Next →</button>
   </div>
+</div>
+
+<div id="ai-settings-view" style="display:none;padding:24px;max-width:860px">
+
+  <!-- Provider-valinta -->
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;margin-bottom:20px">
+    <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">🤖 Aktiivinen AI-provider</h3>
+    <div id="ai-provider-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Valitun providerin malli</label>
+        <input id="ai-model" type="text" placeholder="esim. deepseek-chat" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit">
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">API-avain</label>
+        <div style="display:flex;gap:8px">
+          <input id="ai-apikey" type="password" placeholder="sk-… (tyhjä = ei muutosta)" style="flex:1;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit">
+          <button id="ai-test-btn" style="padding:8px 12px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">Testaa</button>
+        </div>
+        <div id="ai-test-result" style="font-size:12px;margin-top:5px;min-height:16px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Embeddings -->
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;margin-bottom:20px">
+    <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 14px">📐 Embeddings-provider</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Provider</label>
+        <select id="ai-embed-provider" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit;background:#fff">
+          <option value="openai">OpenAI (text-embedding-3-small)</option>
+          <option value="gemini">Gemini (text-embedding-004, ilmainen)</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">API-avain embeddingeille</label>
+        <input id="ai-embed-key" type="password" placeholder="(tyhjä = sama kuin yllä)" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit">
+      </div>
+    </div>
+  </div>
+
+  <!-- Widget-teksti -->
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;margin-bottom:20px">
+    <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 14px">🏷️ Widget-teksti</h3>
+    <div>
+      <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">"Powered by" -teksti chat-widgetissä</label>
+      <input id="ai-powered-by" type="text" placeholder="esim. DeepSeek AI" style="width:100%;max-width:360px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit">
+      <p style="font-size:11px;color:#94a3b8;margin-top:5px">Tämä teksti päivittyy automaattisesti kun vaihdat provideria. Voit myös kirjoittaa oman tekstin.</p>
+    </div>
+  </div>
+
+  <!-- Oletusrajoitukset -->
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;margin-bottom:20px">
+    <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 6px">⚠️ Uusien käyttäjien oletusrajoitukset</h3>
+    <p style="font-size:12px;color:#64748b;margin:0 0 14px">Olemassa olevia käyttäjiä ei muuteta — muutos koskee vain uusia rekisteröitymisiä.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Max botteja</label>
+        <input id="dl-maxBots" type="number" min="0" class="ai-limit-input">
+        <p style="font-size:10px;color:#94a3b8;margin-top:3px">0 = ei pääsyä</p>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Max chunkeja/botti</label>
+        <input id="dl-maxChunksPerBot" type="number" min="10" class="ai-limit-input">
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Max dokumentteja/botti</label>
+        <input id="dl-maxDocumentsPerBot" type="number" min="1" class="ai-limit-input">
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Max sivuja/crawl</label>
+        <input id="dl-maxPagesPerCrawl" type="number" min="1" class="ai-limit-input">
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Max viestejä/vrk/botti</label>
+        <input id="dl-maxMessagesPerDay" type="number" min="1" class="ai-limit-input">
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Max viestejä/kk/botti</label>
+        <input id="dl-maxMessagesPerMonth" type="number" min="1" class="ai-limit-input">
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Max viestejä/sessio</label>
+        <input id="dl-maxMessagesPerSession" type="number" min="1" class="ai-limit-input">
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">Max merkkejä/viesti</label>
+        <input id="dl-maxCharsPerMessage" type="number" min="50" class="ai-limit-input">
+      </div>
+    </div>
+  </div>
+
+  <button id="ai-save-btn" style="padding:10px 28px;background:#2563EB;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+    <i class="fa fa-save"></i> Tallenna AI-asetukset
+  </button>
+
+  <style>
+    .ai-limit-input { width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit }
+    .ai-limit-input:focus { border-color:#2563EB;box-shadow:0 0 0 3px #2563eb22 }
+    .ai-provider-card { border:2px solid #e2e8f0;border-radius:12px;padding:14px;cursor:pointer;transition:all 0.15s;background:#fff;text-align:center }
+    .ai-provider-card:hover { border-color:#2563EB; }
+    .ai-provider-card.active { border-color:#2563EB;background:#eff6ff; }
+    .ai-provider-card .prov-name { font-size:13px;font-weight:700;color:#1e293b;margin-top:6px }
+    .ai-provider-card .prov-price { font-size:11px;color:#64748b;margin-top:2px }
+  </style>
 </div>
 
 <div id="toast"></div>
@@ -516,6 +623,28 @@ function openLimitsModal(user) {
         <label class="modal-check"><input type="checkbox" id="ml-templates"  ${lim.canUseTemplates!==false?'checked':''}> Templates</label>
       </div>
 
+      <div style="margin-top:18px;border-top:1px solid #e2e8f0;padding-top:16px">
+        <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:10px">🤖 Chatbot-oikeudet</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;font-weight:600">Max botteja (0 = ei pääsyä)</label>
+            <input type="number" id="cb-maxBots" min="0" value="${(user.chatbotLimits||{}).maxBots??0}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;font-weight:600">Max chunkeja/botti</label>
+            <input type="number" id="cb-maxChunks" min="10" value="${(user.chatbotLimits||{}).maxChunksPerBot??500}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;font-weight:600">Max viestejä/vrk/botti</label>
+            <input type="number" id="cb-maxMsgDay" min="1" value="${(user.chatbotLimits||{}).maxMessagesPerDay??200}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;font-weight:600">Max sivuja/crawl</label>
+            <input type="number" id="cb-maxPages" min="1" value="${(user.chatbotLimits||{}).maxPagesPerCrawl??50}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px">
+          </div>
+        </div>
+      </div>
+
       <div class="modal-footer">
         <button class="btn-modal-cancel" id="ml-cancel">Peruuta</button>
         <button class="btn-modal-save"   id="ml-save"><i class="fa fa-save"></i> Tallenna</button>
@@ -562,6 +691,16 @@ function openLimitsModal(user) {
       canUseAnalytics: g('ml-analytics').checked,
       canUseTemplates: g('ml-templates').checked,
     };
+    // Tallenna chatbot-rajoitukset erikseen
+    fetch(`/api/admin/users/chatbot-limits/${user._id}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        maxBots:           parseInt(g('cb-maxBots').value)   || 0,
+        maxChunksPerBot:   parseInt(g('cb-maxChunks').value) || 500,
+        maxMessagesPerDay: parseInt(g('cb-maxMsgDay').value) || 200,
+        maxPagesPerCrawl:  parseInt(g('cb-maxPages').value)  || 50
+      })
+    });
     const r = await fetch(`/api/admin/users/limits/${user._id}`, {
       method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
     });
@@ -622,9 +761,11 @@ document.querySelectorAll('.admin-tab').forEach(tab => {
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     const name = tab.dataset.tab;
-    document.getElementById('users-view').style.display = name === 'users' ? 'block' : 'none';
-    document.getElementById('audit-view').style.display  = name === 'audit'  ? 'block' : 'none';
-    if (name === 'audit') loadAudit();
+    document.getElementById('users-view').style.display       = name === 'users'       ? 'block' : 'none';
+    document.getElementById('audit-view').style.display        = name === 'audit'       ? 'block' : 'none';
+    document.getElementById('ai-settings-view').style.display  = name === 'ai-settings' ? 'block' : 'none';
+    if (name === 'audit')       loadAudit();
+    if (name === 'ai-settings') loadAiSettings();
   });
 });
 
@@ -710,6 +851,135 @@ document.getElementById('audit-action-filter').addEventListener('change', e => {
 document.getElementById('audit-refresh').addEventListener('click', () => loadAudit());
 document.getElementById('audit-prev').addEventListener('click', () => { auditPage--; loadAudit(); });
 document.getElementById('audit-next').addEventListener('click', () => { auditPage++; loadAudit(); });
+
+// ─── AI-asetukset ─────────────────────────────────────────
+const PROVIDERS = [
+  { key: 'deepseek',  label: 'DeepSeek',  icon: '🔷', price: '$0.28/1M out' },
+  { key: 'openai',    label: 'OpenAI',    icon: '🟢', price: '$0.60/1M out' },
+  { key: 'gemini',    label: 'Gemini',    icon: '💎', price: '$0.15/1M out' },
+  { key: 'anthropic', label: 'Anthropic', icon: '🟣', price: '$4–15/1M out' }
+];
+
+let currentProvider = 'deepseek';
+let aiSettings = null;
+
+async function loadAiSettings() {
+  try {
+    const r = await fetch('/api/admin/ai-settings');
+    if (!r.ok) throw new Error();
+    aiSettings = await r.json();
+    currentProvider = aiSettings.activeLlmProvider || 'deepseek';
+    renderProviderCards();
+    document.getElementById('ai-model').value       = aiSettings.llmModels?.[currentProvider] || '';
+    document.getElementById('ai-embed-provider').value = aiSettings.embeddingsProvider || 'openai';
+    document.getElementById('ai-powered-by').value  = aiSettings.widgetPoweredByLabel || '';
+    const lim = aiSettings.defaultChatbotLimits || {};
+    ['maxBots','maxChunksPerBot','maxDocumentsPerBot','maxPagesPerCrawl',
+     'maxMessagesPerDay','maxMessagesPerMonth','maxMessagesPerSession','maxCharsPerMessage'].forEach(k => {
+      const el = document.getElementById('dl-' + k);
+      if (el && lim[k] != null) el.value = lim[k];
+    });
+  } catch {
+    showToast('Virhe asetusten latauksessa', 'error');
+  }
+}
+
+function renderProviderCards() {
+  const container = document.getElementById('ai-provider-cards');
+  if (!container) return;
+  container.innerHTML = PROVIDERS.map(p => `
+    <div class="ai-provider-card ${p.key === currentProvider ? 'active' : ''}" data-provider="${p.key}">
+      <div style="font-size:26px">${p.icon}</div>
+      <div class="prov-name">${p.label}</div>
+      <div class="prov-price">${p.price}</div>
+      ${aiSettings?.apiKeysSet?.[p.key] ? '<div style="font-size:10px;color:#16a34a;margin-top:3px">✓ Avain asetettu</div>' : '<div style="font-size:10px;color:#94a3b8;margin-top:3px">Ei avainta</div>'}
+    </div>`).join('');
+
+  container.querySelectorAll('.ai-provider-card').forEach(card => {
+    card.addEventListener('click', () => {
+      currentProvider = card.dataset.provider;
+      container.querySelectorAll('.ai-provider-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      document.getElementById('ai-model').value = aiSettings?.llmModels?.[currentProvider] || '';
+      document.getElementById('ai-apikey').value = '';
+      document.getElementById('ai-apikey').placeholder = `${card.querySelector('.prov-name').textContent} API-avain`;
+    });
+  });
+}
+
+// Testaa yhteys
+document.getElementById('ai-test-btn').addEventListener('click', async () => {
+  const apiKey = document.getElementById('ai-apikey').value.trim();
+  const model  = document.getElementById('ai-model').value.trim();
+  const resultEl = document.getElementById('ai-test-result');
+  resultEl.textContent = '⏳ Testataan...';
+  resultEl.style.color = '#64748b';
+  try {
+    const r = await fetch('/api/admin/ai-settings/test-connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: currentProvider, apiKey: apiKey || undefined, model: model || undefined })
+    });
+    const data = await r.json();
+    if (data.success) {
+      resultEl.textContent = '✅ ' + data.message;
+      resultEl.style.color = '#16a34a';
+    } else {
+      resultEl.textContent = '❌ ' + data.message;
+      resultEl.style.color = '#ef4444';
+    }
+  } catch {
+    resultEl.textContent = '❌ Yhteysongelma';
+    resultEl.style.color = '#ef4444';
+  }
+});
+
+// Tallenna
+document.getElementById('ai-save-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('ai-save-btn');
+  btn.disabled = true; btn.textContent = 'Tallennetaan...';
+
+  const apiKeys = {};
+  const keyVal = document.getElementById('ai-apikey').value.trim();
+  if (keyVal) apiKeys[currentProvider] = keyVal;
+
+  const embedKeyVal = document.getElementById('ai-embed-key').value.trim();
+  const embedProv   = document.getElementById('ai-embed-provider').value;
+  if (embedKeyVal) apiKeys[embedProv] = embedKeyVal;
+
+  const lims = {};
+  ['maxBots','maxChunksPerBot','maxDocumentsPerBot','maxPagesPerCrawl',
+   'maxMessagesPerDay','maxMessagesPerMonth','maxMessagesPerSession','maxCharsPerMessage'].forEach(k => {
+    const v = document.getElementById('dl-' + k)?.value;
+    if (v !== '' && v != null) lims[k] = Number(v);
+  });
+
+  const llmModels = {};
+  llmModels[currentProvider] = document.getElementById('ai-model').value.trim();
+
+  try {
+    const r = await fetch('/api/admin/ai-settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        activeLlmProvider:    currentProvider,
+        llmModels,
+        apiKeys,
+        embeddingsProvider:   document.getElementById('ai-embed-provider').value,
+        widgetPoweredByLabel: document.getElementById('ai-powered-by').value.trim(),
+        defaultChatbotLimits: lims
+      })
+    });
+    if (!r.ok) throw new Error();
+    showToast('AI-asetukset tallennettu!', 'success');
+    document.getElementById('ai-apikey').value    = '';
+    document.getElementById('ai-embed-key').value = '';
+    await loadAiSettings();  // päivitä tila
+  } catch {
+    showToast('Tallentaminen epäonnistui', 'error');
+  }
+  btn.disabled = false; btn.innerHTML = '<i class="fa fa-save"></i> Tallenna AI-asetukset';
+});
 </script>
 </body>
 </html>

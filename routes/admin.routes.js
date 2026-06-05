@@ -5,6 +5,7 @@ const express = require('express');
 const UserController = require('../controllers/user.controller');
 const PopupController = require('../controllers/popup.controller');
 const AuditLog = require('../models/AuditLog');
+const AdminAiController = require('../controllers/adminAi.controller');
 
 const router = express.Router();
 
@@ -97,5 +98,11 @@ router.get('/audit-logs', isAdmin, async (req, res) => {
     res.status(500).json({ message: 'Error fetching audit logs', error: err.toString() });
   }
 });
+
+// ── AI-asetukset ─────────────────────────────────────────────────────────────
+router.get('/ai-settings',                          isAdmin, AdminAiController.getSettings);
+router.put('/ai-settings',                          isAdmin, AdminAiController.updateSettings);
+router.post('/ai-settings/test-connection',         isAdmin, AdminAiController.testProviderConnection);
+router.put('/users/chatbot-limits/:id',             isAdmin, AdminAiController.updateUserChatbotLimits);
 
 module.exports = router;

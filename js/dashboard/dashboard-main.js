@@ -9,6 +9,7 @@ import { initHelpPanel, renderHelp } from './help-panel.js';
 import { initLeadsPanel }     from './leads-panel.js';
 import { initImageLibraryPanel } from './image-library-panel.js';
 import { initReportsPage }    from './reports-page.js';
+import { initChatbotsPage }  from './chatbots-page.js';
 
 let currentView = 'elements';
 
@@ -51,6 +52,7 @@ async function init() {
   initReportsPage();
   initHelpPanel();
   initLeadsPanel();
+  initChatbotsPage();
   initImageLibraryPanel();
   setupCreateDropdown();
   setupNavigation();

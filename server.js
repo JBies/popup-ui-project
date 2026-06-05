@@ -22,6 +22,7 @@ const imageRoutes   = require('./routes/image.routes');
 const adminRoutes   = require('./routes/admin.routes');
 const reportsRoutes         = require('./routes/reports.routes');
 const reportScheduleRoutes  = require('./routes/reportSchedule.routes');
+const chatRoutes             = require('./routes/chat.routes');
 
 // Middleware
 const authMiddleware = require('./middleware/auth.middleware');
@@ -61,6 +62,10 @@ app.get('/ui-embed.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/ui-embed.js'));
 });
 
+app.get('/chatbot-embed.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/chatbot-embed.js'));
+});
+
 app.get('/popup-embed.js', (req, res) => {
     /* CORS-otsikot tarkasti tälle tiedostolle
     res.header('Access-Control-Allow-Origin', '*');
@@ -89,6 +94,13 @@ app.options('/api/popups/page-elements/*', embedCors);
 app.use('/api/popups/page-elements', embedCors);
 app.options('/api/popups/scroll/*', embedCors);
 app.use('/api/popups/scroll', embedCors);
+
+// Chat-embedin public-endpointit saavat CORS kaikilta domaineilta
+app.options('/api/chat/:botId/config', embedCors);
+app.options('/api/chat/:botId/session', embedCors);
+app.options('/api/chat/:botId/message', embedCors);
+app.options('/api/chat/:botId/lead', embedCors);
+app.use('/api/chat', embedCors);
 
 // Poista CSP admin-reiteiltä
 app.use('/admin-popups.html', (req, res, next) => {
@@ -147,6 +159,16 @@ app.use('/api/popups/site', embedLimiter);
 app.use('/api/leads/submit', embedLimiter);
 app.use('/api/popups/page-elements', embedLimiter);
 app.use('/api/popups/scroll', embedLimiter);
+
+// Chat-viestit: tiukempi raja (50 pyyntöä/min per IP) — LLM-kutsut ovat kalliita
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Liian monta chat-pyyntöä. Odota hetki.' }
+});
+app.use('/api/chat', chatLimiter);
 
 // Yleinen API-raja: max 300 pyyntöä 1 min sisällä per IP
 const apiLimiter = rateLimit({
@@ -252,6 +274,8 @@ app.use('/api/report-schedules', authMiddleware.isUser, reportScheduleRoutes);
 app.use('/api/upload', authMiddleware.isUser, imageRoutes);
 app.use('/api/images', authMiddleware.isUser, imageRoutes);
 app.use('/api/admin', authMiddleware.isAdmin, adminRoutes);
+app.use('/api/chatbots', chatRoutes);
+app.use('/api/chat',     chatRoutes);     // public embed-reitit (/bot/:botId/config jne.)
 const LeadController = require('./controllers/lead.controller');
 app.get('/api/leads', authMiddleware.isUser, LeadController.getLeads);
 app.get('/api/leads/:popupId', authMiddleware.isUser, LeadController.getLeadsByPopup);
