@@ -252,6 +252,26 @@ function renderTab(container, bot, tab) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// IKONIMÄÄRITTELYT (dashboard + embed käyttävät samoja nimiä)
+// ─────────────────────────────────────────────────────────────────────────────
+const PRESET_ICONS = {
+  chat:     { label: 'Chat',        path: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z' },
+  question: { label: 'Kysymys',     path: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z' },
+  star:     { label: 'Tähti',       path: 'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z' },
+  phone:    { label: 'Puhelin',     path: 'M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z' },
+  person:   { label: 'Henkilö',     path: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' },
+  mail:     { label: 'Viesti',      path: 'M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z' },
+  bolt:     { label: 'Salama',      path: 'M7 2v11h3v9l7-12h-4l4-8z' },
+  heart:    { label: 'Sydän',       path: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' }
+};
+
+function presetIconSvg(key, size, color) {
+  const p = PRESET_ICONS[key]?.path || PRESET_ICONS.chat.path;
+  const s = size || 22;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 24 24" style="fill:${color||'currentColor'};pointer-events:none"><path d="${p}"/></svg>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // VÄLILEHTI 1: ULKOASU
 // ─────────────────────────────────────────────────────────────────────────────
 function renderAppearanceTab(tc, bot) {
@@ -285,17 +305,41 @@ function renderAppearanceTab(tc, bot) {
               <label class="cb-label">Ikonin väri</label>
               <input id="ap-icon-color" type="color" value="${b.iconColor||'#ffffff'}" class="cb-color">
             </div>
-            <div class="cb-field">
-              <label class="cb-label">Ikoni</label>
-              <select id="ap-icon-type" class="cb-select">
-                <option value="svg"   ${b.iconType==='svg'  ?'selected':''}>Chat-ikoni (oletus)</option>
-                <option value="emoji" ${b.iconType==='emoji'?'selected':''}>Emoji</option>
-              </select>
+          </div>
+          <!-- Ikonivalitsin — koko leveys -->
+          <div style="margin-top:14px">
+            <label class="cb-label" style="margin-bottom:8px;display:block">Chat-painikkeen ikoni</label>
+            <!-- Esiasetettu-/Emoji-/Kuva-välilehdet -->
+            <div style="display:flex;gap:6px;margin-bottom:10px">
+              <button class="ap-icon-tab ${b.iconType!=='emoji'&&b.iconType!=='image'?'active':''}" data-tab="preset" style="padding:5px 12px;border-radius:7px;border:1.5px solid;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">Esiasetettu</button>
+              <button class="ap-icon-tab ${b.iconType==='emoji'?'active':''}"  data-tab="emoji"  style="padding:5px 12px;border-radius:7px;border:1.5px solid;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">Emoji</button>
+              <button class="ap-icon-tab ${b.iconType==='image'?'active':''}"  data-tab="image"  style="padding:5px 12px;border-radius:7px;border:1.5px solid;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">Kuva URL</button>
             </div>
-            <div class="cb-field" id="ap-emoji-wrap" style="${b.iconType==='emoji'?'':'display:none'}">
-              <label class="cb-label">Emoji</label>
-              <input id="ap-icon-value" type="text" value="${b.iconType==='emoji'?b.iconValue||'💬':''}" placeholder="💬" class="cb-input">
+            <!-- Esiasetettu ruudukko -->
+            <div id="ap-preset-grid" style="${b.iconType==='emoji'||b.iconType==='image'?'display:none':''}display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+              ${Object.entries(PRESET_ICONS).map(([key, cfg]) => {
+                const isActive = (b.iconType==='svg'||!b.iconType) && (b.iconValue===key||(key==='chat'&&!b.iconValue));
+                return `<button class="ap-preset-icon ${isActive?'selected':''}" data-key="${key}" title="${cfg.label}" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:10px;border:2px solid ${isActive?'#2563EB':'#e2e8f0'};background:${isActive?'#eff6ff':'#f8fafc'};cursor:pointer;font-family:inherit;transition:all 0.15s">
+                  <div style="color:#374151">${presetIconSvg(key,22,'#374151')}</div>
+                  <span style="font-size:10px;color:#64748b;font-weight:500">${cfg.label}</span>
+                </button>`;
+              }).join('')}
             </div>
+            <!-- Emoji-kenttä -->
+            <div id="ap-emoji-panel" style="${b.iconType==='emoji'?'':'display:none'}">
+              <input id="ap-emoji-value" type="text" value="${b.iconType==='emoji'?b.iconValue||'':'💬'}" placeholder="Kirjoita emoji, esim. 🤖" class="cb-input" style="width:100%">
+              <p style="font-size:11px;color:#94a3b8;margin-top:4px">Kopioi haluamasi emoji ja liitä tähän</p>
+            </div>
+            <!-- Kuva URL -kenttä -->
+            <div id="ap-image-panel" style="${b.iconType==='image'?'':'display:none'}">
+              <input id="ap-image-url" type="text" value="${b.iconType==='image'?b.iconValue||'':''}" placeholder="https://..." class="cb-input" style="width:100%">
+              <p style="font-size:11px;color:#94a3b8;margin-top:4px">PNG tai SVG, suositeltu koko 64×64px</p>
+            </div>
+            <!-- Piilokenttä tallennusta varten -->
+            <input type="hidden" id="ap-icon-type"  value="${b.iconType||'svg'}">
+            <input type="hidden" id="ap-icon-value" value="${b.iconValue||'chat'}">
+          </div>
+          <div class="cb-grid2" style="margin-top:14px">
             <div class="cb-field">
               <label class="cb-label">Sijainti</label>
               <select id="ap-position" class="cb-select">
@@ -428,11 +472,17 @@ function renderAppearanceTab(tc, bot) {
 
       <!-- Esikatselu -->
       <div style="position:sticky;top:20px">
-        <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em">Esikatselu</div>
-        <div id="ap-preview" style="background:#e2e8f0;border-radius:14px;height:400px;position:relative;overflow:hidden">
-          ${renderPreviewWidget(bot)}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:12px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.05em">Esikatselu</div>
+          <div style="display:flex;gap:4px" id="ap-preview-tabs">
+            <button class="ap-ptab active" data-state="button" style="padding:4px 10px;border-radius:6px;border:1px solid #2563EB;background:#eff6ff;color:#2563EB;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">💬 Painike</button>
+            <button class="ap-ptab" data-state="window" style="padding:4px 10px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:11px;font-weight:500;cursor:pointer;font-family:inherit">🪟 Chat-ikkuna</button>
+          </div>
         </div>
-        <p style="font-size:11px;color:#94a3b8;margin-top:8px;text-align:center">Esikatselu päivittyy tallennuksen jälkeen</p>
+        <div id="ap-preview" style="background:#e2e8f0;border-radius:14px;height:360px;position:relative;overflow:hidden">
+          ${renderPreviewWidget(bot, 'button')}
+        </div>
+        <p style="font-size:11px;color:#94a3b8;margin-top:8px;text-align:center">Tallenna nähdäksesi muutokset</p>
       </div>
     </div>
 
@@ -455,9 +505,80 @@ function renderAppearanceTab(tc, bot) {
   });
   if (!g.enabled) tc.querySelector('#ap-grabber-fields').style.display = 'none';
 
-  // Ikoni-tyyppi toggle
-  tc.querySelector('#ap-icon-type').addEventListener('change', e => {
-    tc.querySelector('#ap-emoji-wrap').style.display = e.target.value === 'emoji' ? '' : 'none';
+  // ── Ikonivalitsimen logiikka ──────────────────────────────────────────────
+  const iconTypeInput  = tc.querySelector('#ap-icon-type');
+  const iconValueInput = tc.querySelector('#ap-icon-value');
+
+  // Välilehdet (Esiasetettu / Emoji / Kuva)
+  tc.querySelectorAll('.ap-icon-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      tc.querySelectorAll('.ap-icon-tab').forEach(t => {
+        t.style.background = '#f8fafc'; t.style.borderColor = '#e2e8f0'; t.style.color = '#374151';
+      });
+      tab.style.background = '#eff6ff'; tab.style.borderColor = '#2563EB'; tab.style.color = '#2563EB';
+      const t = tab.dataset.tab;
+      tc.querySelector('#ap-preset-grid').style.display = t === 'preset' ? 'grid' : 'none';
+      tc.querySelector('#ap-emoji-panel').style.display  = t === 'emoji'  ? '' : 'none';
+      tc.querySelector('#ap-image-panel').style.display  = t === 'image'  ? '' : 'none';
+      if (t === 'preset') {
+        iconTypeInput.value  = 'svg';
+        const sel = tc.querySelector('.ap-preset-icon.selected');
+        iconValueInput.value = sel ? sel.dataset.key : 'chat';
+      } else if (t === 'emoji') {
+        iconTypeInput.value  = 'emoji';
+        iconValueInput.value = tc.querySelector('#ap-emoji-value').value || '💬';
+      } else {
+        iconTypeInput.value  = 'image';
+        iconValueInput.value = tc.querySelector('#ap-image-url').value || '';
+      }
+    });
+  });
+  // Tyylitä aktiivinen välilehti heti
+  tc.querySelectorAll('.ap-icon-tab').forEach(t => {
+    const isActive = t.classList.contains('active');
+    t.style.background   = isActive ? '#eff6ff' : '#f8fafc';
+    t.style.borderColor  = isActive ? '#2563EB' : '#e2e8f0';
+    t.style.color        = isActive ? '#2563EB' : '#374151';
+  });
+
+  // Preset-ikonin klikkailu
+  tc.querySelectorAll('.ap-preset-icon').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tc.querySelectorAll('.ap-preset-icon').forEach(b2 => {
+        b2.style.borderColor = '#e2e8f0'; b2.style.background = '#f8fafc'; b2.classList.remove('selected');
+      });
+      btn.style.borderColor = '#2563EB'; btn.style.background = '#eff6ff'; btn.classList.add('selected');
+      iconTypeInput.value  = 'svg';
+      iconValueInput.value = btn.dataset.key;
+    });
+  });
+
+  // Emoji-kenttä muutos
+  tc.querySelector('#ap-emoji-value')?.addEventListener('input', e => {
+    iconTypeInput.value  = 'emoji';
+    iconValueInput.value = e.target.value;
+  });
+
+  // Kuva URL muutos
+  tc.querySelector('#ap-image-url')?.addEventListener('input', e => {
+    iconTypeInput.value  = 'image';
+    iconValueInput.value = e.target.value;
+  });
+
+  // ── Esikatselun tila-napit ────────────────────────────────────────────────
+  let previewState = 'button';
+  tc.querySelectorAll('.ap-ptab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      previewState = tab.dataset.state;
+      tc.querySelectorAll('.ap-ptab').forEach(t => {
+        const active = t.dataset.state === previewState;
+        t.style.background   = active ? '#eff6ff' : '#fff';
+        t.style.borderColor  = active ? '#2563EB' : '#e2e8f0';
+        t.style.color        = active ? '#2563EB' : '#64748b';
+        t.style.fontWeight   = active ? '600' : '500';
+      });
+      tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(bot, previewState);
+    });
   });
 
   // Tallenna
@@ -498,34 +619,65 @@ function renderAppearanceTab(tc, bot) {
     };
     await saveBot(bot._id, payload, tc.querySelector('#ap-save'));
     Object.assign(bot, payload);
-    tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(bot);
+    tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(bot, previewState);
   });
 }
 
-function renderPreviewWidget(bot) {
-  const b = bot.button || {};
-  const w = bot.window || {};
-  const color = b.color || '#2563EB';
-  const shape = b.shape === 'rounded' ? '12px' : '50%';
-  const size  = b.size || 56;
-  const icon  = b.iconType === 'emoji' ? b.iconValue : '💬';
+function renderPreviewWidget(bot, state) {
+  const b     = bot.button  || {};
+  const w     = bot.window  || {};
+  const color = b.color     || '#2563EB';
+  const shape = b.shape === 'rounded' ? '14px' : '50%';
+  const size  = b.size      || 56;
+  const iColor = b.iconColor || '#ffffff';
+  const iconSvgSize = Math.round(size * 0.45);
+
+  // Ikonin renderöinti tyypin mukaan
+  let iconHtml;
+  if (b.iconType === 'emoji') {
+    iconHtml = `<span style="font-size:${Math.round(size*0.42)}px;line-height:1">${escHtml(b.iconValue||'💬')}</span>`;
+  } else if (b.iconType === 'image') {
+    iconHtml = `<img src="${escHtml(b.iconValue||'')}" style="width:60%;height:60%;object-fit:contain;border-radius:4px" onerror="this.style.display='none'">`;
+  } else {
+    iconHtml = presetIconSvg(b.iconValue || 'chat', iconSvgSize, iColor);
+  }
+
+  if (state === 'window') {
+    // ── Chat-ikkuna auki ───────────────────────────────────────────────────
+    return `
+      <div style="position:absolute;inset:12px;background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.15);overflow:hidden;border:1px solid #e2e8f0;display:flex;flex-direction:column">
+        <div style="background:${w.headerColor||color};color:${w.headerTextColor||'#fff'};padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:17px">${w.botAvatarValue||'🤖'}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700">${escHtml(w.botName||'Avustaja')}</div>
+            <div style="font-size:11px;opacity:0.8">Online</div>
+          </div>
+        </div>
+        <div style="flex:1;padding:12px;background:${w.chatBgColor||'#fff'};overflow:hidden;display:flex;flex-direction:column;gap:8px">
+          <div style="background:${w.botBubbleColor||'#f1f5f9'};color:${w.botTextColor||'#1e293b'};padding:8px 12px;border-radius:4px 12px 12px 12px;font-size:12px;line-height:1.4;max-width:80%;align-self:flex-start">${escHtml((bot.behavior||{}).welcomeMessage||'Hei! Kuinka voin auttaa?')}</div>
+          <div style="background:${w.userBubbleColor||color};color:${w.userTextColor||'#fff'};padding:8px 12px;border-radius:12px 4px 12px 12px;font-size:12px;line-height:1.4;max-width:80%;align-self:flex-end">Esimerkki viesti</div>
+          <div style="background:${w.botBubbleColor||'#f1f5f9'};color:${w.botTextColor||'#1e293b'};padding:8px 12px;border-radius:4px 12px 12px 12px;font-size:12px;line-height:1.4;max-width:80%;align-self:flex-start">Selvä, voin auttaa sinua!</div>
+        </div>
+        <div style="padding:8px 10px;border-top:1px solid #e2e8f0;display:flex;gap:6px;background:${w.chatBgColor||'#fff'};flex-shrink:0">
+          <div style="flex:1;background:#f1f5f9;border-radius:8px;padding:7px 10px;font-size:11px;color:#94a3b8">Kirjoita viestisi...</div>
+          <div style="width:30px;height:30px;border-radius:8px;background:${color};display:flex;align-items:center;justify-content:center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" style="fill:${iColor}"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ── Painike-tila (suljettu) ────────────────────────────────────────────────
+  const grabberText = (bot.grabber?.enabled !== false) ? escHtml(bot.grabber?.text || 'Onko sinulla kysyttävää? 💬') : '';
   return `
-    <div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;font-size:12px;color:#374151;box-shadow:0 2px 8px rgba(0,0,0,0.1);max-width:180px;position:relative">
-        ${escHtml(bot.grabber?.text||'Onko sinulla kysyttävää? 💬')}
-        <div style="position:absolute;bottom:-6px;right:16px;width:10px;height:10px;background:#fff;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;transform:rotate(45deg)"></div>
-      </div>
-      <div style="width:${size}px;height:${size}px;border-radius:${shape};background:${color};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.42)}px;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer">
-        ${icon}
-      </div>
-    </div>
-    <div style="position:absolute;bottom:${size+50}px;right:16px;left:16px;background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.15);overflow:hidden;border:1px solid #e2e8f0">
-      <div style="background:${w.headerColor||color};color:${w.headerTextColor||'#fff'};padding:10px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px">
-        <span style="font-size:18px">${w.botAvatarValue||'🤖'}</span>
-        ${escHtml(w.botName||'Avustaja')}
-      </div>
-      <div style="padding:10px 12px;background:${w.chatBgColor||'#fff'}">
-        <div style="background:${w.botBubbleColor||'#f1f5f9'};color:${w.botTextColor||'#1e293b'};padding:7px 11px;border-radius:4px 12px 12px 12px;font-size:12px;display:inline-block;max-width:80%">Hei! Kuinka voin auttaa?</div>
+    <div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+      ${grabberText ? `
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:9px 13px;font-size:12px;color:#374151;box-shadow:0 2px 10px rgba(0,0,0,0.1);max-width:190px;position:relative;line-height:1.4">
+          ${grabberText}
+          <div style="position:absolute;bottom:-7px;right:18px;width:12px;height:12px;background:#fff;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;transform:rotate(45deg)"></div>
+        </div>` : ''}
+      <div style="width:${size}px;height:${size}px;border-radius:${shape};background:${color};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.22);cursor:pointer;flex-shrink:0">
+        ${iconHtml}
       </div>
     </div>`;
 }
