@@ -540,6 +540,21 @@ function renderAppearanceTab(tc, bot) {
           </div>
         </div>
 
+        <div class="cb-card" style="margin-bottom:16px">
+          <div class="cb-card-title">Pikavalinnat – valmiit tekstipainikkeet chatissa</div>
+          <p style="font-size:12px;color:#64748b;margin:0 0 12px;line-height:1.5">Kävijä voi klikata näitä lähettääkseen viestin suoraan — tai kirjoittaa itse. Näkyvät chat-ikkunan alaosassa.</p>
+          <div id="ap-qr-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+            ${(bot.quickReplies||[]).map((t,i) => `
+              <div class="ap-qr-row" style="display:flex;align-items:center;gap:8px">
+                <input type="text" class="ap-qr-input cb-input" value="${escHtml(t)}" placeholder="esim. Varaa vuoro" style="flex:1">
+                <button class="ap-qr-del" data-i="${i}" title="Poista" style="padding:6px 9px;border:1px solid #fecaca;background:#fff;color:#ef4444;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit">✕</button>
+              </div>`).join('')}
+          </div>
+          <button id="ap-qr-add" style="padding:7px 14px;border:1.5px dashed #2563EB;background:#eff6ff;color:#2563EB;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px">
+            <i class="fa fa-plus"></i> Lisää pikavalinta
+          </button>
+        </div>
+
         <button id="ap-save" style="padding:10px 24px;background:#2563EB;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
           <i class="fa fa-save"></i> Tallenna ulkoasuasetukset
         </button>
@@ -702,6 +717,23 @@ function renderAppearanceTab(tc, bot) {
     });
   });
 
+  // Pikavalinnat – lisää rivi
+  tc.querySelector('#ap-qr-add').addEventListener('click', () => {
+    const list = tc.querySelector('#ap-qr-list');
+    const row  = document.createElement('div');
+    row.className = 'ap-qr-row';
+    row.style.cssText = 'display:flex;align-items:center;gap:8px';
+    row.innerHTML = `<input type="text" class="ap-qr-input cb-input" placeholder="esim. Yhteystiedot" style="flex:1"><button class="ap-qr-del" title="Poista" style="padding:6px 9px;border:1px solid #fecaca;background:#fff;color:#ef4444;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit">✕</button>`;
+    list.appendChild(row);
+    row.querySelector('.ap-qr-del').addEventListener('click', () => row.remove());
+    row.querySelector('.ap-qr-input').focus();
+  });
+
+  // Olemassa olevien poisto
+  tc.querySelectorAll('.ap-qr-del').forEach(btn => {
+    btn.addEventListener('click', () => btn.closest('.ap-qr-row').remove());
+  });
+
   // Tallenna
   tc.querySelector('#ap-save').addEventListener('click', async () => {
     const payload = {
@@ -739,6 +771,8 @@ function renderAppearanceTab(tc, bot) {
         chatBgColor:     tc.querySelector('#ap-chat-bg').value
       }
     };
+    payload.quickReplies = [...tc.querySelectorAll('.ap-qr-input')]
+      .map(i => i.value.trim()).filter(Boolean);
     await saveBot(bot._id, payload, tc.querySelector('#ap-save'));
     Object.assign(bot, payload);
     tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(bot, previewState);
@@ -1000,9 +1034,23 @@ function renderBehaviorTab(tc, bot) {
           <label class="cb-label">Fallback-viesti (kun vastaus ei löydy)</label>
           <textarea id="bh-fallback" rows="3" class="cb-input" style="resize:vertical">${escHtml(beh.fallbackMessage||'En löydä vastausta tähän kysymykseen. Ota yhteyttä meihin suoraan.')}</textarea>
         </div>
-        <div class="cb-field">
-          <label class="cb-label">Fallback-linkki (valinnainen URL tai mailto:)</label>
-          <input id="bh-fallback-url" type="text" value="${escHtml(beh.fallbackContactUrl||'')}" placeholder="https://example.com/yhteystiedot" class="cb-input">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-top:4px">
+          <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:10px">📋 Yhteystiedot fallback-viestin alle (valinnainen)</div>
+          <p style="font-size:11px;color:#94a3b8;margin:0 0 10px">Jos asetettu, botti näyttää nämä klikattavina linkkeinä kun vastaus ei löydy.</p>
+          <div class="cb-grid2" style="margin-bottom:10px">
+            <div class="cb-field">
+              <label class="cb-label">Puhelinnumero</label>
+              <input id="bh-fallback-phone" type="text" value="${escHtml(beh.fallbackPhone||'')}" placeholder="+358 40 123 4567" class="cb-input">
+            </div>
+            <div class="cb-field">
+              <label class="cb-label">Sähköpostiosoite</label>
+              <input id="bh-fallback-email" type="text" value="${escHtml(beh.fallbackEmail||'')}" placeholder="info@yritys.fi" class="cb-input">
+            </div>
+          </div>
+          <div class="cb-field">
+            <label class="cb-label">Linkki (URL tai mailto:)</label>
+            <input id="bh-fallback-url" type="text" value="${escHtml(beh.fallbackContactUrl||'')}" placeholder="https://example.com/yhteystiedot" class="cb-input">
+          </div>
         </div>
       </div>
 
@@ -1086,6 +1134,8 @@ function renderBehaviorTab(tc, bot) {
         welcomeMessage:     tc.querySelector('#bh-welcome').value,
         inputPlaceholder:   tc.querySelector('#bh-placeholder').value,
         fallbackMessage:    tc.querySelector('#bh-fallback').value,
+        fallbackPhone:      tc.querySelector('#bh-fallback-phone').value.trim(),
+        fallbackEmail:      tc.querySelector('#bh-fallback-email').value.trim(),
         fallbackContactUrl: tc.querySelector('#bh-fallback-url').value,
         systemPrompt:       tc.querySelector('#bh-system').value
       },

@@ -324,6 +324,30 @@
       .pm-lead-skip { font-size: 11px; color: #94a3b8; background: none; border: none; cursor: pointer; align-self: center; font-family: inherit; }
       .pm-lead-skip:hover { color: #64748b; }
 
+      /* Pikavalinnat */
+      #pm-quick-replies {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 12px 4px;
+        background: ${win.chatBgColor || '#ffffff'};
+        flex-shrink: 0;
+      }
+      .pm-qr-btn {
+        padding: 5px 12px;
+        border: 1.5px solid ${color};
+        border-radius: 99px;
+        background: transparent;
+        color: ${color};
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s, color 0.15s;
+        white-space: nowrap;
+      }
+      .pm-qr-btn:hover { background: ${color}; color: ${iconColor}; }
+
       /* Input-alue */
       #pm-input-area {
         padding: 10px 12px;
@@ -434,6 +458,7 @@
             <button class="pm-lead-skip"   id="pm-lead-skip">Ohita</button>
           </div>
         </div>
+        ${(cfg.quickReplies||[]).length ? `<div id="pm-quick-replies">${(cfg.quickReplies).map(t=>`<button class="pm-qr-btn">${escHtml(t)}</button>`).join('')}</div>` : ''}
         <div id="pm-input-area">
           <textarea id="pm-input" rows="1" placeholder="${escHtml(beh.inputPlaceholder || 'Kirjoita viestisi...')}" maxlength="${2000}"></textarea>
           <button id="pm-send" title="Lähetä">
@@ -551,6 +576,18 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
+    function addMessageHtml(role, html) {
+      const div = document.createElement('div');
+      div.className = `pm-msg pm-${role}`;
+      const bubble = document.createElement('div');
+      bubble.className = 'pm-bubble';
+      bubble.style.lineHeight = '1.7';
+      bubble.innerHTML = html;
+      div.appendChild(bubble);
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
     function showTyping() {
       const div = document.createElement('div');
       div.className = 'pm-msg pm-bot';
@@ -592,12 +629,27 @@
       } catch {
         removeTyping();
         addMessage('bot', beh.fallbackMessage || 'Palvelimeen ei saada yhteyttä. Yritä hetken kuluttua.');
+        if (beh.fallbackPhone || beh.fallbackEmail || beh.fallbackContactUrl) {
+          const parts = [];
+          if (beh.fallbackPhone) parts.push(`📞 <a href="tel:${escHtml(beh.fallbackPhone)}" style="color:inherit">${escHtml(beh.fallbackPhone)}</a>`);
+          if (beh.fallbackEmail) parts.push(`✉️ <a href="mailto:${escHtml(beh.fallbackEmail)}" style="color:inherit">${escHtml(beh.fallbackEmail)}</a>`);
+          if (beh.fallbackContactUrl) parts.push(`🔗 <a href="${escHtml(beh.fallbackContactUrl)}" target="_blank" rel="noopener" style="color:inherit">Ota yhteyttä →</a>`);
+          addMessageHtml('bot', parts.join('<br>'));
+        }
       }
 
       isSending = false;
       sendEl.disabled = false;
       inputEl.focus();
     }
+
+    // ── Pikavalinnat ─────────────────────────────────────────────────────────
+    shadow.querySelectorAll('.pm-qr-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        inputEl.value = btn.textContent;
+        sendMessage();
+      });
+    });
 
     sendEl.addEventListener('click', sendMessage);
     inputEl.addEventListener('keydown', e => {
