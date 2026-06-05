@@ -332,8 +332,30 @@ function renderAppearanceTab(tc, bot) {
             </div>
             <!-- Kuva URL -kenttä -->
             <div id="ap-image-panel" style="${b.iconType==='image'?'':'display:none'}">
+              <!-- Latausnappi -->
+              <div style="margin-bottom:8px">
+                <input type="file" id="ap-image-file" accept="image/png,image/jpeg,image/gif,image/svg+xml,image/webp" style="display:none">
+                <button id="ap-image-upload-btn" style="width:100%;padding:10px;border:2px dashed #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;font-size:13px;color:#64748b;font-family:inherit;transition:border-color 0.15s;display:flex;align-items:center;justify-content:center;gap:8px" onmouseover="this.style.borderColor='#2563EB';this.style.color='#2563EB'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+                  <i class="fa fa-cloud-upload-alt"></i> Lataa kuva koneelta (PNG, JPG, SVG)
+                </button>
+                <div id="ap-image-upload-status" style="font-size:11px;margin-top:5px;min-height:14px;color:#64748b"></div>
+              </div>
+              <!-- Tai syötä URL käsin -->
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <div style="flex:1;height:1px;background:#e2e8f0"></div>
+                <span style="font-size:11px;color:#94a3b8">tai syötä URL</span>
+                <div style="flex:1;height:1px;background:#e2e8f0"></div>
+              </div>
               <input id="ap-image-url" type="text" value="${b.iconType==='image'?b.iconValue||'':''}" placeholder="https://..." class="cb-input" style="width:100%">
-              <p style="font-size:11px;color:#94a3b8;margin-top:4px">PNG tai SVG, suositeltu koko 64×64px</p>
+              <!-- Esikatselu ladatusta kuvasta -->
+              <div id="ap-image-preview" style="${b.iconType==='image'&&b.iconValue?'':'display:none'};margin-top:10px;display:flex;align-items:center;gap:10px">
+                <img id="ap-image-preview-img" src="${b.iconType==='image'?b.iconValue||'':''}" style="width:52px;height:52px;object-fit:contain;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc" onerror="this.parentNode.style.display='none'">
+                <div>
+                  <div style="font-size:12px;font-weight:500;color:#1e293b">Valittu kuva</div>
+                  <button id="ap-image-clear" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:11px;font-family:inherit;padding:0;margin-top:2px">✕ Poista</button>
+                </div>
+              </div>
+              <p style="font-size:11px;color:#94a3b8;margin-top:6px">Suositeltu koko: 64×64 px tai suurempi neliö</p>
             </div>
             <!-- Piilokenttä tallennusta varten -->
             <input type="hidden" id="ap-icon-type"  value="${b.iconType||'svg'}">
@@ -559,10 +581,56 @@ function renderAppearanceTab(tc, bot) {
     iconValueInput.value = e.target.value;
   });
 
-  // Kuva URL muutos
+  // Kuva URL muutos (käsin syötetty)
   tc.querySelector('#ap-image-url')?.addEventListener('input', e => {
     iconTypeInput.value  = 'image';
     iconValueInput.value = e.target.value;
+    updateImagePreview(tc, e.target.value);
+  });
+
+  // Kuvalatauspainike
+  tc.querySelector('#ap-image-upload-btn')?.addEventListener('click', () => {
+    tc.querySelector('#ap-image-file').click();
+  });
+
+  // Tiedoston valinta → lataa Firebase:en
+  tc.querySelector('#ap-image-file')?.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const status = tc.querySelector('#ap-image-upload-status');
+    const btn    = tc.querySelector('#ap-image-upload-btn');
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Ladataan...';
+    btn.disabled = true;
+    status.textContent = '';
+    status.style.color = '#64748b';
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const r = await fetch('/api/upload', { method: 'POST', body: fd });
+      if (!r.ok) throw new Error((await r.json()).message || 'Virhe');
+      const data = await r.json();
+      const url  = data.url || data.signedUrl || data.imageUrl || '';
+      if (!url) throw new Error('URL puuttuu vastauksesta');
+      tc.querySelector('#ap-image-url').value = url;
+      iconTypeInput.value  = 'image';
+      iconValueInput.value = url;
+      updateImagePreview(tc, url);
+      status.textContent  = '✅ Kuva ladattu onnistuneesti!';
+      status.style.color  = '#16a34a';
+    } catch (err) {
+      status.textContent = '❌ ' + err.message;
+      status.style.color = '#ef4444';
+    }
+    btn.innerHTML = '<i class="fa fa-cloud-upload-alt"></i> Lataa kuva koneelta (PNG, JPG, SVG)';
+    btn.disabled  = false;
+    e.target.value = '';
+  });
+
+  // Poista kuva
+  tc.querySelector('#ap-image-clear')?.addEventListener('click', () => {
+    tc.querySelector('#ap-image-url').value = '';
+    iconValueInput.value = '';
+    updateImagePreview(tc, '');
   });
 
   // ── Esikatselun tila-napit ────────────────────────────────────────────────
@@ -1238,6 +1306,19 @@ async function saveBot(botId, payload, btnEl) {
     showToast('Tallentaminen epäonnistui', 'error');
   }
   if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = origText; }
+}
+
+function updateImagePreview(tc, url) {
+  const preview = tc.querySelector('#ap-image-preview');
+  const img     = tc.querySelector('#ap-image-preview-img');
+  if (!preview || !img) return;
+  if (url) {
+    img.src = url;
+    preview.style.display = 'flex';
+  } else {
+    preview.style.display = 'none';
+    img.src = '';
+  }
 }
 
 function fmtDate(d) {
