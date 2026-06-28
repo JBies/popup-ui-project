@@ -266,8 +266,8 @@ function renderBotEditor(container, bot) {
     </div>
 
     <div style="display:flex;border-bottom:2px solid #e2e8f0;margin-bottom:24px;gap:4px;overflow-x:auto">
-      ${['appearance','knowledge','behavior','qa','logs'].map((tab, i) => {
-        const labels = ['🎨 Ulkoasu','📚 Tietokanta','⚙️ Käyttäytyminen','💬 Q&A','📊 Logit'];
+      ${['appearance','playground','knowledge','behavior','qa','logs'].map((tab, i) => {
+        const labels = ['🎨 Ulkoasu','🧪 Testaa','📚 Tietokanta','⚙️ Käyttäytyminen','💬 Q&A','📊 Logit'];
         return `<button class="cb-tab" data-tab="${tab}" style="padding:9px 16px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;font-family:inherit;transition:color 0.15s">${labels[i]}</button>`;
       }).join('')}
     </div>
@@ -360,6 +360,7 @@ function renderTab(container, bot, tab) {
   const tc = container.querySelector('#cb-tab-content');
   if (!tc) return;
   if (tab === 'appearance')  renderAppearanceTab(tc, bot);
+  if (tab === 'playground')  renderPlaygroundTab(tc, bot);
   if (tab === 'knowledge')   renderKnowledgeTab(tc, bot);
   if (tab === 'behavior')    renderBehaviorTab(tc, bot);
   if (tab === 'qa')          renderQATab(tc, bot);
@@ -1183,6 +1184,150 @@ function renderPreviewWidget(bot, state) {
         ${iconHtml}
       </div>
     </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VÄLILEHTI: TESTAA (PLAYGROUND) — oikea, toimiva chat botin asetuksilla
+// ─────────────────────────────────────────────────────────────────────────────
+function renderPlaygroundTab(tc, bot) {
+  const b   = bot.button   || {};
+  const w   = bot.window   || {};
+  const beh = bot.behavior || {};
+  const color = b.color || '#2563EB';
+
+  const FONT_STACKS = {
+    system:  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    inter:   "'Inter', sans-serif", poppins: "'Poppins', sans-serif",
+    roboto:  "'Roboto', sans-serif", nunito: "'Nunito', sans-serif"
+  };
+  const fontStack = FONT_STACKS[w.fontFamily] || FONT_STACKS.system;
+  ensureGoogleFont(w.fontFamily);
+
+  const headerBase = w.headerColor || color;
+  const headerBg = w.headerStyle === 'gradient'
+    ? `linear-gradient(135deg, ${headerBase}, ${w.headerColor2||headerBase})` : headerBase;
+  const bgColor = w.chatBgColor || '#ffffff';
+  let chatBg, fancy = false;
+  if (w.chatBgType === 'gradient') { chatBg = `linear-gradient(160deg, ${bgColor}, ${w.chatBgColor2||bgColor})`; fancy = true; }
+  else if (w.chatBgType === 'image' && w.chatBgImage) { chatBg = `url('${w.chatBgImage}') center/cover no-repeat`; fancy = true; }
+  else chatBg = bgColor;
+  const barBg = fancy ? 'rgba(255,255,255,0.9)' : bgColor;
+  const barBlur = fancy ? 'backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);' : '';
+  const statusText = w.statusText != null ? w.statusText : 'Online';
+  const logoUrl = w.logoUrl || '';
+  const sendBg = b.colorStyle === 'gradient' ? `linear-gradient(135deg, ${color}, ${b.color2||color})` : color;
+  const qr = bot.quickReplies || [];
+  const titleHtml = logoUrl
+    ? `<img src="${escHtml(logoUrl)}" style="max-height:${w.logoHeight||26}px;max-width:150px;object-fit:contain;display:block" onerror="this.style.display='none'">`
+    : `<div style="font-size:14px;font-weight:700">${escHtml(w.botName||'Avustaja')}</div>`;
+
+  tc.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+      ${!bot.isActive ? `
+        <div style="width:100%;max-width:520px;background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:11px 14px;font-size:12px;color:#92400e;line-height:1.5">
+          ⚠️ <strong>Botti ei ole aktiivinen.</strong> Aktivoi se <strong>Käyttäytyminen</strong>-välilehdellä (ruutu "Botti on aktiivinen"), jotta testaus toimii.
+        </div>` : ''}
+      <div style="font-size:13px;color:#64748b;text-align:center;max-width:520px">
+        Tämä on <strong>oikea chat</strong> — viestit menevät botille samoin kuin sivustolla, ja näet juuri sen ulkoasun jonka olet määrittänyt. Kokeile kysyä jotain.
+      </div>
+      <div style="width:380px;max-width:100%;height:600px;max-height:72vh;background:${chatBg};border-radius:18px;box-shadow:0 12px 48px rgba(0,0,0,0.18);overflow:hidden;display:flex;flex-direction:column;border:1px solid #e2e8f0;font-family:${fontStack}">
+        <div style="background:${headerBg};color:${w.headerTextColor||'#fff'};padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,0.06)">
+          <div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${escHtml(w.botAvatarValue||'🤖')}</div>
+          <div style="flex:1;min-width:0">
+            ${titleHtml}
+            <div style="font-size:11px;opacity:0.85"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px"></span>${escHtml(statusText)}</div>
+          </div>
+          <button id="pg-restart" title="Aloita keskustelu alusta" style="background:rgba(255,255,255,0.18);border:none;color:inherit;cursor:pointer;border-radius:7px;padding:6px 9px;font-size:12px;font-family:inherit"><i class="fa fa-redo"></i></button>
+        </div>
+        <div id="pg-messages" style="flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;background:transparent"></div>
+        <div id="pg-quick" style="display:${qr.length?'flex':'none'};flex-wrap:wrap;gap:6px;padding:8px 12px 4px;background:${barBg};${barBlur}flex-shrink:0">
+          ${qr.map(t => `<button class="pg-qr" style="padding:5px 12px;border:1.5px solid ${color};border-radius:99px;background:transparent;color:${color};font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">${escHtml(t)}</button>`).join('')}
+        </div>
+        <div style="padding:10px 12px;border-top:1px solid ${fancy?'rgba(0,0,0,0.06)':'#e2e8f0'};display:flex;gap:8px;align-items:flex-end;background:${barBg};${barBlur}flex-shrink:0">
+          <textarea id="pg-input" rows="1" placeholder="${escHtml(beh.inputPlaceholder||'Kirjoita viestisi...')}" style="flex:1;resize:none;border:1px solid #e2e8f0;border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:${fontStack};outline:none;background:#fff;max-height:100px;min-height:40px;line-height:1.4;color:#1e293b"></textarea>
+          <button id="pg-send" title="Lähetä" style="width:40px;height:40px;border-radius:10px;background:${sendBg};border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill:${b.iconColor||'#fff'}"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#94a3b8">Testiviestit näkyvät Logit-välilehdellä merkinnällä "test_".</div>
+    </div>`;
+
+  const messagesEl = tc.querySelector('#pg-messages');
+  const inputEl    = tc.querySelector('#pg-input');
+  const sendEl     = tc.querySelector('#pg-send');
+  let sessionId = null, sending = false;
+
+  const botBubbleCss  = `background:${w.botBubbleColor||'#f1f5f9'};color:${w.botTextColor||'#1e293b'};border-radius:4px 16px 16px 16px`;
+  const userBubbleCss = `background:${w.userBubbleColor||color};color:${w.userTextColor||'#fff'};border-radius:16px 4px 16px 16px`;
+
+  function addMsg(role, text) {
+    const div = document.createElement('div');
+    div.style.cssText = `max-width:82%;align-self:${role==='user'?'flex-end':'flex-start'};animation:none`;
+    const bubble = document.createElement('div');
+    bubble.style.cssText = `padding:9px 13px;font-size:13.5px;line-height:1.5;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,0.06);${role==='user'?userBubbleCss:botBubbleCss}`;
+    bubble.textContent = text;
+    div.appendChild(bubble);
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function showTyping() {
+    const div = document.createElement('div');
+    div.id = 'pg-typing';
+    div.style.cssText = 'align-self:flex-start';
+    div.innerHTML = `<div style="${botBubbleCss};padding:11px 14px;display:flex;gap:4px"><span class="pg-dot"></span><span class="pg-dot"></span><span class="pg-dot"></span></div>`;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function removeTyping() { tc.querySelector('#pg-typing')?.remove(); }
+
+  function startSession() {
+    sessionId = 'test_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    messagesEl.innerHTML = '';
+    if (beh.welcomeMessage) addMsg('bot', beh.welcomeMessage);
+    inputEl.focus();
+  }
+
+  async function send(text) {
+    text = (text || '').trim();
+    if (!text || sending) return;
+    if (!bot.isActive) { addMsg('user', text); addMsg('bot', '(Testaus ei onnistu: botti ei ole aktiivinen. Aktivoi se Käyttäytyminen-välilehdellä.)'); inputEl.value=''; return; }
+    sending = true; sendEl.disabled = true; sendEl.style.opacity = '0.5';
+    addMsg('user', text);
+    inputEl.value = ''; inputEl.style.height = 'auto';
+    showTyping();
+    try {
+      const r = await fetch(`/api/chat/${bot._id}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, message: text, pageUrl: 'playground' })
+      });
+      removeTyping();
+      if (!r.ok) throw new Error('http ' + r.status);
+      const data = await r.json();
+      addMsg('bot', data.reply || '(tyhjä vastaus)');
+    } catch (e) {
+      removeTyping();
+      addMsg('bot', beh.fallbackMessage || 'Virhe: vastausta ei saatu palvelimelta.');
+    }
+    sending = false; sendEl.disabled = false; sendEl.style.opacity = '1'; inputEl.focus();
+  }
+
+  sendEl.addEventListener('click', () => send(inputEl.value));
+  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(inputEl.value); } });
+  inputEl.addEventListener('input', () => { inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px'; });
+  tc.querySelectorAll('.pg-qr').forEach(btn => btn.addEventListener('click', () => send(btn.textContent)));
+  tc.querySelector('#pg-restart').addEventListener('click', startSession);
+
+  // Kirjoitusanimaation pisteet
+  if (!document.getElementById('pg-dot-style')) {
+    const st = document.createElement('style');
+    st.id = 'pg-dot-style';
+    st.textContent = '.pg-dot{width:7px;height:7px;border-radius:50%;background:#94a3b8;display:inline-block;animation:pgdot 1.2s infinite}.pg-dot:nth-child(2){animation-delay:.2s}.pg-dot:nth-child(3){animation-delay:.4s}@keyframes pgdot{0%,80%,100%{transform:scale(.8);opacity:.5}40%{transform:scale(1.1);opacity:1}}';
+    document.head.appendChild(st);
+  }
+
+  startSession();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
