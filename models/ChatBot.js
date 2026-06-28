@@ -11,7 +11,7 @@ const chatBotSchema = new mongoose.Schema({
 
     // Floating-painike
     button: {
-        shape:      { type: String, enum: ['circle', 'rounded'], default: 'circle' },
+        shape:      { type: String, enum: ['circle', 'rounded', 'image'], default: 'circle' }, // image = vapaamuotoinen oma kuva ilman taustapalloa
         size:       { type: Number, default: 56 },          // px
         iconType:   { type: String, enum: ['emoji', 'image', 'svg'], default: 'svg' },
         iconValue:  { type: String, default: 'chat' },      // emoji-merkki, kuvan URL tai svg-nimi

@@ -77,13 +77,16 @@
     const size   = btn.size || 56;
     const color  = btn.color || '#2563EB';
     const iconColor = btn.iconColor || '#ffffff';
-    const shape  = btn.shape === 'rounded' ? '14px' : '50%';
+    const isCustomShape = btn.shape === 'image';   // vapaamuotoinen oma kuva, ei taustapalloa
+    const shape  = btn.shape === 'rounded' ? '14px' : (isCustomShape ? '0' : '50%');
 
     // ── Tyylilaskenta: gradientit, tausta, fontit ──────────────────────────────
-    // Painikkeen tausta (kiinteä tai liukuväri)
-    const launcherBg = btn.colorStyle === 'gradient'
-      ? `linear-gradient(135deg, ${color}, ${btn.color2 || color})`
-      : color;
+    // Painikkeen tausta (kiinteä tai liukuväri). Vapaamuotoisessa kuvassa ei taustaa.
+    const launcherBg = isCustomShape
+      ? 'transparent'
+      : (btn.colorStyle === 'gradient'
+          ? `linear-gradient(135deg, ${color}, ${btn.color2 || color})`
+          : color);
 
     // Otsikkopalkin tausta
     const headerBase = win.headerColor || color;
@@ -164,9 +167,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: hidden;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.22);
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        overflow: ${isCustomShape ? 'visible' : 'hidden'};
+        box-shadow: ${isCustomShape ? 'none' : '0 4px 16px rgba(0,0,0,0.22)'};
+        ${isCustomShape ? 'filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));' : ''}
+        transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
         flex-shrink: 0;
         opacity: 0;
         transform: translateX(${pos.includes('right') ? '80px' : '-80px'});
@@ -176,7 +180,7 @@
         transform: translateX(0);
         transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
       }
-      #pm-btn:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(0,0,0,0.28); }
+      #pm-btn:hover { transform: scale(1.08); ${isCustomShape ? 'filter: drop-shadow(0 7px 16px rgba(0,0,0,0.45));' : 'box-shadow: 0 6px 24px rgba(0,0,0,0.28);'} }
       #pm-btn svg, #pm-btn .pm-emoji {
         pointer-events: none;
         color: ${iconColor};
@@ -488,7 +492,16 @@
     const btnIconValue = btn.iconValue || 'chat';
     const iconSz = Math.round(size * 0.45);
     let btnIconHtml;
-    if (btnIconType === 'emoji') {
+    if (isCustomShape) {
+      // Vapaamuotoinen oma kuva: täyttää koko alueen luonnollisessa muodossaan (ei taustapalloa)
+      if (btnIconType === 'image' && btnIconValue) {
+        btnIconHtml = `<img src="${btnIconValue}" style="width:100%;height:100%;object-fit:contain;pointer-events:none" onerror="this.style.display='none'">`;
+      } else if (btnIconType === 'emoji') {
+        btnIconHtml = `<span class="pm-emoji" style="font-size:${Math.round(size*0.9)}px;line-height:1;pointer-events:none">${btnIconValue}</span>`;
+      } else {
+        btnIconHtml = buildPresetSvg(btnIconValue || 'chat', size, iconColor);
+      }
+    } else if (btnIconType === 'emoji') {
       btnIconHtml = `<span class="pm-emoji" style="font-size:${Math.round(size*0.42)}px;line-height:1;pointer-events:none">${btnIconValue}</span>`;
     } else if (btnIconType === 'image') {
       if (btn.iconFit === 'cover') {

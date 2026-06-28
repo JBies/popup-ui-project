@@ -407,6 +407,7 @@ function renderAppearanceTab(tc, bot) {
               <select id="ap-shape" class="cb-select">
                 <option value="circle"  ${b.shape==='circle' ?'selected':''}>Pyöreä</option>
                 <option value="rounded" ${b.shape==='rounded'?'selected':''}>Pyöristetty neliö</option>
+                <option value="image"   ${b.shape==='image'  ?'selected':''}>Oma kuva (ei taustapalloa)</option>
               </select>
             </div>
             <div class="cb-field">
@@ -421,6 +422,9 @@ function renderAppearanceTab(tc, bot) {
               <label class="cb-label">Ikonin väri</label>
               <input id="ap-icon-color" type="color" value="${b.iconColor||'#ffffff'}" class="cb-color">
             </div>
+          </div>
+          <div id="ap-shape-image-hint" style="${b.shape==='image'?'':'display:none'};margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:10px 12px;font-size:12px;color:#1e40af;line-height:1.5">
+            🖼️ <strong>Oma kuva -muoto valittu.</strong> Valitse alta ikonin tyypiksi <strong>Kuva URL</strong> ja lataa läpinäkyvä PNG (esim. keila) — siitä tulee koko chat-painike ilman taustapalloa. Taustaväri ja gradient eivät vaikuta tähän muotoon.
           </div>
           <!-- Painikkeen liukuväri -->
           <div style="margin-top:12px">
@@ -900,6 +904,12 @@ function renderAppearanceTab(tc, bot) {
   ensureGoogleFont(w.fontFamily);
   tc.querySelector('#ap-font')?.addEventListener('change', e => ensureGoogleFont(e.target.value));
 
+  // ── Painikkeen muoto: näytä ohje "Oma kuva" -tilassa ──────────────────────
+  tc.querySelector('#ap-shape')?.addEventListener('change', e => {
+    const hint = tc.querySelector('#ap-shape-image-hint');
+    if (hint) hint.style.display = e.target.value === 'image' ? '' : 'none';
+  });
+
   // ── Painikkeen liukuväri-toggle ───────────────────────────────────────────
   tc.querySelector('#ap-btn-gradient')?.addEventListener('change', e => {
     tc.querySelector('#ap-btn-gradient-field').style.display = e.target.checked ? '' : 'none';
@@ -1131,7 +1141,8 @@ function renderPreviewWidget(bot, state) {
   const b     = bot.button  || {};
   const w     = bot.window  || {};
   const color = b.color     || '#2563EB';
-  const shape = b.shape === 'rounded' ? '14px' : '50%';
+  const isCustomShape = b.shape === 'image';
+  const shape = b.shape === 'rounded' ? '14px' : (isCustomShape ? '0' : '50%');
   const size  = b.size      || 56;
   const iColor = b.iconColor || '#ffffff';
   const iconSvgSize = Math.round(size * 0.45);
@@ -1143,8 +1154,9 @@ function renderPreviewWidget(bot, state) {
     roboto:  "'Roboto', sans-serif", nunito: "'Nunito', sans-serif"
   };
   const fontStack = FONT_STACKS[w.fontFamily] || FONT_STACKS.system;
-  const launcherBg = b.colorStyle === 'gradient'
-    ? `linear-gradient(135deg, ${color}, ${b.color2||color})` : color;
+  const launcherBg = isCustomShape
+    ? 'transparent'
+    : (b.colorStyle === 'gradient' ? `linear-gradient(135deg, ${color}, ${b.color2||color})` : color);
   const headerBase = w.headerColor || color;
   const headerBg = w.headerStyle === 'gradient'
     ? `linear-gradient(135deg, ${headerBase}, ${w.headerColor2||headerBase})` : headerBase;
@@ -1159,7 +1171,15 @@ function renderPreviewWidget(bot, state) {
 
   // Ikonin renderöinti tyypin mukaan
   let iconHtml;
-  if (b.iconType === 'emoji') {
+  if (isCustomShape) {
+    if (b.iconType === 'image' && b.iconValue) {
+      iconHtml = `<img src="${escHtml(b.iconValue)}" style="width:100%;height:100%;object-fit:contain" onerror="this.style.display='none'">`;
+    } else if (b.iconType === 'emoji') {
+      iconHtml = `<span style="font-size:${Math.round(size*0.9)}px;line-height:1">${escHtml(b.iconValue||'💬')}</span>`;
+    } else {
+      iconHtml = presetIconSvg(b.iconValue || 'chat', size, iColor);
+    }
+  } else if (b.iconType === 'emoji') {
     iconHtml = `<span style="font-size:${Math.round(size*0.42)}px;line-height:1">${escHtml(b.iconValue||'💬')}</span>`;
   } else if (b.iconType === 'image') {
     if (b.iconFit === 'cover') {
@@ -1209,7 +1229,7 @@ function renderPreviewWidget(bot, state) {
           ${grabberText}
           <div style="position:absolute;bottom:-7px;right:18px;width:12px;height:12px;background:#fff;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;transform:rotate(45deg)"></div>
         </div>` : ''}
-      <div style="width:${size}px;height:${size}px;border-radius:${shape};background:${launcherBg};display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.22);cursor:pointer;flex-shrink:0">
+      <div style="width:${size}px;height:${size}px;border-radius:${shape};background:${launcherBg};display:flex;align-items:center;justify-content:center;overflow:${isCustomShape?'visible':'hidden'};${isCustomShape?'filter:drop-shadow(0 4px 10px rgba(0,0,0,0.35))':'box-shadow:0 4px 14px rgba(0,0,0,0.22)'};cursor:pointer;flex-shrink:0">
         ${iconHtml}
       </div>
     </div>`;
