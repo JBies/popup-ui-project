@@ -666,7 +666,8 @@
       div.className = `pm-msg pm-${role}`;
       const bubble = document.createElement('div');
       bubble.className = 'pm-bubble';
-      bubble.textContent = text;
+      // Tee linkeistä klikattavia (HTML escapetaan ensin → turvallista)
+      bubble.innerHTML = linkify(text);
       div.appendChild(bubble);
       messagesEl.appendChild(div);
       messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -792,5 +793,26 @@
 
   function escHtml(str) {
     return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Escapaa HTML ja muuttaa URL:t, www-osoitteet ja sähköpostit klikattaviksi linkeiksi
+  function linkify(str) {
+    var s = escHtml(str);
+    var A = ' style="color:inherit;text-decoration:underline"';
+    // http(s)://...
+    s = s.replace(/(https?:\/\/[^\s<]+)/g, function (u) {
+      var clean = u.replace(/[.,!?;:)]+$/, ''), tail = u.slice(clean.length);
+      return '<a href="' + clean + '" target="_blank" rel="noopener noreferrer"' + A + '>' + clean + '</a>' + tail;
+    });
+    // www. ilman protokollaa (ei jos jo linkin sisällä)
+    s = s.replace(/(^|[\s(])(www\.[^\s<]+)/g, function (m, pre, u) {
+      var clean = u.replace(/[.,!?;:)]+$/, ''), tail = u.slice(clean.length);
+      return pre + '<a href="http://' + clean + '" target="_blank" rel="noopener noreferrer"' + A + '>' + clean + '</a>' + tail;
+    });
+    // sähköpostit
+    s = s.replace(/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, function (e) {
+      return '<a href="mailto:' + e + '"' + A + '>' + e + '</a>';
+    });
+    return s;
   }
 })();

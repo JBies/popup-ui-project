@@ -1315,7 +1315,7 @@ function renderPlaygroundTab(tc, bot) {
     div.style.cssText = `max-width:82%;align-self:${role==='user'?'flex-end':'flex-start'};animation:none`;
     const bubble = document.createElement('div');
     bubble.style.cssText = `padding:9px 13px;font-size:13.5px;line-height:1.5;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,0.06);${role==='user'?userBubbleCss:botBubbleCss}`;
-    bubble.textContent = text;
+    bubble.innerHTML = linkifyText(text);
     div.appendChild(bubble);
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -2138,4 +2138,20 @@ function fmtDate(d) {
 
 function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Escapaa HTML ja muuttaa URL:t, www-osoitteet ja sähköpostit klikattaviksi linkeiksi
+function linkifyText(str) {
+  let s = escHtml(str);
+  const A = ' style="color:inherit;text-decoration:underline"';
+  s = s.replace(/(https?:\/\/[^\s<]+)/g, (u) => {
+    const clean = u.replace(/[.,!?;:)]+$/, ''), tail = u.slice(clean.length);
+    return `<a href="${clean}" target="_blank" rel="noopener noreferrer"${A}>${clean}</a>${tail}`;
+  });
+  s = s.replace(/(^|[\s(])(www\.[^\s<]+)/g, (m, pre, u) => {
+    const clean = u.replace(/[.,!?;:)]+$/, ''), tail = u.slice(clean.length);
+    return `${pre}<a href="http://${clean}" target="_blank" rel="noopener noreferrer"${A}>${clean}</a>${tail}`;
+  });
+  s = s.replace(/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, (e) => `<a href="mailto:${e}"${A}>${e}</a>`);
+  return s;
 }
