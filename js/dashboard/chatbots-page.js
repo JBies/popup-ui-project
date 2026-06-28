@@ -671,7 +671,7 @@ function renderAppearanceTab(tc, bot) {
             <div id="ap-bg-image-upload-status" style="font-size:11px;margin-top:5px;min-height:14px;color:#64748b"></div>
             <input id="ap-bg-image-url" type="text" value="${escHtml(w.chatBgImage||'')}" placeholder="tai liitä kuvan URL https://..." class="cb-input" style="width:100%;margin-top:6px">
             <div id="ap-bg-image-preview" style="${w.chatBgImage?'':'display:none'};margin-top:10px">
-              <img id="ap-bg-image-preview-img" src="${escHtml(w.chatBgImage||'')}" style="width:100%;max-height:120px;object-fit:cover;border-radius:10px;border:1px solid #e2e8f0" onerror="this.parentNode.style.display='none'">
+              <img id="ap-bg-image-preview-img" src="${escHtml(w.chatBgImage||'')}" style="width:100%;max-height:160px;object-fit:contain;background:#f1f5f9;border-radius:10px;border:1px solid #e2e8f0" onerror="this.parentNode.style.display='none'">
               <button id="ap-bg-image-clear" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:11px;font-family:inherit;padding:4px 0 0;margin-top:2px">✕ Poista taustakuva</button>
             </div>
             <p style="font-size:11px;color:#94a3b8;margin-top:6px">Syöte- ja viestipalkit saavat automaattisesti huurretun taustan, jotta teksti pysyy luettavana.</p>
@@ -739,7 +739,7 @@ function renderAppearanceTab(tc, bot) {
         <div id="ap-preview" style="background:#e2e8f0;border-radius:14px;height:360px;position:relative;overflow:hidden">
           ${renderPreviewWidget(bot, 'button')}
         </div>
-        <p style="font-size:11px;color:#94a3b8;margin-top:8px;text-align:center">Tallenna nähdäksesi muutokset</p>
+        <p style="font-size:11px;color:#94a3b8;margin-top:8px;text-align:center">Esikatselu päivittyy reaaliajassa · muista <strong>Tallenna</strong></p>
       </div>
     </div>
 
@@ -788,6 +788,7 @@ function renderAppearanceTab(tc, bot) {
         iconTypeInput.value  = 'image';
         iconValueInput.value = tc.querySelector('#ap-image-url').value || '';
       }
+      refreshPreview();
     });
   });
   // Tyylitä aktiivinen välilehti heti
@@ -807,6 +808,7 @@ function renderAppearanceTab(tc, bot) {
       btn.style.borderColor = '#2563EB'; btn.style.background = '#eff6ff'; btn.classList.add('selected');
       iconTypeInput.value  = 'svg';
       iconValueInput.value = btn.dataset.key;
+      refreshPreview();
     });
   });
 
@@ -850,6 +852,7 @@ function renderAppearanceTab(tc, bot) {
       iconTypeInput.value  = 'image';
       iconValueInput.value = url;
       updateImagePreview(tc, url);
+      refreshPreview();
       status.textContent  = '✅ Kuva ladattu onnistuneesti!';
       status.style.color  = '#16a34a';
     } catch (err) {
@@ -866,6 +869,7 @@ function renderAppearanceTab(tc, bot) {
     tc.querySelector('#ap-image-url').value = '';
     iconValueInput.value = '';
     updateImagePreview(tc, '');
+    refreshPreview();
   });
 
   // Lataa valittu fontti esikatselua varten
@@ -903,6 +907,7 @@ function renderAppearanceTab(tc, bot) {
       const url = await uploadImageFile(file);
       logoUrlInput.value = url;
       updateLogoPreview(tc, url);
+      refreshPreview();
       status.textContent = '✅ Logo ladattu!'; status.style.color = '#16a34a';
     } catch (err) {
       status.textContent = '❌ ' + err.message; status.style.color = '#ef4444';
@@ -912,7 +917,7 @@ function renderAppearanceTab(tc, bot) {
   });
   logoUrlInput?.addEventListener('input', e => updateLogoPreview(tc, e.target.value));
   tc.querySelector('#ap-logo-clear')?.addEventListener('click', () => {
-    logoUrlInput.value = ''; updateLogoPreview(tc, '');
+    logoUrlInput.value = ''; updateLogoPreview(tc, ''); refreshPreview();
   });
 
   // ── Taustakuvan lataus ────────────────────────────────────────────────────
@@ -929,6 +934,7 @@ function renderAppearanceTab(tc, bot) {
       const url = await uploadImageFile(file);
       bgImageUrlInput.value = url;
       updateBgImagePreview(tc, url);
+      refreshPreview();
       status.textContent = '✅ Taustakuva ladattu!'; status.style.color = '#16a34a';
     } catch (err) {
       status.textContent = '❌ ' + err.message; status.style.color = '#ef4444';
@@ -938,11 +944,71 @@ function renderAppearanceTab(tc, bot) {
   });
   bgImageUrlInput?.addEventListener('input', e => updateBgImagePreview(tc, e.target.value));
   tc.querySelector('#ap-bg-image-clear')?.addEventListener('click', () => {
-    bgImageUrlInput.value = ''; updateBgImagePreview(tc, '');
+    bgImageUrlInput.value = ''; updateBgImagePreview(tc, ''); refreshPreview();
   });
 
   // ── Esikatselun tila-napit ────────────────────────────────────────────────
   let previewState = 'button';
+
+  // Kerää nykyiset lomakearvot payload-objektiksi (käytetään sekä esikatseluun että tallennukseen)
+  function collectPayload() {
+    const payload = {
+      button: {
+        shape:      tc.querySelector('#ap-shape').value,
+        size:       Number(tc.querySelector('#ap-size').value),
+        colorStyle: tc.querySelector('#ap-btn-gradient')?.checked ? 'gradient' : 'solid',
+        color:      tc.querySelector('#ap-color').value,
+        color2:     tc.querySelector('#ap-color2')?.value || '#1e40af',
+        iconColor:  tc.querySelector('#ap-icon-color').value,
+        iconType:   tc.querySelector('#ap-icon-type').value,
+        iconValue:  tc.querySelector('#ap-icon-value')?.value || 'chat',
+        iconScale:  Number(tc.querySelector('#ap-icon-scale')?.value || 65),
+        position:   tc.querySelector('#ap-position').value
+      },
+      grabber: {
+        enabled:   tc.querySelector('#ap-grabber-enabled').checked,
+        text:      tc.querySelector('#ap-grabber-text').value,
+        delayMs:   Number(tc.querySelector('#ap-grabber-delay').value),
+        frequency: tc.querySelector('#ap-grabber-freq').value
+      },
+      animation: {
+        intro:         tc.querySelector('#ap-intro').value,
+        idle:          tc.querySelector('#ap-idle').value,
+        idleIntervalS: Number(tc.querySelector('#ap-idle-interval').value)
+      },
+      window: {
+        botName:         tc.querySelector('#ap-bot-name').value,
+        botAvatarType:   tc.querySelector('#ap-avatar-type').value,
+        botAvatarValue:  tc.querySelector('#ap-avatar-value').value,
+        headerStyle:     tc.querySelector('#ap-header-style').value,
+        headerColor:     tc.querySelector('#ap-header-color').value,
+        headerColor2:    tc.querySelector('#ap-header-color2').value,
+        headerTextColor: tc.querySelector('#ap-header-text-color').value,
+        statusText:      tc.querySelector('#ap-status-text').value,
+        logoUrl:         tc.querySelector('#ap-logo-url').value.trim(),
+        logoHeight:      Number(tc.querySelector('#ap-logo-height').value || 26),
+        botBubbleColor:  tc.querySelector('#ap-bot-bubble').value,
+        botTextColor:    tc.querySelector('#ap-bot-text').value,
+        userBubbleColor: tc.querySelector('#ap-user-bubble').value,
+        userTextColor:   tc.querySelector('#ap-user-text').value,
+        chatBgType:      tc.querySelector('#ap-bg-type').value,
+        chatBgColor:     tc.querySelector('#ap-chat-bg').value,
+        chatBgColor2:    tc.querySelector('#ap-chat-bg2').value,
+        chatBgImage:     tc.querySelector('#ap-bg-image-url').value.trim(),
+        fontFamily:      tc.querySelector('#ap-font').value
+      }
+    };
+    payload.quickReplies = [...tc.querySelectorAll('.ap-qr-input')]
+      .map(i => i.value.trim()).filter(Boolean);
+    return payload;
+  }
+
+  // Live-esikatselu: renderöi nykyisillä (myös tallentamattomilla) arvoilla
+  function refreshPreview() {
+    const merged = { ...bot, ...collectPayload(), behavior: bot.behavior };
+    tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(merged, previewState);
+  }
+
   tc.querySelectorAll('.ap-ptab').forEach(tab => {
     tab.addEventListener('click', () => {
       previewState = tab.dataset.state;
@@ -953,9 +1019,13 @@ function renderAppearanceTab(tc, bot) {
         t.style.color        = active ? '#2563EB' : '#64748b';
         t.style.fontWeight   = active ? '600' : '500';
       });
-      tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(bot, previewState);
+      refreshPreview();
     });
   });
+
+  // Päivitä esikatselu reaaliajassa mistä tahansa kentän muutoksesta
+  tc.addEventListener('input', refreshPreview);
+  tc.addEventListener('change', refreshPreview);
 
   function addQRRow(list, value = '') {
     const row = document.createElement('div');
@@ -1013,60 +1083,13 @@ function renderAppearanceTab(tc, bot) {
 
   // Tallenna
   tc.querySelector('#ap-save').addEventListener('click', async () => {
-    const payload = {
-      button: {
-        shape:      tc.querySelector('#ap-shape').value,
-        size:       Number(tc.querySelector('#ap-size').value),
-        colorStyle: tc.querySelector('#ap-btn-gradient')?.checked ? 'gradient' : 'solid',
-        color:      tc.querySelector('#ap-color').value,
-        color2:     tc.querySelector('#ap-color2')?.value || '#1e40af',
-        iconColor:  tc.querySelector('#ap-icon-color').value,
-        iconType:   tc.querySelector('#ap-icon-type').value,
-        iconValue:  tc.querySelector('#ap-icon-value')?.value || 'chat',
-        iconScale:  Number(tc.querySelector('#ap-icon-scale')?.value || 65),
-        position:   tc.querySelector('#ap-position').value
-      },
-      grabber: {
-        enabled:   tc.querySelector('#ap-grabber-enabled').checked,
-        text:      tc.querySelector('#ap-grabber-text').value,
-        delayMs:   Number(tc.querySelector('#ap-grabber-delay').value),
-        frequency: tc.querySelector('#ap-grabber-freq').value
-      },
-      animation: {
-        intro:         tc.querySelector('#ap-intro').value,
-        idle:          tc.querySelector('#ap-idle').value,
-        idleIntervalS: Number(tc.querySelector('#ap-idle-interval').value)
-      },
-      window: {
-        botName:         tc.querySelector('#ap-bot-name').value,
-        botAvatarType:   tc.querySelector('#ap-avatar-type').value,
-        botAvatarValue:  tc.querySelector('#ap-avatar-value').value,
-        headerStyle:     tc.querySelector('#ap-header-style').value,
-        headerColor:     tc.querySelector('#ap-header-color').value,
-        headerColor2:    tc.querySelector('#ap-header-color2').value,
-        headerTextColor: tc.querySelector('#ap-header-text-color').value,
-        statusText:      tc.querySelector('#ap-status-text').value,
-        logoUrl:         tc.querySelector('#ap-logo-url').value.trim(),
-        logoHeight:      Number(tc.querySelector('#ap-logo-height').value || 26),
-        botBubbleColor:  tc.querySelector('#ap-bot-bubble').value,
-        botTextColor:    tc.querySelector('#ap-bot-text').value,
-        userBubbleColor: tc.querySelector('#ap-user-bubble').value,
-        userTextColor:   tc.querySelector('#ap-user-text').value,
-        chatBgType:      tc.querySelector('#ap-bg-type').value,
-        chatBgColor:     tc.querySelector('#ap-chat-bg').value,
-        chatBgColor2:    tc.querySelector('#ap-chat-bg2').value,
-        chatBgImage:     tc.querySelector('#ap-bg-image-url').value.trim(),
-        fontFamily:      tc.querySelector('#ap-font').value
-      }
-    };
-    payload.quickReplies = [...tc.querySelectorAll('.ap-qr-input')]
-      .map(i => i.value.trim()).filter(Boolean);
+    const payload = collectPayload();
     const saveBtn = tc.querySelector('#ap-save');
     try {
       await saveBot(bot._id, payload, saveBtn);
       Object.assign(bot, payload);
       ensureGoogleFont(payload.window.fontFamily);
-      tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(bot, previewState);
+      refreshPreview();
     } catch (err) {
       if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa fa-save"></i> Tallenna ulkoasuasetukset'; }
       showToast('Tallentaminen epäonnistui', 'error');
