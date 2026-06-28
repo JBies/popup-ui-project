@@ -1983,13 +1983,68 @@ async function renderLogsTab(tc, bot) {
       msgRow.style.display = '';
       try {
         const msgs = await fetch(`/api/chatbots/${bot._id}/sessions/${sid}/messages`).then(r => r.json());
-        content.innerHTML = msgs.length === 0
-          ? '<span style="color:#94a3b8">Ei viestejä</span>'
-          : msgs.map(m => `
-            <div style="margin-bottom:8px;display:flex;gap:8px;align-items:flex-start">
-              <span style="padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;white-space:nowrap;background:${m.role==='user'?'#dbeafe':'#f1f5f9'};color:${m.role==='user'?'#1d4ed8':'#374151'}">${m.role==='user'?'Käyttäjä':'Botti'}</span>
-              <span style="line-height:1.5;white-space:pre-wrap">${escHtml(m.content)}</span>
-            </div>`).join('');
+        if (msgs.length === 0) { content.innerHTML = '<span style="color:#94a3b8">Ei viestejä</span>'; return; }
+        content.innerHTML = msgs.map((m, i) => {
+          const isUser = m.role === 'user';
+          const teach = isUser ? '' : `<button class="log-teach-btn" data-mi="${i}" style="margin-top:4px;background:none;border:none;cursor:pointer;color:#2563EB;font-size:11px;font-weight:600;font-family:inherit;padding:0"><i class="fa fa-graduation-cap"></i> Muokkaa &amp; opeta</button>`;
+          return `
+            <div class="log-msg" data-mi="${i}" style="margin-bottom:8px;display:flex;gap:8px;align-items:flex-start">
+              <span style="padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;white-space:nowrap;background:${isUser?'#dbeafe':'#f1f5f9'};color:${isUser?'#1d4ed8':'#374151'}">${isUser?'Käyttäjä':'Botti'}</span>
+              <div style="flex:1;min-width:0">
+                <div style="line-height:1.5;white-space:pre-wrap">${escHtml(m.content)}</div>
+                ${teach}
+              </div>
+            </div>`;
+        }).join('');
+
+        // "Muokkaa & opeta" → Q&A-pari (kysymys = edeltävä käyttäjän viesti)
+        content.querySelectorAll('.log-teach-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const i = Number(btn.dataset.mi);
+            let question = '';
+            for (let j = i - 1; j >= 0; j--) { if (msgs[j].role === 'user') { question = msgs[j].content; break; } }
+            const answer = msgs[i].content;
+            const host = btn.closest('.log-msg');
+            if (host.querySelector('.log-teach-form')) return; // jo auki
+            const form = document.createElement('div');
+            form.className = 'log-teach-form';
+            form.style.cssText = 'margin-top:8px;background:#fff;border:1px solid #2563EB;border-radius:10px;padding:12px';
+            form.innerHTML = `
+              <div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:4px">Kysymys (mihin tämä vastaus liittyy)</div>
+              <input class="lt-q" type="text" value="${escHtml(question)}" placeholder="esim. Mitä hoitoja teillä on?" style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;outline:none;margin-bottom:8px">
+              <div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:4px">Oikea vastaus (muokkaa sopivaksi)</div>
+              <textarea class="lt-a" rows="4" style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical">${escHtml(answer)}</textarea>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="lt-save" style="padding:7px 14px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Tallenna Q&amp;A:ksi</button>
+                <button class="lt-cancel" style="padding:7px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">Peruuta</button>
+              </div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:6px">Tallennettu pari näkyy Q&amp;A-välilehdellä ja botti käyttää sitä jatkossa (ohittaa dokumenttihaun).</div>`;
+            host.appendChild(form);
+            form.querySelector('.lt-cancel').addEventListener('click', () => form.remove());
+            form.querySelector('.lt-save').addEventListener('click', async () => {
+              const q = form.querySelector('.lt-q').value.trim();
+              const a = form.querySelector('.lt-a').value.trim();
+              if (!q || !a) { showToast('Kysymys ja vastaus vaaditaan', 'error'); return; }
+              const saveBtn = form.querySelector('.lt-save');
+              saveBtn.disabled = true; saveBtn.textContent = 'Tallennetaan...';
+              try {
+                const r = await fetch(`/api/chatbots/${bot._id}/qa`, {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ question: q, answer: a, approved: true })
+                });
+                if (!r.ok) throw new Error();
+                showToast('Opetettu! Botti käyttää tätä vastausta jatkossa.', 'success');
+                form.remove();
+                btn.innerHTML = '<i class="fa fa-check"></i> Opetettu';
+                btn.style.color = '#16a34a';
+                btn.disabled = true;
+              } catch {
+                showToast('Tallennus epäonnistui', 'error');
+                saveBtn.disabled = false; saveBtn.textContent = 'Tallenna Q&A:ksi';
+              }
+            });
+          });
+        });
       } catch {
         content.innerHTML = '<span style="color:#ef4444">Virhe viestien latauksessa</span>';
       }
