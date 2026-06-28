@@ -112,18 +112,18 @@ async function sendDailyChatDigests(hoursBack = 24) {
       const botIds   = bots.map(b => b._id);
       const botNames = new Map(bots.map(b => [String(b._id), b.name || 'Chatbot']));
 
-      // Keskustelut (sessiot) aikaikkunassa — ohitetaan playground-testit (pageUrl='playground')
+      // Keskustelut (sessiot) aikaikkunassa
+      // Huom: playground-testit (pageUrl='playground') otetaan mukaan, jotta koosteen
+      // toiminnan näkee jo ennen kuin botti on livenä sivustolla.
       const sessions = await ChatSession.find({
         botId: { $in: botIds },
-        createdAt: { $gte: since, $lte: until },
-        pageUrl: { $ne: 'playground' }
+        createdAt: { $gte: since, $lte: until }
       }).sort({ createdAt: -1 }).lean();
 
-      // Viestit aikaikkunassa — ohitetaan playground-testit (sessionId alkaa "test_")
+      // Viestit aikaikkunassa (sis. playground-testit)
       const messages = await ChatMessage.find({
         botId: { $in: botIds },
-        createdAt: { $gte: since, $lte: until },
-        sessionId: { $not: /^test_/ }
+        createdAt: { $gte: since, $lte: until }
       }).select('botId sessionId role content matchType createdAt').lean();
 
       const userMessages = messages.filter(m => m.role === 'user');
