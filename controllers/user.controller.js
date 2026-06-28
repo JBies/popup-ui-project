@@ -265,7 +265,7 @@ static async updateUserPopupLimit(req, res) {
   static async updateNotificationSettings(req, res) {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
     try {
-      const { leadAlert, weeklyReport, notifyEmail } = req.body;
+      const { leadAlert, weeklyReport, chatDailyDigest, notifyEmail } = req.body;
 
       // Validoi sähköpostiosoite jos annettu
       if (notifyEmail && notifyEmail.trim()) {
@@ -278,6 +278,7 @@ static async updateUserPopupLimit(req, res) {
       const update = {};
       if (leadAlert    !== undefined) update['emailNotifications.leadAlert']    = !!leadAlert;
       if (weeklyReport !== undefined) update['emailNotifications.weeklyReport'] = !!weeklyReport;
+      if (chatDailyDigest !== undefined) update['emailNotifications.chatDailyDigest'] = !!chatDailyDigest;
       if (notifyEmail  !== undefined) update['emailNotifications.notifyEmail']  = (notifyEmail || '').trim();
 
       const user = await User.findByIdAndUpdate(

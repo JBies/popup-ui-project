@@ -32,7 +32,18 @@ function initScheduler() {
     }
   }, { timezone: 'Europe/Helsinki' });
 
-  console.log('[scheduler] Ajastimet käynnistetty (viikkoraportti: ma 08:00, automaattiset raportit: 15 min välein)');
+  // ── Päivittäinen chatbot-kooste: joka päivä klo 07:00 (vain jos keskusteluja) ──
+  cron.schedule('0 7 * * *', async () => {
+    console.log('[scheduler] Käynnistetään päivittäinen chatbot-kooste...');
+    try {
+      const { sendDailyChatDigests } = require('./chat-digest');
+      await sendDailyChatDigests(24);
+    } catch (err) {
+      console.error('[scheduler] Chatbot-kooste epäonnistui:', err.message);
+    }
+  }, { timezone: 'Europe/Helsinki' });
+
+  console.log('[scheduler] Ajastimet käynnistetty (viikkoraportti: ma 08:00, chatbot-kooste: pä 07:00, automaattiset raportit: 15 min välein)');
 }
 
 module.exports = { initScheduler };

@@ -357,6 +357,7 @@ async function renderNotificationSettings(user) {
   const n = user.emailNotifications || {};
   const leadAlert    = n.leadAlert    !== false;
   const weeklyReport = n.weeklyReport !== false;
+  const chatDailyDigest = n.chatDailyDigest !== false;
   const notifyEmail  = n.notifyEmail  || '';
 
   container.innerHTML = `
@@ -379,6 +380,14 @@ async function renderNotificationSettings(user) {
           <div>
             <div style="font-size:13px;font-weight:600;color:#1e293b">Viikkoraportti</div>
             <div style="font-size:12px;color:#64748b">Yhteenveto viikon tilastoista — joka maanantai klo 8:00</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
+          <input type="checkbox" id="notif-chat-digest" ${chatDailyDigest ? 'checked' : ''}
+            style="width:16px;height:16px;cursor:pointer;accent-color:#3b82f6">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1e293b">Päivittäinen chatbot-kooste</div>
+            <div style="font-size:12px;color:#64748b">Yhteenveto chatbotin keskusteluista — joka päivä klo 7:00, vain jos botille on juteltu</div>
           </div>
         </label>
       </div>
@@ -420,6 +429,7 @@ async function renderNotificationSettings(user) {
       const body = {
         leadAlert:    document.getElementById('notif-lead-alert')?.checked,
         weeklyReport: document.getElementById('notif-weekly-report')?.checked,
+        chatDailyDigest: document.getElementById('notif-chat-digest')?.checked,
         notifyEmail:  document.getElementById('notif-email')?.value?.trim() || '',
       };
       const r = await fetch('/api/user/notifications', {

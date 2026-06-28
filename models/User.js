@@ -110,9 +110,10 @@ const userSchema = new mongoose.Schema({
         active: { type: Boolean, default: true }
     }],
     emailNotifications: {
-        leadAlert:    { type: Boolean, default: true },   // Ilmoitus uudesta liidistä
-        weeklyReport: { type: Boolean, default: true },   // Viikkoraportti maanantaisin
-        notifyEmail:  { type: String,  default: '' }      // Tyhjä = käytetään tili-emailia
+        leadAlert:       { type: Boolean, default: true },   // Ilmoitus uudesta liidistä
+        weeklyReport:    { type: Boolean, default: true },   // Viikkoraportti maanantaisin
+        chatDailyDigest: { type: Boolean, default: true },   // Päivittäinen chatbot-kooste (jos keskusteluja)
+        notifyEmail:     { type: String,  default: '' }      // Tyhjä = käytetään tili-emailia
     },
     language: { type: String, default: 'en', enum: ['en', 'fi'] },
     chatbotLimits: {
