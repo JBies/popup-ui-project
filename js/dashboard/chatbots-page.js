@@ -396,7 +396,7 @@ function renderAppearanceTab(tc, bot) {
   const w = bot.window   || {};
 
   tc.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start">
+    <div id="ap-root" style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start">
       <div>
         <div class="cb-card" style="margin-bottom:16px">
           <div class="cb-card-title">Chat-painike</div>
@@ -1005,6 +1005,8 @@ function renderAppearanceTab(tc, bot) {
 
   // Live-esikatselu: renderöi nykyisillä (myös tallentamattomilla) arvoilla
   function refreshPreview() {
+    // Suojaus: aja vain jos ulkoasuvälilehti on yhä DOM:issa
+    if (!tc.querySelector('#ap-shape') || !tc.querySelector('#ap-preview')) return;
     const merged = { ...bot, ...collectPayload(), behavior: bot.behavior };
     tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(merged, previewState);
   }
@@ -1023,9 +1025,12 @@ function renderAppearanceTab(tc, bot) {
     });
   });
 
-  // Päivitä esikatselu reaaliajassa mistä tahansa kentän muutoksesta
-  tc.addEventListener('input', refreshPreview);
-  tc.addEventListener('change', refreshPreview);
+  // Päivitä esikatselu reaaliajassa mistä tahansa kentän muutoksesta.
+  // Kiinnitetään ulkoasun juureen (korvataan joka renderöinnissä), ei pysyvään tc:hen,
+  // jotteivät kuuntelijat vuoda muille välilehdille.
+  const apRoot = tc.querySelector('#ap-root');
+  apRoot?.addEventListener('input', refreshPreview);
+  apRoot?.addEventListener('change', refreshPreview);
 
   function addQRRow(list, value = '') {
     const row = document.createElement('div');
