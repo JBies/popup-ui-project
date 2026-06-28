@@ -1121,7 +1121,7 @@ function renderPreviewWidget(bot, state) {
   const bgColor = w.chatBgColor || '#ffffff';
   let chatBg, fancy = false;
   if (w.chatBgType === 'gradient') { chatBg = `linear-gradient(160deg, ${bgColor}, ${w.chatBgColor2||bgColor})`; fancy = true; }
-  else if (w.chatBgType === 'image' && w.chatBgImage) { chatBg = `url("${w.chatBgImage}") center/cover no-repeat`; fancy = true; }
+  else if (w.chatBgType === 'image' && w.chatBgImage) { chatBg = `url('${w.chatBgImage}') center/cover no-repeat`; fancy = true; }
   else chatBg = bgColor;
   const barBg = fancy ? 'rgba(255,255,255,0.86)' : bgColor;
   const statusText = w.statusText != null ? w.statusText : 'Online';
