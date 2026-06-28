@@ -234,11 +234,14 @@ class ChatController {
                         matchType  = 'rag';
                     }
                 } catch (aiErr) {
-                    // Tarkka syy palvelinlokiin (esim. "API-avain puuttuu" tai providerin virhe)
+                    // Tarkka syy palvelinlokiin: HTTP-status + endpoint (paljastaa onko vika
+                    // embeddings- vai chat-kutsussa ja millä providerilla) + providerin viesti.
+                    const status = aiErr.response?.status;
+                    const url    = aiErr.config?.url;
                     const detail = aiErr.response?.data?.error?.message
                         || aiErr.response?.data?.message
                         || aiErr.message;
-                    console.error('[chat] AI/RAG virhe:', detail);
+                    console.error(`[chat] AI/RAG virhe: status=${status || '?'} url=${url || '?'} — ${detail}`);
                     // reply jää tyhjäksi → käytetään fallback-viestiä alla
                 }
             }
