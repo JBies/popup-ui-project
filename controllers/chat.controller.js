@@ -205,30 +205,41 @@ class ChatController {
             }
 
             // ── AI-moodi: RAG jos Q&A ei osunut ────────────────────────────
+            // Mahdollinen AI-/embeddings-virhe (esim. puuttuva tai virheellinen API-avain)
+            // ei saa kaataa pyyntöä — siirrytään siistiin fallback-viestiin.
             if (!reply && bot.mode === 'ai') {
-                const documents = await ChatDocument.find({
-                    botId: bot._id, vectorized: true
-                }).lean();
+                try {
+                    const documents = await ChatDocument.find({
+                        botId: bot._id, vectorized: true
+                    }).lean();
 
-                const allChunks = documents.flatMap(d => d.chunks);
+                    const allChunks = documents.flatMap(d => d.chunks);
 
-                let contextChunks = [];
-                if (allChunks.length > 0) {
-                    const queryVector = await embedText(userMsg);
-                    contextChunks = findTopChunks(queryVector, allChunks, 4, 0.25);
-                }
+                    let contextChunks = [];
+                    if (allChunks.length > 0) {
+                        const queryVector = await embedText(userMsg);
+                        contextChunks = findTopChunks(queryVector, allChunks, 4, 0.25);
+                    }
 
-                if (contextChunks.length > 0) {
-                    const systemPrompt = buildSystemPrompt(bot, contextChunks);
-                    const result = await chatCompletion([
-                        { role: 'system', content: systemPrompt },
-                        { role: 'user',   content: userMsg }
-                    ], { temperature: bot.behavior.temperature || 0.3 });
+                    if (contextChunks.length > 0) {
+                        const systemPrompt = buildSystemPrompt(bot, contextChunks);
+                        const result = await chatCompletion([
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user',   content: userMsg }
+                        ], { temperature: bot.behavior.temperature || 0.3 });
 
-                    reply      = result.content;
-                    tokensUsed = result.tokensUsed;
-                    provider   = result.provider;
-                    matchType  = 'rag';
+                        reply      = result.content;
+                        tokensUsed = result.tokensUsed;
+                        provider   = result.provider;
+                        matchType  = 'rag';
+                    }
+                } catch (aiErr) {
+                    // Tarkka syy palvelinlokiin (esim. "API-avain puuttuu" tai providerin virhe)
+                    const detail = aiErr.response?.data?.error?.message
+                        || aiErr.response?.data?.message
+                        || aiErr.message;
+                    console.error('[chat] AI/RAG virhe:', detail);
+                    // reply jää tyhjäksi → käytetään fallback-viestiä alla
                 }
             }
 
