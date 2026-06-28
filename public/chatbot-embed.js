@@ -79,6 +79,54 @@
     const iconColor = btn.iconColor || '#ffffff';
     const shape  = btn.shape === 'rounded' ? '14px' : '50%';
 
+    // ── Tyylilaskenta: gradientit, tausta, fontit ──────────────────────────────
+    // Painikkeen tausta (kiinteä tai liukuväri)
+    const launcherBg = btn.colorStyle === 'gradient'
+      ? `linear-gradient(135deg, ${color}, ${btn.color2 || color})`
+      : color;
+
+    // Otsikkopalkin tausta
+    const headerBase = win.headerColor || color;
+    const headerBg = win.headerStyle === 'gradient'
+      ? `linear-gradient(135deg, ${headerBase}, ${win.headerColor2 || headerBase})`
+      : headerBase;
+
+    // Chat-alueen tausta (väri / liukuväri / kuva)
+    const bgColor = win.chatBgColor || '#ffffff';
+    let chatBg, isFancyBg = false;
+    if (win.chatBgType === 'gradient') {
+      chatBg = `linear-gradient(160deg, ${bgColor}, ${win.chatBgColor2 || bgColor})`;
+      isFancyBg = true;
+    } else if (win.chatBgType === 'image' && win.chatBgImage) {
+      chatBg = `url("${win.chatBgImage}") center/cover no-repeat`;
+      isFancyBg = true;
+    } else {
+      chatBg = bgColor;
+    }
+    // Syöte-/pikavalintapalkin tausta: kuvan/gradientin päällä huurrettu, muuten värin mukainen
+    const barBg = isFancyBg ? 'rgba(255,255,255,0.86)' : bgColor;
+    const barBlur = isFancyBg ? 'backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);' : '';
+
+    // Fonttipino + Google Fonts -import
+    const FONT_STACKS = {
+      system:  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      inter:   "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      poppins: "'Poppins', -apple-system, BlinkMacSystemFont, sans-serif",
+      roboto:  "'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+      nunito:  "'Nunito', -apple-system, BlinkMacSystemFont, sans-serif"
+    };
+    const FONT_IMPORTS = {
+      inter:   'Inter:wght@400;500;600;700',
+      poppins: 'Poppins:wght@400;500;600;700',
+      roboto:  'Roboto:wght@400;500;700',
+      nunito:  'Nunito:wght@400;600;700;800'
+    };
+    const fontKey   = win.fontFamily && FONT_STACKS[win.fontFamily] ? win.fontFamily : 'system';
+    const fontStack = FONT_STACKS[fontKey];
+    const fontImport = FONT_IMPORTS[fontKey]
+      ? `@import url('https://fonts.googleapis.com/css2?family=${FONT_IMPORTS[fontKey]}&display=swap');`
+      : '';
+
     // ── Shadow DOM ────────────────────────────────────────────────────────────
     const host = document.createElement('div');
     host.id    = 'pm-chatbot-host';
@@ -89,8 +137,10 @@
     // ── CSS ───────────────────────────────────────────────────────────────────
     const style = document.createElement('style');
     style.textContent = `
+      ${fontImport}
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       :host { all: initial; }
+      #pm-wrap, #pm-window, #pm-window * { font-family: ${fontStack}; }
 
       #pm-wrap {
         position: fixed;
@@ -108,7 +158,7 @@
         width: ${size}px;
         height: ${size}px;
         border-radius: ${shape};
-        background: ${color};
+        background: ${launcherBg};
         border: none;
         cursor: pointer;
         display: flex;
@@ -161,7 +211,7 @@
         color: #1e293b;
         border-radius: 12px;
         padding: 10px 14px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: ${fontStack};
         font-size: 13.5px;
         line-height: 1.4;
         box-shadow: 0 4px 18px rgba(0,0,0,0.14);
@@ -198,7 +248,7 @@
         max-width: calc(100vw - ${offsetX * 2}px);
         height: 520px;
         max-height: calc(100vh - ${offsetY + size + 20}px);
-        background: ${win.chatBgColor || '#ffffff'};
+        background: ${chatBg};
         border-radius: 18px;
         box-shadow: 0 12px 48px rgba(0,0,0,0.2);
         display: flex;
@@ -217,14 +267,18 @@
 
       /* Header */
       #pm-header {
-        background: ${win.headerColor || color};
+        background: ${headerBg};
         color: ${win.headerTextColor || '#ffffff'};
         padding: 14px 16px;
         display: flex;
         align-items: center;
         gap: 10px;
         flex-shrink: 0;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 2px 12px rgba(0,0,0,0.06);
+        position: relative;
+        z-index: 2;
       }
+      .pm-header-logo { max-height: ${win.logoHeight || 26}px; max-width: 150px; object-fit: contain; display: block; }
       .pm-avatar {
         width: 34px; height: 34px;
         border-radius: 50%;
@@ -234,7 +288,7 @@
         overflow: hidden;
       }
       .pm-avatar img { width: 100%; height: 100%; object-fit: cover; }
-      .pm-bot-name { font-size: 14px; font-weight: 600; flex: 1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+      .pm-bot-name { font-size: 14px; font-weight: 600; flex: 1; font-family: ${fontStack}; }
       .pm-status { font-size: 11px; opacity: 0.8; margin-top: 1px; }
       #pm-header-close {
         background: none; border: none; cursor: pointer;
@@ -250,13 +304,21 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: transparent;
+        font-family: ${fontStack};
       }
       #pm-messages::-webkit-scrollbar { width: 4px; }
       #pm-messages::-webkit-scrollbar-track { background: transparent; }
       #pm-messages::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
 
-      .pm-msg { max-width: 82%; display: flex; flex-direction: column; gap: 3px; }
+      .pm-msg {
+        max-width: 82%; display: flex; flex-direction: column; gap: 3px;
+        animation: pm-msg-in 0.32s cubic-bezier(0.22,1,0.36,1) both;
+      }
+      @keyframes pm-msg-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
       .pm-msg.pm-bot { align-self: flex-start; }
       .pm-msg.pm-user { align-self: flex-end; }
       .pm-bubble {
@@ -265,6 +327,7 @@
         font-size: 13.5px;
         line-height: 1.5;
         word-break: break-word;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
       }
       .pm-msg.pm-bot  .pm-bubble { background: ${win.botBubbleColor  || '#f1f5f9'}; color: ${win.botTextColor  || '#1e293b'}; border-radius: 4px 16px 16px 16px; }
       .pm-msg.pm-user .pm-bubble { background: ${win.userBubbleColor || color};     color: ${win.userTextColor || '#ffffff'}; border-radius: 16px 4px 16px 16px; }
@@ -292,7 +355,7 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: ${fontStack};
       }
       #pm-lead-form.pm-hidden { display: none; }
       .pm-lead-title { font-size: 12px; font-weight: 600; color: #374151; }
@@ -330,7 +393,8 @@
         flex-wrap: wrap;
         gap: 6px;
         padding: 8px 12px 4px;
-        background: ${win.chatBgColor || '#ffffff'};
+        background: ${barBg};
+        ${barBlur}
         flex-shrink: 0;
       }
       .pm-qr-btn {
@@ -351,11 +415,12 @@
       /* Input-alue */
       #pm-input-area {
         padding: 10px 12px;
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid ${isFancyBg ? 'rgba(0,0,0,0.06)' : '#e2e8f0'};
         display: flex;
         gap: 8px;
         align-items: flex-end;
-        background: ${win.chatBgColor || '#ffffff'};
+        background: ${barBg};
+        ${barBlur}
         flex-shrink: 0;
       }
       #pm-input {
@@ -365,7 +430,7 @@
         border-radius: 10px;
         padding: 8px 12px;
         font-size: 13.5px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: ${fontStack};
         outline: none;
         background: #fff;
         max-height: 100px;
@@ -394,7 +459,9 @@
         font-size: 10px;
         color: #94a3b8;
         text-align: center;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: ${barBg};
+        ${barBlur}
+        font-family: ${fontStack};
         flex-shrink: 0;
       }
 
@@ -439,13 +506,23 @@
     if (fields.email) leadFieldsHtml += `<input class="pm-lead-input" id="pm-lead-email" type="email" placeholder="Sähköposti">`;
     if (fields.phone) leadFieldsHtml += `<input class="pm-lead-input" id="pm-lead-phone" type="tel"   placeholder="Puhelin">`;
 
+    // Otsikon sisältö: logo tai botin nimi
+    const logoUrl    = win.logoUrl || '';
+    const statusText = win.statusText != null ? win.statusText : 'Online';
+    const headerTitleHtml = logoUrl
+      ? `<img class="pm-header-logo" src="${escHtml(logoUrl)}" alt="${escHtml(win.botName || '')}" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<div class=\\'pm-bot-name\\'>${escHtml(win.botName || 'Avustaja')}</div>')">`
+      : `<div class="pm-bot-name">${escHtml(win.botName || 'Avustaja')}</div>`;
+    const statusHtml = statusText
+      ? `<div class="pm-status"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-right:5px;vertical-align:middle"></span>${escHtml(statusText)}</div>`
+      : '';
+
     wrap.innerHTML = `
       <div id="pm-window">
         <div id="pm-header">
           ${avatarHtml}
-          <div style="flex:1">
-            <div class="pm-bot-name">${escHtml(win.botName || 'Avustaja')}</div>
-            <div class="pm-status">Online</div>
+          <div style="flex:1;min-width:0">
+            ${headerTitleHtml}
+            ${statusHtml}
           </div>
           <button id="pm-header-close">✕</button>
         </div>

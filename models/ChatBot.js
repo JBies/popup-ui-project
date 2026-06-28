@@ -15,7 +15,9 @@ const chatBotSchema = new mongoose.Schema({
         size:       { type: Number, default: 56 },          // px
         iconType:   { type: String, enum: ['emoji', 'image', 'svg'], default: 'svg' },
         iconValue:  { type: String, default: 'chat' },      // emoji-merkki, kuvan URL tai svg-nimi
-        color:      { type: String, default: '#2563EB' },   // taustaväri
+        colorStyle: { type: String, enum: ['solid', 'gradient'], default: 'solid' },
+        color:      { type: String, default: '#2563EB' },   // taustaväri (gradientin 1. väri)
+        color2:     { type: String, default: '#1e40af' },   // gradientin 2. väri
         iconColor:  { type: String, default: '#ffffff' },
         position:   { type: String, enum: ['bottom-right', 'bottom-left', 'top-right', 'top-left'], default: 'bottom-right' },
         iconScale:  { type: Number, default: 65 },          // % kuvan koko napissa (kuvamoodi)
@@ -43,13 +45,31 @@ const chatBotSchema = new mongoose.Schema({
         botName:          { type: String, default: 'Avustaja' },
         botAvatarType:    { type: String, enum: ['emoji', 'image', 'initials'], default: 'emoji' },
         botAvatarValue:   { type: String, default: '🤖' },
+
+        // Otsikkopalkki
+        headerStyle:      { type: String, enum: ['solid', 'gradient'], default: 'solid' },
         headerColor:      { type: String, default: '#2563EB' },
+        headerColor2:     { type: String, default: '#1e40af' },   // gradientin toinen väri
         headerTextColor:  { type: String, default: '#ffffff' },
+        statusText:       { type: String, default: 'Online' },    // muokattava alaotsikko
+        logoUrl:          { type: String, default: '' },          // yrityksen logo otsikkoon
+        logoHeight:       { type: Number, default: 26 },          // px
+
+        // Viestipallot
         botBubbleColor:   { type: String, default: '#f1f5f9' },
         botTextColor:     { type: String, default: '#1e293b' },
         userBubbleColor:  { type: String, default: '#2563EB' },
         userTextColor:    { type: String, default: '#ffffff' },
+
+        // Chat-tausta
+        chatBgType:       { type: String, enum: ['color', 'gradient', 'image'], default: 'color' },
         chatBgColor:      { type: String, default: '#ffffff' },
+        chatBgColor2:     { type: String, default: '#eef2ff' },   // gradientin toinen väri
+        chatBgImage:      { type: String, default: '' },          // taustakuvan URL
+
+        // Typografia ja tyyli
+        fontFamily:       { type: String, enum: ['system', 'inter', 'poppins', 'roboto', 'nunito'], default: 'system' },
+
         size:             { type: String, enum: ['normal', 'large'], default: 'normal' }
     },
 

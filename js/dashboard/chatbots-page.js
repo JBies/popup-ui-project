@@ -60,9 +60,25 @@ function renderBotList(container) {
         <i class="fa fa-plus"></i> Uusi chatbot
       </button>
     </div>
+    ${renderGettingStarted()}
     ${allBots.length === 0 ? renderEmptyState() : renderBotsGrid()}
   `;
   container.innerHTML = html;
+
+  // Aloitusopas: avaa/sulje + muista valinta
+  const guide = container.querySelector('#cb-guide');
+  if (guide) {
+    const body   = guide.querySelector('#cb-guide-body');
+    const chevron = guide.querySelector('#cb-guide-chevron');
+    const collapsed = localStorage.getItem('cb_guide_collapsed') === '1';
+    if (collapsed) { body.style.display = 'none'; chevron.style.transform = 'rotate(-90deg)'; }
+    guide.querySelector('#cb-guide-toggle').addEventListener('click', () => {
+      const isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : '';
+      chevron.style.transform = isOpen ? 'rotate(-90deg)' : '';
+      localStorage.setItem('cb_guide_collapsed', isOpen ? '1' : '0');
+    });
+  }
 
   container.querySelector('#cb-create-btn')?.addEventListener('click', () => showCreateModal(container));
   container.querySelectorAll('[data-bot-id]').forEach(card => {
@@ -79,6 +95,42 @@ function renderEmptyState() {
       <div style="font-size:48px;margin-bottom:16px">🤖</div>
       <h3 style="font-size:16px;font-weight:600;color:#1e293b;margin:0 0 8px">Ei botteja vielä</h3>
       <p style="color:#64748b;font-size:13px;margin:0 0 20px">Luo ensimmäinen chatbot lisätäksesi sen sivustollesi.</p>
+    </div>`;
+}
+
+// ── Aloitusopas ei-tekniselle käyttäjälle ──────────────────────────────────────
+function renderGettingStarted() {
+  const steps = [
+    ['1', '➕', 'Luo chatbot', 'Klikkaa <strong>“Uusi chatbot”</strong>. Anna sille nimi (esim. yrityksesi nimi) ja valitse moodi: <strong>AI</strong> vastaa lataamiesi tietojen perusteella, <strong>Q&amp;A</strong> käyttää valmiita kysymys–vastaus-pareja.'],
+    ['2', '📚', 'Lisää tietoa botille', 'Avaa botti ja mene <strong>Tietokanta</strong>-välilehdelle. Lataa PDF tai anna verkkosivusi osoite – botti oppii vastaamaan automaattisesti. (Q&amp;A-moodissa lisää vastaukset <strong>Q&amp;A</strong>-välilehdellä.)'],
+    ['3', '🎨', 'Muokkaa ulkoasu', '<strong>Ulkoasu</strong>-välilehdellä valitse värit, lataa logo, vaihda chat-ikkunan tausta ja fontti. Oikealla näkyvä esikatselu päivittyy kun tallennat.'],
+    ['4', '🔗', 'Lisää sivustollesi', 'Klikkaa oikeasta yläkulmasta <strong>“Koodi”</strong>, kopioi yksi rivi ja liitä se verkkosivusi koodiin (tai pyydä verkkovastaavaasi tekemään se). Chat ilmestyy heti – tehdään vain kerran.'],
+  ];
+  return `
+    <div id="cb-guide" style="background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1px solid #dbeafe;border-radius:16px;padding:0;margin-bottom:24px;overflow:hidden">
+      <div id="cb-guide-toggle" style="display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;user-select:none">
+        <div style="font-size:22px">🚀</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:#1e293b">Näin otat chatbotin käyttöön – 4 helppoa askelta</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">Ei teknistä osaamista tarvita. Klikkaa avataksesi ohjeet.</div>
+        </div>
+        <i id="cb-guide-chevron" class="fa fa-chevron-down" style="color:#64748b;transition:transform 0.2s"></i>
+      </div>
+      <div id="cb-guide-body" style="padding:0 20px 20px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+          ${steps.map(([n, icon, title, body]) => `
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;position:relative">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <div style="width:26px;height:26px;border-radius:50%;background:#2563EB;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${n}</div>
+                <div style="font-size:13px;font-weight:700;color:#1e293b">${icon} ${title}</div>
+              </div>
+              <div style="font-size:12px;color:#475569;line-height:1.6">${body}</div>
+            </div>`).join('')}
+        </div>
+        <div style="margin-top:14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:11px 14px;font-size:12px;color:#78350f;line-height:1.5">
+          💡 <strong>Vinkki:</strong> Lataa logo läpinäkyvällä taustalla (PNG) ja kokeile chat-ikkunan taustakuvaa tai liukuväriä – saat brändillesi näköisen, ammattimaisen chatin. Tarkemmat ohjeet löydät <strong>Ohjeet</strong>-painikkeesta (oikea yläkulma).
+        </div>
+      </div>
     </div>`;
 }
 
@@ -348,6 +400,17 @@ function renderAppearanceTab(tc, bot) {
               <input id="ap-icon-color" type="color" value="${b.iconColor||'#ffffff'}" class="cb-color">
             </div>
           </div>
+          <!-- Painikkeen liukuväri -->
+          <div style="margin-top:12px">
+            <label class="cb-label" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <input type="checkbox" id="ap-btn-gradient" ${b.colorStyle==='gradient'?'checked':''}>
+              Käytä liukuväriä (gradient) painikkeessa
+            </label>
+            <div id="ap-btn-gradient-field" class="cb-field" style="${b.colorStyle==='gradient'?'':'display:none'}">
+              <label class="cb-label">Liukuvärin 2. väri</label>
+              <input id="ap-color2" type="color" value="${b.color2||'#1e40af'}" class="cb-color">
+            </div>
+          </div>
           <!-- Ikonivalitsin — koko leveys -->
           <div style="margin-top:14px">
             <label class="cb-label" style="margin-bottom:8px;display:block">Chat-painikkeen ikoni</label>
@@ -486,22 +549,65 @@ function renderAppearanceTab(tc, bot) {
         </div>
 
         <div class="cb-card" style="margin-bottom:16px">
-          <div class="cb-card-title">Chat-ikkunan värit</div>
+          <div class="cb-card-title">Otsikkopalkki &amp; logo</div>
           <div class="cb-grid2">
             <div class="cb-field">
-              <label class="cb-label">Otsikkopalkin väri</label>
-              <input id="ap-header-color" type="color" value="${w.headerColor||b.color||'#2563EB'}" class="cb-color">
+              <label class="cb-label">Palkin tyyli</label>
+              <select id="ap-header-style" class="cb-select">
+                <option value="solid"    ${w.headerStyle!=='gradient'?'selected':''}>Yksi väri</option>
+                <option value="gradient" ${w.headerStyle==='gradient'?'selected':''}>Liukuväri</option>
+              </select>
             </div>
             <div class="cb-field">
-              <label class="cb-label">Otsikkoteksti</label>
+              <label class="cb-label">Otsikkotekstin väri</label>
               <input id="ap-header-text-color" type="color" value="${w.headerTextColor||'#ffffff'}" class="cb-color">
             </div>
+            <div class="cb-field">
+              <label class="cb-label">Palkin väri 1</label>
+              <input id="ap-header-color" type="color" value="${w.headerColor||b.color||'#2563EB'}" class="cb-color">
+            </div>
+            <div class="cb-field" id="ap-header-color2-field" style="${w.headerStyle==='gradient'?'':'display:none'}">
+              <label class="cb-label">Palkin väri 2 (liukuväri)</label>
+              <input id="ap-header-color2" type="color" value="${w.headerColor2||'#1e40af'}" class="cb-color">
+            </div>
+          </div>
+          <div class="cb-field" style="margin-top:12px">
+            <label class="cb-label">Status-teksti otsikon alla</label>
+            <input id="ap-status-text" type="text" value="${escHtml(w.statusText!=null?w.statusText:'Online')}" placeholder="Online" class="cb-input">
+          </div>
+          <!-- Logo -->
+          <div style="margin-top:14px">
+            <label class="cb-label" style="margin-bottom:6px;display:block">Yrityksen logo otsikkopalkkiin (valinnainen)</label>
+            <input type="file" id="ap-logo-file" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none">
+            <button id="ap-logo-upload-btn" style="width:100%;padding:10px;border:2px dashed #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;font-size:13px;color:#64748b;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px" onmouseover="this.style.borderColor='#2563EB';this.style.color='#2563EB'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+              <i class="fa fa-cloud-upload-alt"></i> Lataa logo koneelta (PNG läpinäkyvällä taustalla suositeltu)
+            </button>
+            <div id="ap-logo-upload-status" style="font-size:11px;margin-top:5px;min-height:14px;color:#64748b"></div>
+            <input id="ap-logo-url" type="text" value="${escHtml(w.logoUrl||'')}" placeholder="tai liitä logon URL https://..." class="cb-input" style="width:100%;margin-top:6px">
+            <div id="ap-logo-preview" style="${w.logoUrl?'':'display:none'};margin-top:10px;display:flex;align-items:center;gap:12px;background:${w.headerColor||'#2563EB'};padding:8px 12px;border-radius:8px">
+              <img id="ap-logo-preview-img" src="${escHtml(w.logoUrl||'')}" style="max-height:${w.logoHeight||26}px;max-width:140px;object-fit:contain" onerror="this.parentNode.style.display='none'">
+              <button id="ap-logo-clear" style="background:rgba(255,255,255,0.2);border:none;cursor:pointer;color:#fff;font-size:11px;font-family:inherit;padding:3px 8px;border-radius:6px">✕ Poista logo</button>
+            </div>
+            <div style="margin-top:10px">
+              <label class="cb-label" style="display:flex;align-items:center;justify-content:space-between">
+                <span>Logon korkeus</span>
+                <span id="ap-logo-height-label" style="font-weight:700;color:#1e293b">${w.logoHeight||26}px</span>
+              </label>
+              <input type="range" id="ap-logo-height" min="16" max="48" step="1" value="${w.logoHeight||26}" style="width:100%;margin-top:6px;accent-color:#2563EB"
+                oninput="document.getElementById('ap-logo-height-label').textContent=this.value+'px';var p=document.getElementById('ap-logo-preview-img');if(p)p.style.maxHeight=this.value+'px'">
+            </div>
+          </div>
+        </div>
+
+        <div class="cb-card" style="margin-bottom:16px">
+          <div class="cb-card-title">Viestipallojen värit</div>
+          <div class="cb-grid2">
             <div class="cb-field">
               <label class="cb-label">Botin viestipallo</label>
               <input id="ap-bot-bubble" type="color" value="${w.botBubbleColor||'#f1f5f9'}" class="cb-color">
             </div>
             <div class="cb-field">
-              <label class="cb-label">Botin viestitTeksti</label>
+              <label class="cb-label">Botin viestiteksti</label>
               <input id="ap-bot-text" type="color" value="${w.botTextColor||'#1e293b'}" class="cb-color">
             </div>
             <div class="cb-field">
@@ -512,10 +618,56 @@ function renderAppearanceTab(tc, bot) {
               <label class="cb-label">Käyttäjän viestiteksti</label>
               <input id="ap-user-text" type="color" value="${w.userTextColor||'#ffffff'}" class="cb-color">
             </div>
+          </div>
+        </div>
+
+        <div class="cb-card" style="margin-bottom:16px">
+          <div class="cb-card-title">Chat-ikkunan tausta</div>
+          <div class="cb-field" style="margin-bottom:12px">
+            <label class="cb-label">Taustan tyyppi</label>
+            <select id="ap-bg-type" class="cb-select">
+              <option value="color"    ${(w.chatBgType||'color')==='color'   ?'selected':''}>Yksi väri</option>
+              <option value="gradient" ${w.chatBgType==='gradient'?'selected':''}>Liukuväri</option>
+              <option value="image"    ${w.chatBgType==='image'   ?'selected':''}>Taustakuva</option>
+            </select>
+          </div>
+          <div class="cb-grid2" id="ap-bg-colors">
             <div class="cb-field">
-              <label class="cb-label">Chat-taustaväri</label>
+              <label class="cb-label">Taustaväri 1</label>
               <input id="ap-chat-bg" type="color" value="${w.chatBgColor||'#ffffff'}" class="cb-color">
             </div>
+            <div class="cb-field" id="ap-bg-color2-field" style="${w.chatBgType==='gradient'?'':'display:none'}">
+              <label class="cb-label">Taustaväri 2 (liukuväri)</label>
+              <input id="ap-chat-bg2" type="color" value="${w.chatBgColor2||'#eef2ff'}" class="cb-color">
+            </div>
+          </div>
+          <!-- Taustakuva -->
+          <div id="ap-bg-image-panel" style="${w.chatBgType==='image'?'':'display:none'};margin-top:12px">
+            <input type="file" id="ap-bg-image-file" accept="image/png,image/jpeg,image/webp" style="display:none">
+            <button id="ap-bg-image-upload-btn" style="width:100%;padding:10px;border:2px dashed #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;font-size:13px;color:#64748b;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px" onmouseover="this.style.borderColor='#2563EB';this.style.color='#2563EB'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+              <i class="fa fa-cloud-upload-alt"></i> Lataa taustakuva koneelta (JPG/PNG, esim. 720×960 px)
+            </button>
+            <div id="ap-bg-image-upload-status" style="font-size:11px;margin-top:5px;min-height:14px;color:#64748b"></div>
+            <input id="ap-bg-image-url" type="text" value="${escHtml(w.chatBgImage||'')}" placeholder="tai liitä kuvan URL https://..." class="cb-input" style="width:100%;margin-top:6px">
+            <div id="ap-bg-image-preview" style="${w.chatBgImage?'':'display:none'};margin-top:10px">
+              <img id="ap-bg-image-preview-img" src="${escHtml(w.chatBgImage||'')}" style="width:100%;max-height:120px;object-fit:cover;border-radius:10px;border:1px solid #e2e8f0" onerror="this.parentNode.style.display='none'">
+              <button id="ap-bg-image-clear" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:11px;font-family:inherit;padding:4px 0 0;margin-top:2px">✕ Poista taustakuva</button>
+            </div>
+            <p style="font-size:11px;color:#94a3b8;margin-top:6px">Syöte- ja viestipalkit saavat automaattisesti huurretun taustan, jotta teksti pysyy luettavana.</p>
+          </div>
+        </div>
+
+        <div class="cb-card" style="margin-bottom:16px">
+          <div class="cb-card-title">Typografia</div>
+          <div class="cb-field">
+            <label class="cb-label">Fontti</label>
+            <select id="ap-font" class="cb-select">
+              <option value="system"  ${(w.fontFamily||'system')==='system'?'selected':''}>Järjestelmäfontti (oletus)</option>
+              <option value="inter"   ${w.fontFamily==='inter'  ?'selected':''}>Inter (moderni)</option>
+              <option value="poppins" ${w.fontFamily==='poppins'?'selected':''}>Poppins (pyöreä, ystävällinen)</option>
+              <option value="roboto"  ${w.fontFamily==='roboto' ?'selected':''}>Roboto (selkeä)</option>
+              <option value="nunito"  ${w.fontFamily==='nunito' ?'selected':''}>Nunito (pehmeä)</option>
+            </select>
           </div>
         </div>
 
@@ -695,6 +847,79 @@ function renderAppearanceTab(tc, bot) {
     updateImagePreview(tc, '');
   });
 
+  // Lataa valittu fontti esikatselua varten
+  ensureGoogleFont(w.fontFamily);
+  tc.querySelector('#ap-font')?.addEventListener('change', e => ensureGoogleFont(e.target.value));
+
+  // ── Painikkeen liukuväri-toggle ───────────────────────────────────────────
+  tc.querySelector('#ap-btn-gradient')?.addEventListener('change', e => {
+    tc.querySelector('#ap-btn-gradient-field').style.display = e.target.checked ? '' : 'none';
+  });
+
+  // ── Otsikkopalkin tyyli ───────────────────────────────────────────────────
+  tc.querySelector('#ap-header-style')?.addEventListener('change', e => {
+    tc.querySelector('#ap-header-color2-field').style.display = e.target.value === 'gradient' ? '' : 'none';
+  });
+
+  // ── Chat-taustan tyyppi ───────────────────────────────────────────────────
+  tc.querySelector('#ap-bg-type')?.addEventListener('change', e => {
+    const v = e.target.value;
+    tc.querySelector('#ap-bg-color2-field').style.display = v === 'gradient' ? '' : 'none';
+    tc.querySelector('#ap-bg-image-panel').style.display  = v === 'image'    ? '' : 'none';
+  });
+
+  // ── Logon lataus ──────────────────────────────────────────────────────────
+  const logoUrlInput = tc.querySelector('#ap-logo-url');
+  tc.querySelector('#ap-logo-upload-btn')?.addEventListener('click', () => tc.querySelector('#ap-logo-file').click());
+  tc.querySelector('#ap-logo-file')?.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const status = tc.querySelector('#ap-logo-upload-status');
+    const btn = tc.querySelector('#ap-logo-upload-btn');
+    btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Ladataan...';
+    status.textContent = '';
+    try {
+      const url = await uploadImageFile(file);
+      logoUrlInput.value = url;
+      updateLogoPreview(tc, url);
+      status.textContent = '✅ Logo ladattu!'; status.style.color = '#16a34a';
+    } catch (err) {
+      status.textContent = '❌ ' + err.message; status.style.color = '#ef4444';
+    }
+    btn.disabled = false; btn.innerHTML = '<i class="fa fa-cloud-upload-alt"></i> Lataa logo koneelta (PNG läpinäkyvällä taustalla suositeltu)';
+    e.target.value = '';
+  });
+  logoUrlInput?.addEventListener('input', e => updateLogoPreview(tc, e.target.value));
+  tc.querySelector('#ap-logo-clear')?.addEventListener('click', () => {
+    logoUrlInput.value = ''; updateLogoPreview(tc, '');
+  });
+
+  // ── Taustakuvan lataus ────────────────────────────────────────────────────
+  const bgImageUrlInput = tc.querySelector('#ap-bg-image-url');
+  tc.querySelector('#ap-bg-image-upload-btn')?.addEventListener('click', () => tc.querySelector('#ap-bg-image-file').click());
+  tc.querySelector('#ap-bg-image-file')?.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const status = tc.querySelector('#ap-bg-image-upload-status');
+    const btn = tc.querySelector('#ap-bg-image-upload-btn');
+    btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Ladataan...';
+    status.textContent = '';
+    try {
+      const url = await uploadImageFile(file);
+      bgImageUrlInput.value = url;
+      updateBgImagePreview(tc, url);
+      status.textContent = '✅ Taustakuva ladattu!'; status.style.color = '#16a34a';
+    } catch (err) {
+      status.textContent = '❌ ' + err.message; status.style.color = '#ef4444';
+    }
+    btn.disabled = false; btn.innerHTML = '<i class="fa fa-cloud-upload-alt"></i> Lataa taustakuva koneelta (JPG/PNG, esim. 720×960 px)';
+    e.target.value = '';
+  });
+  bgImageUrlInput?.addEventListener('input', e => updateBgImagePreview(tc, e.target.value));
+  tc.querySelector('#ap-bg-image-clear')?.addEventListener('click', () => {
+    bgImageUrlInput.value = ''; updateBgImagePreview(tc, '');
+  });
+
   // ── Esikatselun tila-napit ────────────────────────────────────────────────
   let previewState = 'button';
   tc.querySelectorAll('.ap-ptab').forEach(tab => {
@@ -771,7 +996,9 @@ function renderAppearanceTab(tc, bot) {
       button: {
         shape:      tc.querySelector('#ap-shape').value,
         size:       Number(tc.querySelector('#ap-size').value),
+        colorStyle: tc.querySelector('#ap-btn-gradient')?.checked ? 'gradient' : 'solid',
         color:      tc.querySelector('#ap-color').value,
+        color2:     tc.querySelector('#ap-color2')?.value || '#1e40af',
         iconColor:  tc.querySelector('#ap-icon-color').value,
         iconType:   tc.querySelector('#ap-icon-type').value,
         iconValue:  tc.querySelector('#ap-icon-value')?.value || 'chat',
@@ -793,13 +1020,22 @@ function renderAppearanceTab(tc, bot) {
         botName:         tc.querySelector('#ap-bot-name').value,
         botAvatarType:   tc.querySelector('#ap-avatar-type').value,
         botAvatarValue:  tc.querySelector('#ap-avatar-value').value,
+        headerStyle:     tc.querySelector('#ap-header-style').value,
         headerColor:     tc.querySelector('#ap-header-color').value,
+        headerColor2:    tc.querySelector('#ap-header-color2').value,
         headerTextColor: tc.querySelector('#ap-header-text-color').value,
+        statusText:      tc.querySelector('#ap-status-text').value,
+        logoUrl:         tc.querySelector('#ap-logo-url').value.trim(),
+        logoHeight:      Number(tc.querySelector('#ap-logo-height').value || 26),
         botBubbleColor:  tc.querySelector('#ap-bot-bubble').value,
         botTextColor:    tc.querySelector('#ap-bot-text').value,
         userBubbleColor: tc.querySelector('#ap-user-bubble').value,
         userTextColor:   tc.querySelector('#ap-user-text').value,
-        chatBgColor:     tc.querySelector('#ap-chat-bg').value
+        chatBgType:      tc.querySelector('#ap-bg-type').value,
+        chatBgColor:     tc.querySelector('#ap-chat-bg').value,
+        chatBgColor2:    tc.querySelector('#ap-chat-bg2').value,
+        chatBgImage:     tc.querySelector('#ap-bg-image-url').value.trim(),
+        fontFamily:      tc.querySelector('#ap-font').value
       }
     };
     payload.quickReplies = [...tc.querySelectorAll('.ap-qr-input')]
@@ -808,6 +1044,7 @@ function renderAppearanceTab(tc, bot) {
     try {
       await saveBot(bot._id, payload, saveBtn);
       Object.assign(bot, payload);
+      ensureGoogleFont(payload.window.fontFamily);
       tc.querySelector('#ap-preview').innerHTML = renderPreviewWidget(bot, previewState);
     } catch (err) {
       if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa fa-save"></i> Tallenna ulkoasuasetukset'; }
@@ -825,6 +1062,27 @@ function renderPreviewWidget(bot, state) {
   const iColor = b.iconColor || '#ffffff';
   const iconSvgSize = Math.round(size * 0.45);
 
+  // ── Tyylilaskenta (sama logiikka kuin embedissä) ──────────────────────────
+  const FONT_STACKS = {
+    system:  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    inter:   "'Inter', sans-serif", poppins: "'Poppins', sans-serif",
+    roboto:  "'Roboto', sans-serif", nunito: "'Nunito', sans-serif"
+  };
+  const fontStack = FONT_STACKS[w.fontFamily] || FONT_STACKS.system;
+  const launcherBg = b.colorStyle === 'gradient'
+    ? `linear-gradient(135deg, ${color}, ${b.color2||color})` : color;
+  const headerBase = w.headerColor || color;
+  const headerBg = w.headerStyle === 'gradient'
+    ? `linear-gradient(135deg, ${headerBase}, ${w.headerColor2||headerBase})` : headerBase;
+  const bgColor = w.chatBgColor || '#ffffff';
+  let chatBg, fancy = false;
+  if (w.chatBgType === 'gradient') { chatBg = `linear-gradient(160deg, ${bgColor}, ${w.chatBgColor2||bgColor})`; fancy = true; }
+  else if (w.chatBgType === 'image' && w.chatBgImage) { chatBg = `url("${w.chatBgImage}") center/cover no-repeat`; fancy = true; }
+  else chatBg = bgColor;
+  const barBg = fancy ? 'rgba(255,255,255,0.86)' : bgColor;
+  const statusText = w.statusText != null ? w.statusText : 'Online';
+  const logoUrl = w.logoUrl || '';
+
   // Ikonin renderöinti tyypin mukaan
   let iconHtml;
   if (b.iconType === 'emoji') {
@@ -836,24 +1094,27 @@ function renderPreviewWidget(bot, state) {
   }
 
   if (state === 'window') {
+    const titleHtml = logoUrl
+      ? `<img src="${escHtml(logoUrl)}" style="max-height:${w.logoHeight||26}px;max-width:130px;object-fit:contain;display:block" onerror="this.style.display='none'">`
+      : `<div style="font-size:13px;font-weight:700">${escHtml(w.botName||'Avustaja')}</div>`;
     // ── Chat-ikkuna auki ───────────────────────────────────────────────────
     return `
-      <div style="position:absolute;inset:12px;background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.15);overflow:hidden;border:1px solid #e2e8f0;display:flex;flex-direction:column">
-        <div style="background:${w.headerColor||color};color:${w.headerTextColor||'#fff'};padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0">
-          <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:17px">${w.botAvatarValue||'🤖'}</div>
-          <div>
-            <div style="font-size:13px;font-weight:700">${escHtml(w.botName||'Avustaja')}</div>
-            <div style="font-size:11px;opacity:0.8">Online</div>
+      <div style="position:absolute;inset:12px;background:${chatBg};border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.15);overflow:hidden;border:1px solid #e2e8f0;display:flex;flex-direction:column;font-family:${fontStack}">
+        <div style="background:${headerBg};color:${w.headerTextColor||'#fff'};padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,0.06)">
+          <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${w.botAvatarValue||'🤖'}</div>
+          <div style="min-width:0">
+            ${titleHtml}
+            ${statusText?`<div style="font-size:11px;opacity:0.85"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px"></span>${escHtml(statusText)}</div>`:''}
           </div>
         </div>
-        <div style="flex:1;padding:12px;background:${w.chatBgColor||'#fff'};overflow:hidden;display:flex;flex-direction:column;gap:8px">
-          <div style="background:${w.botBubbleColor||'#f1f5f9'};color:${w.botTextColor||'#1e293b'};padding:8px 12px;border-radius:4px 12px 12px 12px;font-size:12px;line-height:1.4;max-width:80%;align-self:flex-start">${escHtml((bot.behavior||{}).welcomeMessage||'Hei! Kuinka voin auttaa?')}</div>
-          <div style="background:${w.userBubbleColor||color};color:${w.userTextColor||'#fff'};padding:8px 12px;border-radius:12px 4px 12px 12px;font-size:12px;line-height:1.4;max-width:80%;align-self:flex-end">Esimerkki viesti</div>
-          <div style="background:${w.botBubbleColor||'#f1f5f9'};color:${w.botTextColor||'#1e293b'};padding:8px 12px;border-radius:4px 12px 12px 12px;font-size:12px;line-height:1.4;max-width:80%;align-self:flex-start">Selvä, voin auttaa sinua!</div>
+        <div style="flex:1;padding:12px;overflow:hidden;display:flex;flex-direction:column;gap:8px">
+          <div style="background:${w.botBubbleColor||'#f1f5f9'};color:${w.botTextColor||'#1e293b'};padding:8px 12px;border-radius:4px 12px 12px 12px;font-size:12px;line-height:1.4;max-width:80%;align-self:flex-start;box-shadow:0 1px 2px rgba(0,0,0,0.06)">${escHtml((bot.behavior||{}).welcomeMessage||'Hei! Kuinka voin auttaa?')}</div>
+          <div style="background:${w.userBubbleColor||color};color:${w.userTextColor||'#fff'};padding:8px 12px;border-radius:12px 4px 12px 12px;font-size:12px;line-height:1.4;max-width:80%;align-self:flex-end;box-shadow:0 1px 2px rgba(0,0,0,0.06)">Esimerkki viesti</div>
+          <div style="background:${w.botBubbleColor||'#f1f5f9'};color:${w.botTextColor||'#1e293b'};padding:8px 12px;border-radius:4px 12px 12px 12px;font-size:12px;line-height:1.4;max-width:80%;align-self:flex-start;box-shadow:0 1px 2px rgba(0,0,0,0.06)">Selvä, voin auttaa sinua!</div>
         </div>
-        <div style="padding:8px 10px;border-top:1px solid #e2e8f0;display:flex;gap:6px;background:${w.chatBgColor||'#fff'};flex-shrink:0">
-          <div style="flex:1;background:#f1f5f9;border-radius:8px;padding:7px 10px;font-size:11px;color:#94a3b8">Kirjoita viestisi...</div>
-          <div style="width:30px;height:30px;border-radius:8px;background:${color};display:flex;align-items:center;justify-content:center">
+        <div style="padding:8px 10px;border-top:1px solid ${fancy?'rgba(0,0,0,0.06)':'#e2e8f0'};display:flex;gap:6px;background:${barBg};${fancy?'backdrop-filter:blur(10px)':''};flex-shrink:0">
+          <div style="flex:1;background:#f1f5f9;border-radius:8px;padding:7px 10px;font-size:11px;color:#94a3b8">${escHtml((bot.behavior||{}).inputPlaceholder||'Kirjoita viestisi...')}</div>
+          <div style="width:30px;height:30px;border-radius:8px;background:${launcherBg};display:flex;align-items:center;justify-content:center">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" style="fill:${iColor}"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </div>
         </div>
@@ -863,13 +1124,13 @@ function renderPreviewWidget(bot, state) {
   // ── Painike-tila (suljettu) ────────────────────────────────────────────────
   const grabberText = (bot.grabber?.enabled !== false) ? escHtml(bot.grabber?.text || 'Onko sinulla kysyttävää? 💬') : '';
   return `
-    <div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+    <div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-family:${fontStack}">
       ${grabberText ? `
         <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:9px 13px;font-size:12px;color:#374151;box-shadow:0 2px 10px rgba(0,0,0,0.1);max-width:190px;position:relative;line-height:1.4">
           ${grabberText}
           <div style="position:absolute;bottom:-7px;right:18px;width:12px;height:12px;background:#fff;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;transform:rotate(45deg)"></div>
         </div>` : ''}
-      <div style="width:${size}px;height:${size}px;border-radius:${shape};background:${color};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.22);cursor:pointer;flex-shrink:0">
+      <div style="width:${size}px;height:${size}px;border-radius:${shape};background:${launcherBg};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.22);cursor:pointer;flex-shrink:0">
         ${iconHtml}
       </div>
     </div>`;
@@ -1466,6 +1727,51 @@ function updateImagePreview(tc, url) {
     preview.style.display = 'none';
     img.src = '';
   }
+}
+
+// Lataa kuva /api/upload-reittiin ja palauta URL
+async function uploadImageFile(file) {
+  const fd = new FormData();
+  fd.append('image', file);
+  const r = await fetch('/api/upload', { method: 'POST', body: fd });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'Lataus epäonnistui');
+  const data = await r.json();
+  const url  = data.url || data.signedUrl || data.imageUrl || '';
+  if (!url) throw new Error('URL puuttuu vastauksesta');
+  return url;
+}
+
+function updateLogoPreview(tc, url) {
+  const preview = tc.querySelector('#ap-logo-preview');
+  const img     = tc.querySelector('#ap-logo-preview-img');
+  if (!preview || !img) return;
+  if (url) { img.src = url; preview.style.display = 'flex'; }
+  else     { preview.style.display = 'none'; img.src = ''; }
+}
+
+function updateBgImagePreview(tc, url) {
+  const preview = tc.querySelector('#ap-bg-image-preview');
+  const img     = tc.querySelector('#ap-bg-image-preview-img');
+  if (!preview || !img) return;
+  if (url) { img.src = url; preview.style.display = ''; }
+  else     { preview.style.display = 'none'; img.src = ''; }
+}
+
+// Lataa Google-fontti dashboardiin esikatselua varten (kerran per fontti)
+function ensureGoogleFont(fontKey) {
+  const FONT_URLS = {
+    inter:   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+    poppins: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap',
+    roboto:  'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap',
+    nunito:  'https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap'
+  };
+  const url = FONT_URLS[fontKey];
+  if (!url || document.querySelector(`link[data-cb-font="${fontKey}"]`)) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = url;
+  link.setAttribute('data-cb-font', fontKey);
+  document.head.appendChild(link);
 }
 
 function fmtDate(d) {
