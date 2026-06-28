@@ -55,6 +55,8 @@ function buildSystemPrompt(bot, contextChunks) {
     let prompt = `Olet ${bot.window.botName}, avustava chatbot.
 Vastaa AINA ensisijaisesti kielellä: ${lang}. Jos käyttäjä kirjoittaa eri kielellä, vastaa samalla kielellä kuin hän.
 Vastaa VAIN alla olevan tietokannan perusteella. Älä keksi tietoa jota ei ole annettu.
+ÄLÄ KOSKAAN keksi tai arvaa URL-osoitteita, linkkejä, puhelinnumeroita tai sähköpostiosoitteita. Käytä vain niitä jotka löytyvät tietokannasta sellaisenaan.
+Jos esim. ajanvarauslinkkiä ei ole annettu, älä keksi sitä — kehota käymään yrityksen sivuilla tai ottamaan yhteyttä.
 Jos et löydä vastausta, sano niin selkeästi äläkä arvaa.
 Ole lyhyt, selkeä ja ystävällinen.`;
 
