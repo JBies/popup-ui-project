@@ -447,7 +447,7 @@ function renderAppearanceTab(tc, bot) {
               <button class="ap-icon-tab ${b.iconType==='image'?'active':''}"  data-tab="image"  style="padding:5px 12px;border-radius:7px;border:1.5px solid;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">Kuva URL</button>
             </div>
             <!-- Esiasetettu ruudukko -->
-            <div id="ap-preset-grid" style="${b.iconType==='emoji'||b.iconType==='image'?'display:none':''}display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+            <div id="ap-preset-grid" style="${b.iconType==='emoji'||b.iconType==='image'?'display:none':'display:grid'};grid-template-columns:repeat(4,1fr);gap:8px">
               ${Object.entries(PRESET_ICONS).map(([key, cfg]) => {
                 const isActive = (b.iconType==='svg'||!b.iconType) && (b.iconValue===key||(key==='chat'&&!b.iconValue));
                 return `<button class="ap-preset-icon ${isActive?'selected':''}" data-key="${key}" title="${cfg.label}" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:10px;border:2px solid ${isActive?'#2563EB':'#e2e8f0'};background:${isActive?'#eff6ff':'#f8fafc'};cursor:pointer;font-family:inherit;transition:all 0.15s">
