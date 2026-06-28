@@ -25,9 +25,10 @@ async function embedText(text) {
     }
 
     // Gemini embeddings (OpenAI-compatible endpoint)
+    // Huom: text-embedding-004 on vanhentunut tällä endpointilla → gemini-embedding-001
     const res = await axios.post(
         'https://generativelanguage.googleapis.com/v1beta/openai/embeddings',
-        { model: 'text-embedding-004', input: text.slice(0, 2048) },
+        { model: 'gemini-embedding-001', input: text.slice(0, 2048) },
         {
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             timeout: 20000
