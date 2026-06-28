@@ -1,11 +1,16 @@
 // js/dashboard/chatbots-page.js
 import { showToast } from './dashboard-main.js';
+import { getCurrentLanguage } from '../i18n.js';
 
 let currentBotId = null;
 let allBots = [];
 
 export function initChatbotsPage() {
   window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#chatbots') loadBots();
+  });
+  // Päivitä näkymä (mm. kaksikielinen aloitusopas) kun kieli vaihdetaan
+  window.addEventListener('languagechange', () => {
     if (window.location.hash === '#chatbots') loadBots();
   });
   if (window.location.hash === '#chatbots') loadBots();
@@ -98,27 +103,43 @@ function renderEmptyState() {
     </div>`;
 }
 
-// ── Aloitusopas ei-tekniselle käyttäjälle ──────────────────────────────────────
+// ── Aloitusopas ei-tekniselle käyttäjälle (kaksikielinen) ──────────────────────
 function renderGettingStarted() {
-  const steps = [
-    ['1', '➕', 'Luo chatbot', 'Klikkaa <strong>“Uusi chatbot”</strong>. Anna sille nimi (esim. yrityksesi nimi) ja valitse moodi: <strong>AI</strong> vastaa lataamiesi tietojen perusteella, <strong>Q&amp;A</strong> käyttää valmiita kysymys–vastaus-pareja.'],
-    ['2', '📚', 'Lisää tietoa botille', 'Avaa botti ja mene <strong>Tietokanta</strong>-välilehdelle. Lataa PDF tai anna verkkosivusi osoite – botti oppii vastaamaan automaattisesti. (Q&amp;A-moodissa lisää vastaukset <strong>Q&amp;A</strong>-välilehdellä.)'],
-    ['3', '🎨', 'Muokkaa ulkoasu', '<strong>Ulkoasu</strong>-välilehdellä valitse värit, lataa logo, vaihda chat-ikkunan tausta ja fontti. Oikealla näkyvä esikatselu päivittyy kun tallennat.'],
-    ['4', '🔗', 'Lisää sivustollesi', 'Klikkaa oikeasta yläkulmasta <strong>“Koodi”</strong>, kopioi yksi rivi ja liitä se verkkosivusi koodiin (tai pyydä verkkovastaavaasi tekemään se). Chat ilmestyy heti – tehdään vain kerran.'],
-  ];
+  const fi = getCurrentLanguage() === 'fi';
+  const T = fi ? {
+    title: 'Näin otat chatbotin käyttöön – 4 helppoa askelta',
+    sub:   'Ei teknistä osaamista tarvita. Klikkaa avataksesi ohjeet.',
+    steps: [
+      ['1', '➕', 'Luo chatbot', 'Klikkaa <strong>“Uusi chatbot”</strong>. Anna sille nimi (esim. yrityksesi nimi) ja valitse moodi: <strong>AI</strong> vastaa lataamiesi tietojen perusteella, <strong>Q&amp;A</strong> käyttää valmiita kysymys–vastaus-pareja.'],
+      ['2', '📚', 'Lisää tietoa botille', 'Avaa botti ja mene <strong>Tietokanta</strong>-välilehdelle. Lataa PDF tai anna verkkosivusi osoite – botti oppii vastaamaan automaattisesti. (Q&amp;A-moodissa lisää vastaukset <strong>Q&amp;A</strong>-välilehdellä.)'],
+      ['3', '🎨', 'Muokkaa ulkoasu', '<strong>Ulkoasu</strong>-välilehdellä valitse värit, lataa logo, vaihda chat-ikkunan tausta ja fontti. Oikealla näkyvä esikatselu päivittyy kun tallennat.'],
+      ['4', '🔗', 'Lisää sivustollesi', 'Klikkaa oikeasta yläkulmasta <strong>“Koodi”</strong>, kopioi yksi rivi ja liitä se verkkosivusi koodiin (tai pyydä verkkovastaavaasi tekemään se). Chat ilmestyy heti – tehdään vain kerran.'],
+    ],
+    tip: '💡 <strong>Vinkki:</strong> Lataa logo läpinäkyvällä taustalla (PNG) ja kokeile chat-ikkunan taustakuvaa tai liukuväriä – saat brändillesi näköisen, ammattimaisen chatin. Tarkemmat ohjeet löydät <strong>Ohjeet</strong>-painikkeesta (oikea yläkulma).'
+  } : {
+    title: 'How to launch your chatbot – 4 easy steps',
+    sub:   'No technical skills needed. Click to open the guide.',
+    steps: [
+      ['1', '➕', 'Create a chatbot', 'Click <strong>“New chatbot”</strong>. Give it a name (e.g. your company name) and choose a mode: <strong>AI</strong> answers based on the content you upload, <strong>Q&amp;A</strong> uses ready-made question–answer pairs.'],
+      ['2', '📚', 'Add knowledge', 'Open the bot and go to the <strong>Knowledge</strong> tab. Upload a PDF or enter your website address – the bot learns to answer automatically. (In Q&amp;A mode, add answers on the <strong>Q&amp;A</strong> tab.)'],
+      ['3', '🎨', 'Customise the look', 'On the <strong>Appearance</strong> tab choose colours, upload a logo, and change the chat window background and font. The preview on the right updates when you save.'],
+      ['4', '🔗', 'Add it to your site', 'Click <strong>“Code”</strong> in the top-right corner, copy the single line and paste it into your website code (or ask your webmaster to do it). The chat appears instantly – done only once.'],
+    ],
+    tip: '💡 <strong>Tip:</strong> Upload a logo with a transparent background (PNG) and try a chat window background image or gradient – you get a branded, professional-looking chat. Find detailed help via the <strong>Help</strong> button (top-right).'
+  };
   return `
     <div id="cb-guide" style="background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1px solid #dbeafe;border-radius:16px;padding:0;margin-bottom:24px;overflow:hidden">
       <div id="cb-guide-toggle" style="display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;user-select:none">
         <div style="font-size:22px">🚀</div>
         <div style="flex:1">
-          <div style="font-size:14px;font-weight:700;color:#1e293b">Näin otat chatbotin käyttöön – 4 helppoa askelta</div>
-          <div style="font-size:12px;color:#64748b;margin-top:2px">Ei teknistä osaamista tarvita. Klikkaa avataksesi ohjeet.</div>
+          <div style="font-size:14px;font-weight:700;color:#1e293b">${T.title}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">${T.sub}</div>
         </div>
         <i id="cb-guide-chevron" class="fa fa-chevron-down" style="color:#64748b;transition:transform 0.2s"></i>
       </div>
       <div id="cb-guide-body" style="padding:0 20px 20px">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
-          ${steps.map(([n, icon, title, body]) => `
+          ${T.steps.map(([n, icon, title, body]) => `
             <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;position:relative">
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
                 <div style="width:26px;height:26px;border-radius:50%;background:#2563EB;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${n}</div>
@@ -128,7 +149,7 @@ function renderGettingStarted() {
             </div>`).join('')}
         </div>
         <div style="margin-top:14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:11px 14px;font-size:12px;color:#78350f;line-height:1.5">
-          💡 <strong>Vinkki:</strong> Lataa logo läpinäkyvällä taustalla (PNG) ja kokeile chat-ikkunan taustakuvaa tai liukuväriä – saat brändillesi näköisen, ammattimaisen chatin. Tarkemmat ohjeet löydät <strong>Ohjeet</strong>-painikkeesta (oikea yläkulma).
+          ${T.tip}
         </div>
       </div>
     </div>`;
