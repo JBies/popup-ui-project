@@ -1188,6 +1188,23 @@ function renderPreviewWidget(bot, state) {
 // ─────────────────────────────────────────────────────────────────────────────
 // VÄLILEHTI 2: TIETOKANTA
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Dokumenttilistan rivit (uudelleenkäytetään crawl-pollauksessa)
+function docRowsHtml(docs) {
+  if (!docs || docs.length === 0) {
+    return '<p style="color:#94a3b8;font-size:13px;text-align:center;padding:20px 0">Ei dokumentteja vielä</p>';
+  }
+  return docs.map(doc => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9">
+      <div style="font-size:20px">${doc.sourceType==='pdf'?'📄':doc.sourceType==='url'?'🌐':'📝'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(doc.sourceName)}</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px">${doc.totalChunks} chunkia · ${fmtDate(doc.createdAt)}</div>
+      </div>
+      <span style="padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;background:${doc.vectorized?'#dcfce7':'#fef3c7'};color:${doc.vectorized?'#16a34a':'#d97706'}">${doc.vectorized?'Valmis':'Prosessoidaan'}</span>
+      <button data-doc-id="${doc._id}" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:13px;padding:4px" title="Poista"><i class="fa fa-trash"></i></button>
+    </div>`).join('');
+}
 async function renderKnowledgeTab(tc, bot) {
   tc.innerHTML = `<div style="padding:40px;text-align:center;color:#94a3b8"><i class="fa fa-spinner fa-spin"></i></div>`;
 
@@ -1234,29 +1251,22 @@ async function renderKnowledgeTab(tc, bot) {
         <button id="kn-crawl-btn" style="width:100%;padding:9px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
           <i class="fa fa-spider"></i> Käynnistä crawl
         </button>
-        <p style="font-size:11px;color:#94a3b8;margin-top:8px">Crawl käynnistyy taustalla. Dokumentit ilmestyvät listaan minuuttien sisällä.</p>
+        <p style="font-size:11px;color:#94a3b8;margin-top:8px">Crawl käynnistyy taustalla. Dokumentit ilmestyvät listaan automaattisesti.</p>
+        <div id="kn-crawl-progress" style="display:none;margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:10px 12px;font-size:12px;color:#1e40af;display:none;align-items:center;gap:8px">
+          <i class="fa fa-spinner fa-spin"></i>
+          <span id="kn-crawl-progress-text">Indeksoidaan sivustoa… tämä voi kestää hetken</span>
+        </div>
       </div>
     </div>
 
     <!-- Dokumenttilista -->
     <div class="cb-card" style="margin-top:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div class="cb-card-title" style="margin:0">Ladatut dokumentit (${docs.length})</div>
+        <div class="cb-card-title" style="margin:0">Ladatut dokumentit (<span id="kn-docs-count">${docs.length}</span>)</div>
         <button id="kn-refresh-docs" style="background:none;border:none;cursor:pointer;color:#64748b;font-size:13px;font-family:inherit"><i class="fa fa-sync-alt"></i> Päivitä</button>
       </div>
       <div id="kn-docs-list">
-        ${docs.length === 0
-          ? '<p style="color:#94a3b8;font-size:13px;text-align:center;padding:20px 0">Ei dokumentteja vielä</p>'
-          : docs.map(doc => `
-            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9">
-              <div style="font-size:20px">${doc.sourceType==='pdf'?'📄':doc.sourceType==='url'?'🌐':'📝'}</div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:500;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(doc.sourceName)}</div>
-                <div style="font-size:11px;color:#94a3b8;margin-top:2px">${doc.totalChunks} chunkia · ${fmtDate(doc.createdAt)}</div>
-              </div>
-              <span style="padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;background:${doc.vectorized?'#dcfce7':'#fef3c7'};color:${doc.vectorized?'#16a34a':'#d97706'}">${doc.vectorized?'Valmis':'Prosessoidaan'}</span>
-              <button data-doc-id="${doc._id}" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:13px;padding:4px" title="Poista"><i class="fa fa-trash"></i></button>
-            </div>`).join('')}
+        ${docRowsHtml(docs)}
       </div>
     </div>
     <style>
@@ -1305,6 +1315,65 @@ async function renderKnowledgeTab(tc, bot) {
     }
   });
 
+  // Kiinnitä dokumenttien poistonapit (kutsutaan myös listan päivityksen jälkeen)
+  function bindDocDeletes() {
+    tc.querySelectorAll('#kn-docs-list [data-doc-id]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Poistetaanko dokumentti?')) return;
+        await fetch(`/api/chatbots/${bot._id}/documents/${btn.dataset.docId}`, { method: 'DELETE' });
+        refreshDocsList();
+      });
+    });
+  }
+
+  // Hae dokumentit ja päivitä lista + lukumäärä ilman koko välilehden uudelleenrenderöintiä
+  async function refreshDocsList() {
+    const list = tc.querySelector('#kn-docs-list');
+    if (!list) return null; // välilehti vaihtunut
+    let docs = [];
+    try { docs = await fetch(`/api/chatbots/${bot._id}/documents`).then(r => r.json()); }
+    catch { return null; }
+    if (!tc.querySelector('#kn-docs-list')) return null;
+    list.innerHTML = docRowsHtml(docs);
+    const count = tc.querySelector('#kn-docs-count');
+    if (count) count.textContent = docs.length;
+    bindDocDeletes();
+    return docs.length;
+  }
+
+  bindDocDeletes();
+  tc.querySelector('#kn-refresh-docs').addEventListener('click', refreshDocsList);
+
+  // Crawl-pollaus: näytä etenemisinfo ja päivitä lista automaattisesti taustacrawlin aikana
+  let crawlTimer = null;
+  function startCrawlPolling(baseCount) {
+    if (crawlTimer) clearInterval(crawlTimer);
+    const prog = tc.querySelector('#kn-crawl-progress');
+    const txt  = tc.querySelector('#kn-crawl-progress-text');
+    if (prog) prog.style.display = 'flex';
+    let polls = 0, lastCount = baseCount, stable = 0;
+    const MAX_POLLS = 30; // ~30 × 4 s ≈ 2 min
+    crawlTimer = setInterval(async () => {
+      polls++;
+      const n = await refreshDocsList();
+      if (n === null) { clearInterval(crawlTimer); crawlTimer = null; return; } // välilehti vaihtui
+      const found = n - baseCount;
+      if (txt) txt.textContent = found > 0
+        ? `Indeksoidaan sivustoa… löydetty ${found} ${found === 1 ? 'sivu' : 'sivua'} tähän mennessä`
+        : 'Indeksoidaan sivustoa… tämä voi kestää hetken';
+      if (n === lastCount) stable++; else { stable = 0; lastCount = n; }
+      // Lopeta: aikaraja täynnä TAI uutta löytyi eikä määrä ole muuttunut hetkeen
+      if (polls >= MAX_POLLS || (found > 0 && stable >= 3)) {
+        clearInterval(crawlTimer); crawlTimer = null;
+        if (prog) {
+          prog.style.background = '#f0fdf4'; prog.style.borderColor = '#bbf7d0'; prog.style.color = '#166534';
+          prog.innerHTML = `<i class="fa fa-check-circle"></i> <span>Crawl valmis — ${found > 0 ? `${found} ${found === 1 ? 'sivu' : 'sivua'} lisätty` : 'ei uusia sivuja löytynyt'}.</span>`;
+          setTimeout(() => { const p = tc.querySelector('#kn-crawl-progress'); if (p) p.style.display = 'none'; }, 8000);
+        }
+      }
+    }, 4000);
+  }
+
   // Crawl
   tc.querySelector('#kn-crawl-btn').addEventListener('click', async () => {
     const url   = tc.querySelector('#kn-url').value.trim();
@@ -1312,6 +1381,7 @@ async function renderKnowledgeTab(tc, bot) {
     const maxP  = Number(tc.querySelector('#kn-max-pages').value);
     if (!url) { showToast('Anna URL-osoite', 'error'); return; }
     const btn = tc.querySelector('#kn-crawl-btn');
+    const baseCount = Number(tc.querySelector('#kn-docs-count')?.textContent || 0);
     btn.disabled = true; btn.textContent = 'Käynnistetään...';
     try {
       const r = await fetch(`/api/chatbots/${bot._id}/crawl`, {
@@ -1322,23 +1392,12 @@ async function renderKnowledgeTab(tc, bot) {
       if (!r.ok) { const e = await r.json(); throw new Error(e.message); }
       showToast('Crawl käynnistetty taustalla!', 'success');
       tc.querySelector('#kn-url').value = '';
+      startCrawlPolling(baseCount);
     } catch (e) {
       showToast(e.message || 'Virhe', 'error');
     }
     btn.disabled = false; btn.innerHTML = '<i class="fa fa-spider"></i> Käynnistä crawl';
   });
-
-  // Dokumentin poisto
-  tc.querySelectorAll('[data-doc-id]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if (!confirm('Poistetaanko dokumentti?')) return;
-      await fetch(`/api/chatbots/${bot._id}/documents/${btn.dataset.docId}`, { method: 'DELETE' });
-      renderKnowledgeTab(tc, bot);
-    });
-  });
-
-  // Päivitä
-  tc.querySelector('#kn-refresh-docs').addEventListener('click', () => renderKnowledgeTab(tc, bot));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
