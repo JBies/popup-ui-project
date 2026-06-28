@@ -20,7 +20,8 @@ const chatBotSchema = new mongoose.Schema({
         color2:     { type: String, default: '#1e40af' },   // gradientin 2. väri
         iconColor:  { type: String, default: '#ffffff' },
         position:   { type: String, enum: ['bottom-right', 'bottom-left', 'top-right', 'top-left'], default: 'bottom-right' },
-        iconScale:  { type: Number, default: 65 },          // % kuvan koko napissa (kuvamoodi)
+        iconScale:  { type: Number, default: 65 },          // % kuvan koko napissa (kuvamoodi, contain)
+        iconFit:    { type: String, enum: ['contain', 'cover'], default: 'contain' }, // cover = täyttää napin ja rajautuu muotoon
         offsetX:    { type: Number, default: 20 },          // px
         offsetY:    { type: Number, default: 20 }
     },

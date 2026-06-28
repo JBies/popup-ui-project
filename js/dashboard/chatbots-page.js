@@ -483,8 +483,22 @@ function renderAppearanceTab(tc, bot) {
                 </div>
               </div>
               <p style="font-size:11px;color:#94a3b8;margin-top:6px">Suositeltu koko: 64×64 px tai suurempi neliö</p>
-              <!-- Kuvan koko napissa -->
+              <!-- Kuvan sovitus napissa -->
               <div style="margin-top:12px">
+                <label class="cb-label" style="margin-bottom:6px;display:block">Kuvan sovitus napissa</label>
+                <div style="display:flex;gap:8px">
+                  <label class="ap-fit-opt" style="flex:1;display:flex;align-items:flex-start;gap:8px;padding:10px;border:2px solid #e2e8f0;border-radius:9px;cursor:pointer">
+                    <input type="radio" name="ap-icon-fit" value="contain" ${b.iconFit!=='cover'?'checked':''} style="margin-top:2px">
+                    <div><div style="font-size:12px;font-weight:600;color:#1e293b">Mahtuu sisään</div><div style="font-size:11px;color:#64748b;margin-top:2px">Koko kuva näkyy napin sisällä</div></div>
+                  </label>
+                  <label class="ap-fit-opt" style="flex:1;display:flex;align-items:flex-start;gap:8px;padding:10px;border:2px solid #e2e8f0;border-radius:9px;cursor:pointer">
+                    <input type="radio" name="ap-icon-fit" value="cover" ${b.iconFit==='cover'?'checked':''} style="margin-top:2px">
+                    <div><div style="font-size:12px;font-weight:600;color:#1e293b">Täyttää napin</div><div style="font-size:11px;color:#64748b;margin-top:2px">Kuva täyttää napin, keskusta rajautuu muotoon</div></div>
+                  </label>
+                </div>
+              </div>
+              <!-- Kuvan koko napissa (vain "Mahtuu sisään") -->
+              <div id="ap-icon-scale-wrap" style="margin-top:12px;${b.iconFit==='cover'?'display:none':''}">
                 <label class="cb-label" style="display:flex;align-items:center;justify-content:space-between">
                   <span>Kuvan koko napissa</span>
                   <span id="ap-icon-scale-label" style="font-weight:700;color:#1e293b">${b.iconScale||65}%</span>
@@ -873,6 +887,15 @@ function renderAppearanceTab(tc, bot) {
     refreshPreview();
   });
 
+  // Kuvan sovitus napissa (contain/cover) — näytä koko-liukusäädin vain "Mahtuu sisään" -tilassa
+  tc.querySelectorAll('input[name="ap-icon-fit"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const cover = tc.querySelector('input[name="ap-icon-fit"]:checked')?.value === 'cover';
+      const wrap = tc.querySelector('#ap-icon-scale-wrap');
+      if (wrap) wrap.style.display = cover ? 'none' : '';
+    });
+  });
+
   // Lataa valittu fontti esikatselua varten
   ensureGoogleFont(w.fontFamily);
   tc.querySelector('#ap-font')?.addEventListener('change', e => ensureGoogleFont(e.target.value));
@@ -964,6 +987,7 @@ function renderAppearanceTab(tc, bot) {
         iconType:   tc.querySelector('#ap-icon-type').value,
         iconValue:  tc.querySelector('#ap-icon-value')?.value || 'chat',
         iconScale:  Number(tc.querySelector('#ap-icon-scale')?.value || 65),
+        iconFit:    tc.querySelector('input[name="ap-icon-fit"]:checked')?.value || 'contain',
         position:   tc.querySelector('#ap-position').value
       },
       grabber: {
@@ -1138,7 +1162,12 @@ function renderPreviewWidget(bot, state) {
   if (b.iconType === 'emoji') {
     iconHtml = `<span style="font-size:${Math.round(size*0.42)}px;line-height:1">${escHtml(b.iconValue||'💬')}</span>`;
   } else if (b.iconType === 'image') {
-    iconHtml = `<img src="${escHtml(b.iconValue||'')}" style="width:60%;height:60%;object-fit:contain;border-radius:4px" onerror="this.style.display='none'">`;
+    if (b.iconFit === 'cover') {
+      iconHtml = `<img src="${escHtml(b.iconValue||'')}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`;
+    } else {
+      const pct = (b.iconScale||65) + '%';
+      iconHtml = `<img src="${escHtml(b.iconValue||'')}" style="width:${pct};height:${pct};object-fit:contain" onerror="this.style.display='none'">`;
+    }
   } else {
     iconHtml = presetIconSvg(b.iconValue || 'chat', iconSvgSize, iColor);
   }
@@ -1180,7 +1209,7 @@ function renderPreviewWidget(bot, state) {
           ${grabberText}
           <div style="position:absolute;bottom:-7px;right:18px;width:12px;height:12px;background:#fff;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;transform:rotate(45deg)"></div>
         </div>` : ''}
-      <div style="width:${size}px;height:${size}px;border-radius:${shape};background:${launcherBg};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.22);cursor:pointer;flex-shrink:0">
+      <div style="width:${size}px;height:${size}px;border-radius:${shape};background:${launcherBg};display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.22);cursor:pointer;flex-shrink:0">
         ${iconHtml}
       </div>
     </div>`;

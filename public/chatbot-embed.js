@@ -164,6 +164,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
         box-shadow: 0 4px 16px rgba(0,0,0,0.22);
         transition: transform 0.18s ease, box-shadow 0.18s ease;
         flex-shrink: 0;
@@ -490,8 +491,13 @@
     if (btnIconType === 'emoji') {
       btnIconHtml = `<span class="pm-emoji" style="font-size:${Math.round(size*0.42)}px;line-height:1;pointer-events:none">${btnIconValue}</span>`;
     } else if (btnIconType === 'image') {
-      const imgPct = (btn.iconScale || 65) + '%';
-      btnIconHtml = `<img src="${btnIconValue}" style="width:${imgPct};height:${imgPct};object-fit:contain;pointer-events:none" onerror="this.style.display='none'">`;
+      if (btn.iconFit === 'cover') {
+        // Kuva täyttää koko napin ja rajautuu napin muotoon (overflow:hidden napissa)
+        btnIconHtml = `<img src="${btnIconValue}" style="width:100%;height:100%;object-fit:cover;pointer-events:none" onerror="this.style.display='none'">`;
+      } else {
+        const imgPct = (btn.iconScale || 65) + '%';
+        btnIconHtml = `<img src="${btnIconValue}" style="width:${imgPct};height:${imgPct};object-fit:contain;pointer-events:none" onerror="this.style.display='none'">`;
+      }
     } else {
       // Preset SVG-ikoni nimen perusteella
       btnIconHtml = buildPresetSvg(btnIconValue || 'chat', iconSz, iconColor);
