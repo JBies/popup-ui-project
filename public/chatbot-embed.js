@@ -304,6 +304,7 @@
       /* Viestialue */
       #pm-messages {
         flex: 1;
+        min-height: 0;
         overflow-y: auto;
         padding: 16px 14px;
         display: flex;
@@ -361,13 +362,26 @@
         flex-direction: column;
         gap: 8px;
         font-family: ${fontStack};
+        max-height: 60%;
+        overflow-y: auto;
+        flex-shrink: 0;
       }
       #pm-lead-form.pm-hidden { display: none; }
-      .pm-lead-title { font-size: 12px; font-weight: 600; color: #374151; }
-      .pm-lead-row { display: flex; gap: 6px; }
+      .pm-lead-head { display: flex; align-items: center; gap: 8px; }
+      .pm-lead-title { font-size: 12.5px; font-weight: 600; color: #374151; flex: 1; }
+      .pm-lead-close {
+        background: none; border: none; cursor: pointer;
+        color: #94a3b8; font-size: 16px; line-height: 1; padding: 2px 4px;
+        flex-shrink: 0; font-family: inherit;
+      }
+      .pm-lead-close:hover { color: #475569; }
+      /* Kentät allekkain selkeyden vuoksi */
+      .pm-lead-fields { display: flex; flex-direction: column; gap: 7px; }
+      .pm-lead-row { display: flex; gap: 6px; align-items: center; }
       .pm-lead-input {
-        flex: 1;
-        padding: 8px 10px;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 11px;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         font-size: 13px;
@@ -547,8 +561,11 @@
         </div>
         <div id="pm-messages"></div>
         <div id="pm-lead-form" class="pm-hidden">
-          <div class="pm-lead-title">Jätä yhteystietosi 👋</div>
-          <div class="pm-lead-row">${leadFieldsHtml}</div>
+          <div class="pm-lead-head">
+            <div class="pm-lead-title">Jätä yhteystietosi 👋</div>
+            <button class="pm-lead-close" id="pm-lead-close" title="Sulje">✕</button>
+          </div>
+          <div class="pm-lead-fields">${leadFieldsHtml}</div>
           <div class="pm-lead-row">
             <button class="pm-lead-submit" id="pm-lead-submit">Lähetä</button>
             <button class="pm-lead-skip"   id="pm-lead-skip">Ohita</button>
@@ -561,7 +578,6 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
         </div>
-        <div id="pm-footer">${escHtml(cfg.poweredBy || '')}</div>
       </div>
 
       <div id="pm-grabber">
@@ -783,6 +799,7 @@
       hideLeadForm();
     });
     shadow.getElementById('pm-lead-skip')?.addEventListener('click', hideLeadForm);
+    shadow.getElementById('pm-lead-close')?.addEventListener('click', hideLeadForm);
 
     // Aloita sessio palvelimella
     apiPost(`/api/chat/${BOT_ID}/session`, {
@@ -799,6 +816,13 @@
   function linkify(str) {
     var s = escHtml(str);
     var A = ' style="color:inherit;text-decoration:underline"';
+    // Markdown-linkit [teksti](url) — talletetaan paikkamerkeillä ettei niitä linkitetä uudelleen
+    var saved = [];
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (m, text, url) {
+      var clean = url.replace(/[.,!?;:]+$/, '');
+      saved.push('<a href="' + clean + '" target="_blank" rel="noopener noreferrer"' + A + '>' + text + '</a>');
+      return '\uE000' + (saved.length - 1) + '\uE000';
+    });
     // http(s)://...
     s = s.replace(/(https?:\/\/[^\s<]+)/g, function (u) {
       var clean = u.replace(/[.,!?;:)]+$/, ''), tail = u.slice(clean.length);
@@ -813,6 +837,8 @@
     s = s.replace(/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, function (e) {
       return '<a href="mailto:' + e + '"' + A + '>' + e + '</a>';
     });
+    // Palauta markdown-linkit paikkamerkeistä
+    s = s.replace(/\uE000(\d+)\uE000/g, function (m, i) { return saved[+i]; });
     return s;
   }
 })();
