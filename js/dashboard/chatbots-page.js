@@ -1222,12 +1222,25 @@ function renderPreviewWidget(bot, state) {
 
   // ── Painike-tila (suljettu) ────────────────────────────────────────────────
   const grabberText = (bot.grabber?.enabled !== false) ? escHtml(bot.grabber?.text || 'Onko sinulla kysyttävää? 💬') : '';
+  // Sijainti esikatselussa (sama logiikka kuin embedissä: bottom/top + left/right)
+  const pos     = b.position || 'bottom-right';
+  const isTop   = pos.startsWith('top');
+  const isLeft  = pos.endsWith('left');
+  const vertCss = isTop  ? 'top:16px'  : 'bottom:16px';
+  const horCss  = isLeft ? 'left:16px' : 'right:16px';
+  const alignCss = isLeft ? 'flex-start' : 'flex-end';
+  // Painike ensin kun se on yläreunassa, jotta heräteteksti jää sen alapuolelle
+  const dirCss  = isTop ? 'column-reverse' : 'column';
+  // Heräteteksti-kuplan nuoli osoittaa kohti painiketta
+  const arrowVert = isTop ? 'top:-7px;border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0'
+                          : 'bottom:-7px;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0';
+  const arrowHor  = isLeft ? 'left:18px' : 'right:18px';
   return `
-    <div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-family:${fontStack}">
+    <div style="position:absolute;${vertCss};${horCss};display:flex;flex-direction:${dirCss};align-items:${alignCss};gap:10px;font-family:${fontStack}">
       ${grabberText ? `
         <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:9px 13px;font-size:12px;color:#374151;box-shadow:0 2px 10px rgba(0,0,0,0.1);max-width:190px;position:relative;line-height:1.4">
           ${grabberText}
-          <div style="position:absolute;bottom:-7px;right:18px;width:12px;height:12px;background:#fff;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;transform:rotate(45deg)"></div>
+          <div style="position:absolute;${arrowVert};${arrowHor};width:12px;height:12px;background:#fff;transform:rotate(45deg)"></div>
         </div>` : ''}
       <div style="width:${size}px;height:${size}px;border-radius:${shape};background:${launcherBg};display:flex;align-items:center;justify-content:center;overflow:${isCustomShape?'visible':'hidden'};${isCustomShape?'filter:drop-shadow(0 4px 10px rgba(0,0,0,0.35))':'box-shadow:0 4px 14px rgba(0,0,0,0.22)'};cursor:pointer;flex-shrink:0">
         ${iconHtml}
@@ -1239,9 +1252,10 @@ function renderPreviewWidget(bot, state) {
 // VÄLILEHTI: TESTAA (PLAYGROUND) — oikea, toimiva chat botin asetuksilla
 // ─────────────────────────────────────────────────────────────────────────────
 function renderPlaygroundTab(tc, bot) {
-  const b   = bot.button   || {};
-  const w   = bot.window   || {};
-  const beh = bot.behavior || {};
+  const b    = bot.button   || {};
+  const w    = bot.window   || {};
+  const beh  = bot.behavior || {};
+  const lead = bot.leadForm || {};
   const color = b.color || '#2563EB';
 
   const FONT_STACKS = {
@@ -1292,6 +1306,19 @@ function renderPlaygroundTab(tc, bot) {
         <div id="pg-quick" style="display:${qr.length?'flex':'none'};flex-wrap:wrap;gap:6px;padding:8px 12px 4px;background:${barBg};${barBlur}flex-shrink:0">
           ${qr.map(t => `<button class="pg-qr" style="padding:5px 12px;border:1.5px solid ${color};border-radius:99px;background:transparent;color:${color};font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">${escHtml(t)}</button>`).join('')}
         </div>
+        <div id="pg-lead-form" style="display:none;flex-direction:column;gap:6px;padding:10px 12px;border-top:1px solid ${fancy?'rgba(0,0,0,0.06)':'#e2e8f0'};background:${barBg};${barBlur}flex-shrink:0">
+          <div style="font-size:12px;font-weight:600;color:#374151">Jätä yhteystietosi 👋</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${lead.fields?.name !==false ? `<input class="pg-lead-input" id="pg-lead-name"  type="text"  placeholder="Nimi"        style="flex:1;min-width:90px;border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:${fontStack};outline:none;background:#fff;color:#1e293b">` : ''}
+            ${lead.fields?.email!==false ? `<input class="pg-lead-input" id="pg-lead-email" type="email" placeholder="Sähköposti" style="flex:1;min-width:90px;border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:${fontStack};outline:none;background:#fff;color:#1e293b">` : ''}
+            ${lead.fields?.phone        ? `<input class="pg-lead-input" id="pg-lead-phone" type="tel"   placeholder="Puhelin"     style="flex:1;min-width:90px;border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:${fontStack};outline:none;background:#fff;color:#1e293b">` : ''}
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="pg-lead-submit" style="background:${sendBg};color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Lähetä</button>
+            ${lead.required ? '' : '<button id="pg-lead-skip" style="background:none;border:none;color:#94a3b8;font-size:11px;cursor:pointer;font-family:inherit">Ohita</button>'}
+            <span style="font-size:10px;color:#94a3b8;margin-left:auto">testitila — ei tallenneta</span>
+          </div>
+        </div>
         <div style="padding:10px 12px;border-top:1px solid ${fancy?'rgba(0,0,0,0.06)':'#e2e8f0'};display:flex;gap:8px;align-items:flex-end;background:${barBg};${barBlur}flex-shrink:0">
           <textarea id="pg-input" rows="1" placeholder="${escHtml(beh.inputPlaceholder||'Kirjoita viestisi...')}" style="flex:1;resize:none;border:1px solid #e2e8f0;border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:${fontStack};outline:none;background:#fff;max-height:100px;min-height:40px;line-height:1.4;color:#1e293b"></textarea>
           <button id="pg-send" title="Lähetä" style="width:40px;height:40px;border-radius:10px;background:${sendBg};border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -1305,7 +1332,8 @@ function renderPlaygroundTab(tc, bot) {
   const messagesEl = tc.querySelector('#pg-messages');
   const inputEl    = tc.querySelector('#pg-input');
   const sendEl     = tc.querySelector('#pg-send');
-  let sessionId = null, sending = false;
+  const leadFormEl = tc.querySelector('#pg-lead-form');
+  let sessionId = null, sending = false, msgCount = 0, leadDone = false;
 
   const botBubbleCss  = `background:${w.botBubbleColor||'#f1f5f9'};color:${w.botTextColor||'#1e293b'};border-radius:4px 16px 16px 16px`;
   const userBubbleCss = `background:${w.userBubbleColor||color};color:${w.userTextColor||'#fff'};border-radius:16px 4px 16px 16px`;
@@ -1330,10 +1358,34 @@ function renderPlaygroundTab(tc, bot) {
   }
   function removeTyping() { tc.querySelector('#pg-typing')?.remove(); }
 
+  // ── Liidilomake (testitila — ei tallenneta palvelimelle) ──────────────────
+  function showLeadForm() {
+    if (leadDone || !lead.enabled || !leadFormEl) return;
+    leadFormEl.style.display = 'flex';
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function hideLeadForm() {
+    if (leadFormEl) leadFormEl.style.display = 'none';
+    leadDone = true;
+  }
+  tc.querySelector('#pg-lead-submit')?.addEventListener('click', () => {
+    const parts = ['name','email','phone']
+      .map(k => tc.querySelector('#pg-lead-' + k)?.value.trim())
+      .filter(Boolean);
+    if (!parts.length) return;
+    hideLeadForm();
+    addMsg('bot', 'Kiitos! Otamme yhteyttä. (Testitilassa yhteystietoja ei tallenneta — livenä ne tallentuvat Liidit-osioon.)');
+  });
+  tc.querySelector('#pg-lead-skip')?.addEventListener('click', hideLeadForm);
+
   function startSession() {
     sessionId = 'test_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
     messagesEl.innerHTML = '';
+    msgCount = 0; leadDone = false;
+    if (leadFormEl) leadFormEl.style.display = 'none';
     if (beh.welcomeMessage) addMsg('bot', beh.welcomeMessage);
+    // Liidilomake heti alussa
+    if (lead.enabled && lead.timing === 'before') showLeadForm();
     inputEl.focus();
   }
 
@@ -1344,6 +1396,9 @@ function renderPlaygroundTab(tc, bot) {
     sending = true; sendEl.disabled = true; sendEl.style.opacity = '0.5';
     addMsg('user', text);
     inputEl.value = ''; inputEl.style.height = 'auto';
+    // Liidilomake ensimmäisen viestin jälkeen
+    msgCount++;
+    if (lead.enabled && lead.timing === 'after-first' && msgCount === 1) showLeadForm();
     showTyping();
     try {
       const r = await fetch(`/api/chat/${bot._id}/message`, {

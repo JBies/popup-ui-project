@@ -6,6 +6,7 @@ const User        = require('../models/User');
 const ChatBot     = require('../models/ChatBot');
 const ChatSession = require('../models/ChatSession');
 const ChatMessage = require('../models/ChatMessage');
+const Lead        = require('../models/Lead');
 const { sendMail } = require('./email');
 
 function esc(s) {
@@ -15,7 +16,7 @@ function esc(s) {
 /**
  * Rakentaa yhden käyttäjän koosteen HTML:n.
  */
-function buildDigestHtml({ displayName, since, until, bots, totals, samples }) {
+function buildDigestHtml({ displayName, since, until, bots, totals, samples, leads }) {
   const fmtDate = (d) => d.toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' });
   const period  = `${fmtDate(since)} – ${fmtDate(until)}`;
 
@@ -79,6 +80,28 @@ function buildDigestHtml({ displayName, since, until, bots, totals, samples }) {
         💡 Botti ei löytänyt vastausta ${totals.fallbacks} kertaa. Avaa dashboardin <strong>Logit</strong>-välilehti ja käytä <strong>"Muokkaa &amp; opeta"</strong> opettaaksesi oikeat vastaukset.
       </div>` : ''}
 
+    ${leads && leads.length ? `
+      <div style="font-size:13px;font-weight:700;color:#1e293b;margin:18px 0 10px">📋 Uudet liidit (${leads.length})</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">
+        <thead>
+          <tr style="background:#f0fdf4">
+            <th style="padding:8px 12px;text-align:left;font-size:11px;color:#166534;font-weight:600">Nimi</th>
+            <th style="padding:8px 12px;text-align:left;font-size:11px;color:#166534;font-weight:600">Sähköposti</th>
+            <th style="padding:8px 12px;text-align:left;font-size:11px;color:#166534;font-weight:600">Puhelin</th>
+            <th style="padding:8px 12px;text-align:left;font-size:11px;color:#166534;font-weight:600">Aika</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${leads.map(l => `
+            <tr>
+              <td style="padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;color:#1e293b">${esc(l.name) || '–'}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;color:#1e293b">${l.email ? `<a href="mailto:${esc(l.email)}" style="color:#2563EB">${esc(l.email)}</a>` : '–'}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;color:#1e293b">${esc(l.phone) || '–'}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;color:#64748b;white-space:nowrap">${new Date(l.submittedAt).toLocaleString('fi-FI', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>` : ''}
+
     ${sampleBlocks ? `
       <div style="font-size:13px;font-weight:700;color:#1e293b;margin:18px 0 10px">Viimeisimmät keskustelut</div>
       ${sampleBlocks}` : ''}
@@ -97,11 +120,19 @@ async function sendDailyChatDigests(hoursBack = 24) {
   const until = new Date();
   const since = new Date(until.getTime() - hoursBack * 60 * 60 * 1000);
 
-  // Käyttäjät joilla on vähintään yksi botti ja kooste päällä
+  // Käyttäjät joilla on vähintään yksi botti ja kooste päällä.
+  // Huom: ei suodateta chatbotLimits.maxBots:n perusteella — admin luo botteja
+  // rajat ohittaen, jolloin hänen maxBots voi olla 0 vaikka botteja on. Haetaan
+  // omistajat suoraan boteista, niin kaikki botin omistaneet pääsevät mukaan.
+  const ownerIds = await ChatBot.distinct('userId');
+  if (ownerIds.length === 0) {
+    console.log('[chat-digest] Ei botteja — koostetta ei lähetetä.');
+    return 0;
+  }
   const users = await User.find({
-    'emailNotifications.chatDailyDigest': { $ne: false },
-    'chatbotLimits.maxBots': { $gt: 0 }
-  }).select('email displayName emailNotifications chatbotLimits').lean();
+    _id: { $in: ownerIds },
+    'emailNotifications.chatDailyDigest': { $ne: false }
+  }).select('email displayName emailNotifications').lean();
 
   let sent = 0;
 
@@ -165,12 +196,28 @@ async function sendDailyChatDigests(hoursBack = 24) {
         return { botName: botNames.get(String(s.botId)) || 'Chatbot', createdAt: s.createdAt, messages: ms };
       }).filter(s => s.messages.length > 0);
 
+      // Uudet liidit (chatista) aikaikkunassa — yhteystiedot koosteeseen
+      const leadDocs = await Lead.find({
+        userId: user._id,
+        variant: 'chat',
+        submittedAt: { $gte: since, $lte: until }
+      }).sort({ submittedAt: -1 }).lean();
+      const leads = leadDocs.map(l => ({
+        name:  l.data?.name  || '',
+        email: l.data?.email || '',
+        phone: l.data?.phone || '',
+        submittedAt: l.submittedAt
+      }));
+      // Näytä otsikkokortissa sama liidimäärä kuin listassa
+      totals.leads = leads.length;
+
       const html = buildDigestHtml({
         displayName: user.displayName || '',
         since, until,
         bots: activeBots,
         totals,
-        samples
+        samples,
+        leads
       });
 
       const to = user.emailNotifications?.notifyEmail?.trim() || user.email;
