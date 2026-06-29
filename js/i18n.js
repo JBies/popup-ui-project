@@ -141,6 +141,8 @@ const translations = {
 
     // --- index.html hero ---
     'idx.hero.badge':     '7 element types · One line of code · No installation',
+    'idx.hero.h1':        'Turn your website visitors into customers – without coding',
+    'idx.hero.sub':       'Create sticky bars, popups, lead forms and other conversion elements from your dashboard. Add one line of code to your site and you\'re done.',
     'idx.hero.cta1':      'Get started with Google',
     'idx.hero.cta2':      'See features',
     'idx.hero.note':      'No credit card. No installation. Just one line of code.',
