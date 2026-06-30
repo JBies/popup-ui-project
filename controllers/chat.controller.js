@@ -99,9 +99,12 @@ class ChatController {
                     welcomeMessage:   bot.behavior.welcomeMessage,
                     inputPlaceholder: bot.behavior.inputPlaceholder,
                     fallbackMessage:  bot.behavior.fallbackMessage,
-                    fallbackContactUrl: bot.behavior.fallbackContactUrl
+                    fallbackContactUrl: bot.behavior.fallbackContactUrl,
+                    fallbackPhone:    bot.behavior.fallbackPhone,
+                    fallbackEmail:    bot.behavior.fallbackEmail
                 },
                 leadForm:   bot.leadForm,
+                quickReplies: bot.quickReplies || [],
                 poweredBy
             });
         } catch (err) {

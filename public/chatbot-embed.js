@@ -485,8 +485,14 @@
       }
 
       @media (max-width: 480px) {
-        #pm-window { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
-        #pm-wrap { bottom: 0 !important; right: 0 !important; left: 0 !important; }
+        /* Puhelimella sirompi ikkuna: ei koko ruutua, vaan reunamarginaalit ja pyöristys */
+        #pm-window {
+          width: calc(100vw - 32px);
+          max-width: calc(100vw - 32px);
+          height: 70vh;
+          max-height: calc(100vh - ${offsetY + size + 28}px);
+          border-radius: 16px;
+        }
       }
     `;
 
