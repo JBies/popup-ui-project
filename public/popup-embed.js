@@ -122,6 +122,10 @@
         popupElement.id = `popup-${popup._id}`;
         popupElement.style.position = 'fixed';
         popupElement.style.width = `${popup.width || 300}px`;
+        // Mobiili: älä koskaan ylitä näytön leveyttä/korkeutta – pieni marginaali reunoihin
+        popupElement.style.maxWidth = 'calc(100vw - 32px)';
+        popupElement.style.maxHeight = 'calc(100vh - 32px)';
+        popupElement.style.boxSizing = 'border-box';
         // Korkeus määräytyy aina sisällöstä – ei lukita pikseliarvoon
         popupElement.style.height = 'auto';
         popupElement.style.zIndex = '999999';
@@ -152,7 +156,7 @@
             const imgEl = document.createElement('img');
             imgEl.src = imageUrl;
             imgEl.alt = '';
-            imgEl.style.cssText = 'display:block;width:100%;height:auto;border-radius:4px';
+            imgEl.style.cssText = 'display:block;width:100%;height:auto;max-height:calc(100vh - 32px);object-fit:contain;border-radius:4px';
 
             if (popup.linkUrl && popup.linkUrl.trim()) {
                 const linkWrap = document.createElement('a');
@@ -192,6 +196,10 @@
             const contentContainer = document.createElement('div');
             contentContainer.style.width = '100%';
             contentContainer.style.height = 'auto';
+            // Jos sisältö on korkeampi kuin näyttö, se vierii popupin sisällä – mitään ei jää piiloon
+            contentContainer.style.maxHeight = '100%';
+            contentContainer.style.overflowY = 'auto';
+            contentContainer.style.minHeight = '0';
             contentContainer.style.display = 'flex';
             contentContainer.style.flexDirection = 'column';
             contentContainer.style.alignItems = 'center';
@@ -310,10 +318,12 @@
                 e.stopPropagation(); // Estä klikkauksen leviäminen popupiin
                 closePopup(popup._id);
             });
-            contentContainer.appendChild(closeButton);
-    
+
             // Lisää sisältökontaineri popupiin
             popupElement.appendChild(contentContainer);
+            // Sulkunappi popupin tasolle, jotta se pysyy paikallaan vaikka sisältö vierii
+            closeButton.style.zIndex = '2';
+            popupElement.appendChild(closeButton);
         }
     
         // Aseta sijainti

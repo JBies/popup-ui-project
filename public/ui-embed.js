@@ -387,8 +387,9 @@ if (!window.ShowElement) {
       Object.assign(box.style, {
         position: 'relative', borderRadius: '12px',
         maxWidth: '90vw', width: (el.width || 400) + 'px',
+        maxHeight: '90vh', boxSizing: 'border-box',
         boxShadow: '0 8px 32px rgba(0,0,0,0.2)', fontFamily: 'system-ui, sans-serif',
-        overflow: 'hidden'
+        overflow: 'hidden auto'
       });
 
       if (isImagePopup && el.imageUrl) {
@@ -581,6 +582,7 @@ if (!window.ShowElement) {
         color: cfg.textColor || el.textColor || '#1f2937',
         borderRadius: '14px', padding: '28px',
         maxWidth: '90vw', width: '400px',
+        maxHeight: '90vh', overflowY: 'auto', boxSizing: 'border-box',
         boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
         fontFamily: 'system-ui, sans-serif'
       });
